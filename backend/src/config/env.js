@@ -7,7 +7,7 @@ const env = {
 
   PORT: process.env.PORT || 3001,
 
-  SESSION_SECRET: process.env.SESSION_SECRET || "ristoword-secret",
+  SESSION_SECRET: process.env.SESSION_SECRET || "controllo-totale-dev-only-change-me",
 
   LICENSE_KEY: process.env.LICENSE_KEY || null,
 

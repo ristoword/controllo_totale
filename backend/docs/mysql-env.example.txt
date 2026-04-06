@@ -1,5 +1,7 @@
 # Esempio variabili per MySQL / Railway (NON inserire nel repo .env reale con segreti)
 # Copiare in backend/.env quando sarete pronti al test.
+#
+# Usa un database DEDICATO a questo sito (nome a scelta sul provider). Non mischiare con DB di altri progetti.
 
 # Flag futuro: src/config/mysqlPersistence.js (oggi nessun repository lo usa ancora)
 # USE_MYSQL_DATABASE=false

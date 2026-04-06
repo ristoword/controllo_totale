@@ -1,5 +1,11 @@
 # MySQL / Railway
 
+## Isolamento database
+
+**Controllo Totale** deve usare un **database MySQL creato per questo deploy** (nome e credenziali dedicati). Non collegare `DATABASE_URL` a database di altri prodotti o ambienti. Dettagli: `docs/DATABASE_ISOLATION.md` (repo root).
+
+---
+
 Questa nota descrive file e passi per MySQL su Railway. Con `USE_MYSQL_DATABASE=false` (default) i dati restano su **JSON**; con `true`, i moduli già migrati (ordini, pagamenti, chiusure, report, storni, turni cassa, **menu**, …) usano il DB dopo bootstrap + migrate (vedi sotto per il menu).
 
 ## Dipendenze Node

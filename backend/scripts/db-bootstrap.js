@@ -10,6 +10,7 @@
 const fs = require("fs");
 const path = require("path");
 const { loadEnv, getBackendRoot } = require("../src/config/loadEnv");
+const { DEFAULT_MYSQL_DATABASE } = require("../src/config/mysqlDefaults");
 
 loadEnv();
 
@@ -48,7 +49,7 @@ function getConfig() {
     port: Number(process.env.MYSQLPORT || process.env.MYSQL_PORT || 3306),
     user: process.env.MYSQLUSER || process.env.MYSQL_USER || "root",
     password: process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || "",
-    database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || "ristoword",
+    database: process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || DEFAULT_MYSQL_DATABASE,
   };
 }
 

@@ -40,6 +40,7 @@ Leggi **[DEPLOY.md](./DEPLOY.md)** (Railway, variabili, healthcheck, MySQL).
 | [docs/CONTROLLO_TOTALE_MASTER_PLAN.md](docs/CONTROLLO_TOTALE_MASTER_PLAN.md) | Roadmap moduli |
 | [docs/ARCHITECTURE_SAAS_SCALING.md](docs/ARCHITECTURE_SAAS_SCALING.md) | Multi-tenant e scala |
 | [docs/DATABASE_EXTENSIONS.sql](docs/DATABASE_EXTENSIONS.sql) | Estensioni DB (HR, fornitori, ricezioni) |
+| [docs/DATABASE_ISOLATION.md](docs/DATABASE_ISOLATION.md) | DB dedicato per deploy (non mischiare con altri progetti) |
 
 Storico e report di progetto sono in **`docs/_archive/`** (non servono al runtime).
 

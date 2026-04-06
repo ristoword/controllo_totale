@@ -37,6 +37,8 @@ Configurazione già allineata in `railway.toml` (root).
 
 ## MySQL (produzione)
 
+**Database dedicato:** crea un **nuovo** database MySQL per questo sito e non riusare DB di altri progetti. Vedi `docs/DATABASE_ISOLATION.md`.
+
 Imposta `USE_MYSQL_DATABASE=true` e `DATABASE_URL` (o variabili host/user/password come da `backend/.env.example`). Esegui le migrazioni/bootstrap indicati in `backend/docs/MYSQL_RAILWAY.md` se applicabile.
 
 ## Build
