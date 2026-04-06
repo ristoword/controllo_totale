@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>RISTOWORD – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="login.css" />
+</head>
+<body>
+  <div class="login-shell">
+    <div class="login-card">
+      <div class="brand-block">
+        <div class="brand-logo">RW</div>
+        <div>
+          <h1>RISTOWORD</h1>
+          <p class="subtitle">Accesso sistema</p>
+        </div>
+      </div>
+
+      <form id="login-form" class="login-form" autocomplete="off">
+        <div class="field">
+          <label for="username">Utente</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Es. risto_owner"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Inserisci password"
+            autocomplete="new-password"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="role">Ruolo</label>
+          <select id="role" name="role">
+            <option value="owner">Owner</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="sala">Sala</option>
+            <option value="cucina">Cucina</option>
+            <option value="cassa">Cassa</option>
+            <option value="bar">Bar</option>
+            <option value="pizzeria">Pizzeria</option>
+            <option value="magazzino">Magazzino</option>
+            <option value="staff">Staff</option>
+            <option value="cashier">Cassa (demo)</option>
+            <option value="kitchen">Cucina (demo)</option>
+            <option value="customer">Cliente</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-login" id="btn-login">
+          Entra
+        </button>
+
+        <div id="login-message" class="login-message"></div>
+      </form>
+      <p style="text-align:center;margin-top:14px;font-size:13px;opacity:0.85">
+        <a href="/dashboard/dashboard.html" style="color:inherit">← Dashboard</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="login.js"></script>
+</body>
+</html>

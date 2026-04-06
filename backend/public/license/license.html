@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>RISTOWORD – Attivazione licenza</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/login/login.css" />
+</head>
+<body>
+  <div class="login-shell">
+    <div class="login-card">
+      <div class="brand-block">
+        <div class="brand-logo">RW</div>
+        <div>
+          <h1>RISTOWORD</h1>
+          <p class="subtitle">Attivazione licenza</p>
+        </div>
+      </div>
+
+      <div id="license-message" class="login-message"></div>
+
+      <form id="license-form" class="login-form">
+        <div class="field">
+          <label for="licenseCode">Codice licenza</label>
+          <input type="text" id="licenseCode" placeholder="Codice" required autocomplete="off" spellcheck="false" />
+        </div>
+        <p class="subtitle" style="font-size:12px;opacity:0.85;">Verifica tramite Gestione Semplificata (POST JSON).</p>
+        <button type="submit" class="btn-login" id="btn-activate">Verifica codice</button>
+      </form>
+      <p style="text-align:center;margin-top:16px;font-size:13px;">
+        <a href="/dashboard/dashboard.html" style="color:inherit;opacity:0.9">← Dashboard</a>
+      </p>
+    </div>
+  </div>
+  <script src="license.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "activated": true,
+  "license_key": "DEMO-TRIAL",
+  "licenseCode": "DEMO-TRIAL",
+  "activated_at": "2025-01-01T00:00:00.000Z",
+  "activatedAt": "2025-01-01T00:00:00.000Z",
+  "restaurantName": "Ristoword Demo",
+  "plan": "pro",
+  "expiresAt": null
+}

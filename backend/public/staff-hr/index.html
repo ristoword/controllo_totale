@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Controllo Totale — Staff HR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="staff-hr.css" />
+</head>
+<body>
+  <div class="layout-hr">
+    <header class="topbar-hr">
+      <div>
+        <div class="brand-row">
+          <div class="logo-ct">CT</div>
+          <div>
+            <h1>Staff HR</h1>
+            <p class="subtitle">Presenze, schede dipendenti, ferie, permessi, stipendi — struttura dati in <code>docs/DATABASE_EXTENSIONS.sql</code></p>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a class="btn" href="/dashboard/dashboard.html">← Dashboard</a>
+        <a class="btn primary" href="/sala/sala-fullscreen.html">Sala fullscreen</a>
+      </div>
+    </header>
+
+    <section class="grid-modules">
+      <article class="card-hr">
+        <h2>Anagrafica</h2>
+        <p>Dati anagrafici, contatti, IBAN, ruolo, reparto, date assunzione/cessazione.</p>
+        <span class="tag-roadmap">API + tabella employees</span>
+      </article>
+      <article class="card-hr">
+        <h2>Presenze</h2>
+        <p>Timbrature ingresso/uscita, pause, ore calcolate.</p>
+        <span class="tag-roadmap">attendance_events</span>
+      </article>
+      <article class="card-hr">
+        <h2>Ferie & permessi</h2>
+        <p>Richieste, approvazioni, saldi giorni, storico.</p>
+        <span class="tag-roadmap">leave_requests</span>
+      </article>
+      <article class="card-hr">
+        <h2>Malattia & riposi</h2>
+        <p>Certificati, giorni coperti, integrazione con presenze.</p>
+        <span class="tag-roadmap">workflow HR</span>
+      </article>
+      <article class="card-hr">
+        <h2>Stipendi & compensi</h2>
+        <p>Stipendi, premi, buoni, trattenute, cedolini.</p>
+        <span class="tag-roadmap">payroll_entries</span>
+      </article>
+      <article class="card-hr">
+        <h2>Report</h2>
+        <p>Export periodo, costo personale vs fatturato (collegamento a KPI).</p>
+        <span class="tag-roadmap">roadmap</span>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

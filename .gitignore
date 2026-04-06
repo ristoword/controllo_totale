@@ -1,0 +1,21 @@
+node_modules/
+.env
+.env.local
+dist/
+build/
+coverage/
+logs/
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Super Admin: credenziali e sessioni (generati in locale)
+backend/data/super-admin/
+
+# Sessioni express-session (file store in produzione)
+backend/data/sessions/
+
+# Backup automatici e cartella accidentale nested
+backend/backups/
+backend/backend/

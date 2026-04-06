@@ -1,0 +1,809 @@
+:root {
+  --bg: #13151b;
+  --bg-alt: #1b1f27;
+  --bg-soft: #202432;
+  --border-soft: #2b3140;
+  --accent: #f5b800;
+  --accent-soft: #f5b8001f;
+  --accent-danger: #ff4b4b;
+  --text: #f5f5f7;
+  --text-soft: #a4a7b3;
+  --text-muted: #808491;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+
+  /* Tavoli */
+  --tbl-free: #3d424d;
+  --tbl-open: #2563eb;
+  --tbl-work: #ca8a04;
+  --tbl-ready: #dc2626;
+  --tbl-bill: #ea580c;
+  --tbl-paid: #16a34a;
+  --tbl-served: #9333ea;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto,
+    sans-serif;
+  background: radial-gradient(circle at top left, #202331 0, #111218 55%);
+  color: var(--text);
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 16px 18px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.topbar-left h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: #1f222b;
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid #2b3040;
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+}
+
+.chip-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+}
+
+.chip-value {
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+/* MAIN: sinistra fissa, destra mappa */
+.main {
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  max-height: calc(100vh - 100px);
+}
+
+.sala-map-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.sala-floor-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: min(70vh, 900px);
+}
+
+.sala-floor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sala-floor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.sala-tb-btn {
+  font-size: 14px !important;
+  padding: 10px 16px !important;
+  min-height: 44px;
+}
+
+.sala-floor-body {
+  flex: 1;
+  min-height: 420px;
+  padding: 8px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  background: var(--bg-alt);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid #2a3040;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.card-header p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.card-body {
+  padding: 10px 12px 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.form-grid label {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #343848;
+  background: #151822;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: #000;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid #343848;
+}
+
+.selected-items-box {
+  font-size: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #151822;
+  border-radius: var(--radius-md);
+  border: 1px solid #2b3140;
+}
+
+.selected-course-block {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #343848;
+}
+
+.selected-course-block:last-child {
+  border-bottom: none;
+}
+
+.selected-course-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.order-meta {
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.4;
+}
+
+.selected-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+/* ========== MAPPA TAVOLI ========== */
+.sala-floor {
+  position: relative;
+  flex: 1;
+  min-height: 400px;
+  background: linear-gradient(180deg, #161a22 0%, #0f1118 100%);
+  border-radius: var(--radius-md);
+  border: 1px solid #2b3140;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.sala-table-node {
+  position: absolute;
+  width: 14%;
+  min-width: 72px;
+  max-width: 120px;
+  aspect-ratio: 1;
+  min-height: 72px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: grab;
+  user-select: none;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  z-index: 1;
+  padding: 6px;
+}
+
+.sala-table-node:active {
+  cursor: grabbing;
+}
+
+.sala-table-node.dragging {
+  z-index: 10;
+  opacity: 0.95;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+
+.sala-table-num {
+  font-size: clamp(18px, 2.8vw, 26px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.sala-table-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  line-height: 1.15;
+  opacity: 0.95;
+}
+
+/* Colori stato */
+.sala-table-node.tbl-free {
+  background: var(--tbl-free);
+  color: #fff;
+}
+
+.sala-table-node.tbl-open {
+  background: var(--tbl-open);
+  color: #fff;
+}
+
+.sala-table-node.tbl-work {
+  background: var(--tbl-work);
+  color: #111;
+}
+
+.sala-table-node.tbl-ready {
+  background: var(--tbl-ready);
+  color: #fff;
+}
+
+.sala-table-node.tbl-served {
+  background: var(--tbl-served);
+  color: #fff;
+}
+
+.sala-table-node.tbl-bill {
+  background: var(--tbl-bill);
+  color: #fff;
+}
+
+.sala-table-node.tbl-paid {
+  background: var(--tbl-paid);
+  color: #fff;
+}
+
+.sala-table-node.tbl-reserved {
+  background: var(--tbl-free);
+  border-style: dashed;
+  color: var(--text-soft);
+}
+
+/* ========== POPUP ========== */
+.sala-popup-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+}
+
+.sala-popup-backdrop.open {
+  display: block;
+}
+
+.sala-popup {
+  display: none;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - 24px));
+  max-height: min(88vh, 720px);
+  overflow: hidden;
+  flex-direction: column;
+  z-index: 1001;
+  background: var(--bg-alt);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+}
+
+.sala-popup.open {
+  display: flex;
+}
+
+.sala-popup-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #2a3040;
+}
+
+.sala-popup-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.sala-popup-close {
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.sala-popup-body {
+  padding: 14px 16px 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sala-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sala-popup-btn {
+  width: 100%;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid #343848;
+  background: #202632;
+  color: var(--text);
+  cursor: pointer;
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.sala-popup-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sala-popup-btn.food {
+  border-left: 4px solid #2563eb;
+}
+
+.sala-popup-btn.bar {
+  border-left: 4px solid #a855f7;
+}
+
+.sala-popup-btn.danger {
+  border-color: var(--accent-danger);
+  color: #ffb4b4;
+}
+
+.sala-popup-quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sala-popup-quick-links .sala-popup-btn {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: min(100%, 140px);
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.sala-popup-hint {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin: 0 0 10px;
+}
+
+/* Corsi nel popup */
+.sala-courses-block {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #2b3140;
+}
+
+.sala-courses-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sala-courses-actions button {
+  flex: 1;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: 2px solid #343848;
+  background: #1a1e28;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sala-course-row {
+  margin-bottom: 10px;
+  border-radius: var(--radius-md);
+  border: 2px solid #343848;
+  overflow: hidden;
+  background: #181b24;
+}
+
+.sala-course-row.active {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.4);
+}
+
+.sala-course-row.future {
+  border-color: #16a34a;
+}
+
+.sala-course-head {
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sala-course-row.active .sala-course-head {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fecaca;
+}
+
+.sala-course-row.future .sala-course-head {
+  background: rgba(22, 163, 74, 0.15);
+  color: #bbf7d0;
+}
+
+.sala-course-body {
+  padding: 8px 12px 12px;
+  font-size: 13px;
+  color: var(--text-soft);
+  border-top: 1px solid #2b3140;
+}
+
+/* Corsi nel pannello principale (colonna sinistra) */
+.sala-main-course-panel {
+  min-height: 40px;
+}
+
+.sala-courses-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.sala-courses-toolbar .btn {
+  min-height: 40px;
+}
+
+.sala-courses-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sala-course-card {
+  border-radius: var(--radius-md);
+  border: 2px solid #343848;
+  background: #181b24;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sala-course-card.is-active {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.35);
+}
+
+.sala-course-card-head {
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(22, 163, 74, 0.1);
+  border-bottom: 1px solid #2b3140;
+}
+
+.sala-course-card.is-active .sala-course-card-head {
+  background: rgba(220, 38, 38, 0.22);
+}
+
+.sala-course-head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sala-course-num-label {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.sala-course-active-pill {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.35);
+  color: #fecaca;
+}
+
+.sala-course-head-right {
+  flex-shrink: 0;
+}
+
+.sala-course-card-body {
+  padding: 8px 12px 12px;
+  font-size: 13px;
+}
+
+.sala-course-dish-empty {
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 6px 0;
+}
+
+.sala-course-dish-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #252a36;
+}
+
+.sala-course-dish-row:last-child {
+  border-bottom: none;
+}
+
+.sala-course-dish-text {
+  color: var(--text-soft);
+  flex: 1;
+  min-width: 0;
+}
+
+.sala-course-dish-qty {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.sala-course-remove-btn {
+  flex-shrink: 0;
+}
+
+.sala-main-courses-actions {
+  margin-bottom: 10px;
+}
+
+.sala-courses-list-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sala-course-status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(245, 184, 0, 0.15);
+  color: var(--accent);
+}
+
+.sala-selected-hint {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.sala-selected-items-hint {
+  min-height: 0;
+  padding: 8px 0 0;
+}
+
+.sala-order-preview {
+  font-size: 12px;
+  line-height: 1.45;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  background: #151822;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #2b3140;
+}
+
+.btn-xs {
+  padding: 3px 8px;
+  font-size: 10px;
+  border-radius: 999px;
+  border: 1px solid #343848;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.btn-xs.danger {
+  border-color: var(--accent-danger);
+  color: var(--accent-danger);
+}
+
+/* Menu del giorno */
+.daily-menu-readonly .daily-menu-loading,
+.daily-menu-readonly .daily-menu-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.daily-menu-readonly .daily-cat {
+  margin-bottom: 12px;
+}
+
+.daily-menu-readonly .daily-cat-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.daily-menu-readonly .daily-dish-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.daily-menu-readonly .daily-dish-row .price {
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: 8px;
+}
+
+@media (max-width: 1100px) {
+  .main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .left-column {
+    max-height: none;
+  }
+
+  .sala-floor-card {
+    min-height: 55vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

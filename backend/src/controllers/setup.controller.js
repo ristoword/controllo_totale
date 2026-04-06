@@ -1,0 +1,121 @@
+const setupConfig = require("../config/setup");
+const paths = require("../config/paths");
+const path = require("path");
+const fs = require("fs");
+const onboardingService = require("../service/onboarding.service");
+
+// GET /api/setup/status
+async function getStatus(req, res) {
+  const config = setupConfig.readConfig();
+  const complete = !!(config && config.setupComplete);
+  return res.json({
+    setupComplete: complete,
+    restaurantName: config?.restaurantName || "",
+    numTables: config?.numTables ?? 0,
+    departments: config?.departments || { sala: true, cucina: true, pizzeria: true, bar: true },
+  });
+}
+
+// POST /api/setup
+async function runSetup(req, res) {
+  const allowRepeat =
+    String(process.env.SETUP_ALLOW_REPEAT_POST || "").trim().toLowerCase() === "true";
+  if (!allowRepeat) {
+    const cfg = setupConfig.readConfig();
+    if (cfg && cfg.setupComplete === true) {
+      return res.status(403).json({
+        ok: false,
+        error: "La configurazione iniziale è già stata completata.",
+      });
+    }
+  }
+
+  const { restaurantName, numTables, departments, seedMenu } = req.body || {};
+
+  const name = (restaurantName || "").trim();
+  if (!name) {
+    return res.status(400).json({ ok: false, error: "Nome ristorante obbligatorio." });
+  }
+
+  const tables = Math.max(0, Math.min(999, Number(numTables) || 20));
+  const depts = {
+    sala: departments?.sala !== false,
+    cucina: departments?.cucina !== false,
+    pizzeria: departments?.pizzeria !== false,
+    bar: departments?.bar !== false,
+  };
+
+  const defaultDir = path.join(paths.DATA, "tenants", "default");
+  fs.mkdirSync(defaultDir, { recursive: true });
+
+  if (seedMenu !== false) {
+    const menuPath = path.join(defaultDir, "menu.json");
+    let menu = [];
+    try {
+      if (fs.existsSync(menuPath)) {
+        const raw = fs.readFileSync(menuPath, "utf8");
+        const parsed = JSON.parse(raw);
+        menu = Array.isArray(parsed) ? parsed : [];
+      }
+    } catch (_) {}
+
+    if (menu.length === 0) {
+      const seed = [
+        { id: 1, name: "Acqua", category: "Bevande", price: 2.5, active: true, area: "bar" },
+        { id: 2, name: "Caffè", category: "Bevande", price: 1.5, active: true, area: "bar" },
+        { id: 3, name: "Margherita", category: "Pizze", price: 8, active: depts.pizzeria, area: "pizzeria" },
+        { id: 4, name: "Pasta al pomodoro", category: "Primi", price: 10, active: depts.cucina, area: "cucina" },
+        { id: 5, name: "Insalata mista", category: "Contorni", price: 6, active: depts.cucina, area: "cucina" },
+      ];
+      fs.writeFileSync(menuPath, JSON.stringify(seed, null, 2), "utf8");
+    }
+  }
+
+  const TENANT_FILES = [
+    "orders.json", "inventory.json", "inventory-transfers.json", "payments.json", "bookings.json",
+    "menu.json", "closures.json", "catering-events.json", "catering-presets.json", "haccp-checks.json",
+    "devices.json", "print-routes.json", "print-jobs.json",
+  ];
+  for (const f of TENANT_FILES) {
+    const p = path.join(defaultDir, f);
+    if (!fs.existsSync(p)) {
+      fs.writeFileSync(p, f === "menu.json" ? "[]" : "[]", "utf8");
+    }
+  }
+
+  setupConfig.writeConfig({
+    restaurantName: name,
+    numTables: tables,
+    departments: depts,
+    setupComplete: true,
+    completedAt: new Date().toISOString(),
+  });
+
+  return res.json({
+    ok: true,
+    message: "Configurazione completata.",
+    restaurantName: name,
+    numTables: tables,
+    departments: depts,
+  });
+}
+
+// POST /api/setup/onboard-restaurant (protected by ONBOARDING_SECRET)
+async function onboardRestaurant(req, res) {
+  try {
+    const result = await onboardingService.onboardRestaurant(req.body, req);
+    return res.status(201).json(result);
+  } catch (err) {
+    const status = err.message.includes("required") || err.message.includes("Invalid") ? 400 : 409;
+    return res.status(status).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
+
+module.exports = {
+  getStatus,
+  runSetup,
+  onboardRestaurant,
+};

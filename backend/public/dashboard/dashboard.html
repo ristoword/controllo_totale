@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>RISTOWORD – Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/dashboard/">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+
+<body>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+
+<div class="brand">
+<div class="brand-logo">RW</div>
+<div class="brand-text">
+<div class="brand-title">RISTOWORD</div>
+<div class="brand-subtitle" data-i18n="brand_subtitle">Control Center</div>
+</div>
+</div>
+
+<nav class="side-nav">
+
+<a class="side-nav-item active" href="/" data-i18n="dashboard">Dashboard</a>
+<a class="side-nav-item" href="/owner-console" title="Licenza, locale, configurazione">Area owner</a>
+<a class="side-nav-item" href="/sala/sala.html" data-i18n="sala">Sala</a>
+<a class="side-nav-item" href="/sala/sala-fullscreen.html" title="Mappa a schermo intero">Sala fullscreen</a>
+<a class="side-nav-item" href="/cucina/cucina.html" data-i18n="cucina">Cucina</a>
+<a class="side-nav-item" href="/pizzeria/pizzeria.html" data-i18n="pizzeria">Pizzeria</a>
+<a class="side-nav-item" href="/bar/bar.html" data-i18n="bar">Bar</a>
+<a class="side-nav-item" href="/cassa/cassa.html" data-i18n="cassa">Cassa</a>
+<a class="side-nav-item" href="/magazzino/magazzino.html" data-i18n="magazzino">Magazzino</a>
+<a class="side-nav-item" href="/qr-tables/qr-tables.html">QR Tavoli</a>
+<a class="side-nav-item" href="/catering/catering.html" data-i18n="catering">Catering</a>
+<a class="side-nav-item" href="/prenotazioni/prenotazioni.html" data-i18n="prenotazioni">Prenotazioni</a>
+<a class="side-nav-item" href="/asporto/asporto.html" data-i18n="asporto">Asporto</a>
+<a class="side-nav-item" href="/supervisor/supervisor.html" data-i18n="supervisor">Supervisor</a>
+<a class="side-nav-item" href="/staff-hr/index.html" title="HR — presenze, ferie, pagamenti">Staff HR</a>
+<a class="side-nav-item" href="/hardware/hardware.html">Hardware / Stampa</a>
+<a class="side-nav-item" href="/menu-admin/menu-admin.html" data-i18n="menu_admin">Menu Admin</a>
+<a class="side-nav-item" href="/daily-menu/daily-menu.html">Menu del Giorno</a>
+
+</nav>
+
+<div class="side-footer">
+<div class="side-footer-text" data-i18n="footer_text">© 2026 Ristoword</div>
+<div class="side-footer-sub" data-i18n="footer_sub">Kitchen-First System</div>
+</div>
+
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<header class="topbar">
+
+<div class="topbar-left">
+<h1 data-i18n="dashboard_title">Dashboard operativa</h1>
+<p class="subtitle" data-i18n="dashboard_subtitle">
+Controllo totale di Sala → Cucina → Pizzeria → Magazzino → Cassa
+</p>
+</div>
+
+<div class="topbar-right">
+
+<div id="lang-selector"></div>
+
+<div class="user-box">
+<div class="user-status-dot"></div>
+<div class="user-info">
+<div class="user-label" data-i18n="account">Account</div>
+<div class="user-name" id="user-name-label" data-i18n="guest">Ospite</div>
+</div>
+</div>
+
+<button class="btn ghost" id="btn-login" data-i18n="login">Login</button>
+<button class="btn primary" id="btn-logout" disabled data-i18n="logout">Logout</button>
+
+</div>
+
+</header>
+
+<!-- KPI -->
+<section class="kpi-row">
+
+<article class="kpi-card">
+<div class="kpi-label" data-i18n="kpi_open">Ordini aperti</div>
+<div class="kpi-value" id="kpi-open">0</div>
+<div class="kpi-note" data-i18n="kpi_open_note">In tutti i reparti</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label" data-i18n="kpi_tables">Tavoli occupati</div>
+<div class="kpi-value" id="kpi-tables">0</div>
+<div class="kpi-note" data-i18n="kpi_tables_note">Attivi</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label" data-i18n="kpi_ready">Pronti</div>
+<div class="kpi-value" id="kpi-ready">0</div>
+<div class="kpi-note" data-i18n="kpi_ready_note">Da ritirare</div>
+</article>
+
+<article class="kpi-card">
+<div class="kpi-label" data-i18n="kpi_prep">In preparazione</div>
+<div class="kpi-value" id="kpi-prep">0</div>
+<div class="kpi-note" data-i18n="kpi_prep_note">Cucina + Pizzeria</div>
+</article>
+
+<article class="kpi-card warning">
+<div class="kpi-label" data-i18n="kpi_late">In ritardo</div>
+<div class="kpi-value" id="kpi-late">0</div>
+<div class="kpi-note" data-i18n="kpi_late_note">> 15 minuti</div>
+</article>
+
+</section>
+
+<!-- CASH + ALERTS -->
+<section class="dashboard-status-row">
+<article class="status-card" id="cash-status-card">
+<div class="status-label" data-i18n="cash_status">Cassa</div>
+<div class="status-value" id="cash-status-value">—</div>
+</article>
+<article class="alerts-card" id="alerts-card">
+<div class="alerts-label" data-i18n="alerts">Avvisi</div>
+<div class="alerts-list" id="alerts-list"></div>
+</article>
+</section>
+
+<!-- GRID -->
+<section class="grid-main">
+
+<!-- MODULI -->
+<section class="grid-col">
+
+<header class="grid-section-header">
+<h2 data-i18n="operativity">Operatività</h2>
+<p data-i18n="open_dept">Apri un reparto.</p>
+</header>
+
+<div class="modules-grid">
+
+<a class="module-card" href="/sala/sala.html">
+<div class="module-icon">🍽</div>
+<div class="module-title" data-i18n="sala">Sala</div>
+<div class="module-desc" data-i18n="sala_desc">Gestione tavoli</div>
+</a>
+
+<a class="module-card" href="/cucina/cucina.html">
+<div class="module-icon">🔥</div>
+<div class="module-title" data-i18n="cucina">Cucina</div>
+<div class="module-desc" data-i18n="cucina_desc">Preparazione piatti</div>
+</a>
+
+<a class="module-card" href="/pizzeria/pizzeria.html">
+<div class="module-icon">🍕</div>
+<div class="module-title" data-i18n="pizzeria">Pizzeria</div>
+</a>
+
+<a class="module-card" href="/bar/bar.html">
+<div class="module-icon">🍸</div>
+<div class="module-title" data-i18n="bar">Bar</div>
+</a>
+
+<a class="module-card" href="/magazzino/magazzino.html">
+<div class="module-icon">📦</div>
+<div class="module-title" data-i18n="magazzino">Magazzino</div>
+</a>
+
+<a class="module-card" href="/cassa/cassa.html">
+<div class="module-icon">💳</div>
+<div class="module-title" data-i18n="cassa">Cassa</div>
+</a>
+
+<a class="module-card" href="/catering/catering.html">
+<div class="module-icon">🎉</div>
+<div class="module-title" data-i18n="catering">Catering</div>
+</a>
+
+<a class="module-card" href="/prenotazioni/prenotazioni.html">
+<div class="module-icon">📅</div>
+<div class="module-title" data-i18n="prenotazioni">Prenotazioni</div>
+</a>
+
+<a class="module-card" href="/supervisor/supervisor.html">
+<div class="module-icon">🧭</div>
+<div class="module-title" data-i18n="supervisor">Supervisor</div>
+</a>
+
+</div>
+
+</section>
+
+<!-- ULTIME COMANDE -->
+<section class="grid-col">
+
+<header class="grid-section-header">
+<h2 data-i18n="last_orders">Ultime comande</h2>
+</header>
+
+<article class="card last-orders-card">
+<div class="card-body" id="last-orders-list">
+<div class="placeholder" data-i18n="no_orders">
+Nessuna comanda trovata
+</div>
+</div>
+</article>
+
+<header class="grid-section-header">
+<h2>Menu del Giorno</h2>
+<p>Riepilogo piatti attivi – gestito dalla Cucina</p>
+</header>
+
+<article class="card daily-menu-dash-card">
+<div class="card-body" id="daily-menu-dash-content">
+<div class="placeholder">Caricamento...</div>
+</div>
+</article>
+
+<header class="grid-section-header">
+<h2 data-i18n="ai_assist">AI Assist</h2>
+<p data-i18n="ai_assist_desc">Assistente operativo</p>
+</header>
+
+<article class="card ai-card">
+<div class="card-body ai-body">
+
+<label class="ai-label">
+<span data-i18n="ai_label">Scrivi una domanda</span>
+<input type="text" id="ai-input" data-i18n-placeholder="ai_placeholder" placeholder="In arrivo">
+</label>
+
+<button class="btn primary" id="ai-btn" disabled data-i18n="ai_ask">
+Chiedi
+</button>
+
+</div>
+</article>
+
+</section>
+
+</section>
+
+</main>
+
+</div>
+
+<script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa,supervisor,staff,bar,pizzeria,kitchen,cashier,sala_manager,kitchen_manager,cash_manager,bar_manager"></script>
+<script src="/shared/websocket.js"></script>
+<script src="dashboard.js"></script>
+<script src="/js/i18n.js"></script>
+
+</body>
+</html>

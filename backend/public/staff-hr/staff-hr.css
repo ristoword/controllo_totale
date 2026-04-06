@@ -1,0 +1,136 @@
+/* Staff HR — stessi token dashboard */
+:root {
+  --bg: #050712;
+  --bg-alt: #121425;
+  --border-soft: #2a3040;
+  --accent: #f5b800;
+  --text: #f8f8fb;
+  --text-soft: #a4a7bd;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(circle at top left, #272a3b 0, #050712 55%);
+  color: var(--text);
+}
+
+.layout-hr {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 18px 40px;
+}
+
+.topbar-hr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-ct {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 20% 0, #ffffff 0, #f5b800 32%, #f97316 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: #111;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--text-soft);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #343848;
+  background: #202632;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #f5b800, #f97316);
+  color: #111;
+  border: none;
+}
+
+.grid-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card-hr {
+  background: var(--bg-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 18px 18px 16px;
+}
+
+.card-hr h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.card-hr p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+.tag-roadmap {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7c8195;
+}

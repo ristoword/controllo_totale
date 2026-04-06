@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Ristoword – Console Owner</title>
+    <style>
+      :root{--bg:#0b0f19;--card:#111827;--text:#e5e7eb;--muted:#9ca3af;--primary:#f5b800;--border:rgba(255,255,255,.12);--chip:rgba(255,255,255,.06)}
+      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+      .wrap{max-width:1100px;margin:22px auto;padding:0 16px}
+      .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+      .brand h1{margin:0;font-size:18px}.brand .sub{color:var(--muted);font-size:13px;margin-top:4px}
+      .btn{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600;text-decoration:none;display:inline-block;font-size:14px}
+      .btn.primary{background:var(--primary);color:#111;border-color:var(--primary)}
+      .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+      .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+      .card h2{margin:0 0 12px;font-size:15px}
+      .k{color:var(--muted);font-size:12px;margin-bottom:2px}.v{font-weight:700;font-size:14px}
+      .section-wide{grid-column:span 12}.section-6{grid-column:span 6}
+      table{width:100%;border-collapse:collapse;font-size:13px}
+      th,td{border-top:1px solid var(--border);padding:8px 6px;text-align:left}
+      th{color:var(--muted);font-weight:600}
+      .form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;align-items:flex-end}
+      .form-row label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+      .form-row input,.form-row select{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:14px}
+      .muted{color:var(--muted);font-size:12px;line-height:1.5}
+      @media (max-width:900px){.section-6{grid-column:span 12}}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <h1>RISTOWORD – Console Owner</h1>
+          <div class="sub">Gestione licenza, accessi e personale</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <select id="tenant-select" style="background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 12px;outline:none;">
+            <option value="">—</option>
+          </select>
+          <button class="btn" id="btn-refresh">Aggiorna</button>
+          <button class="btn" id="btn-logout">Logout</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card section-6"><h2>1) Licenza</h2>
+          <div><div class="k">Stato</div><div class="v" id="lic-status">—</div></div>
+          <div style="margin-top:10px"><div class="k">Piano</div><div class="v" id="lic-plan">—</div></div>
+          <div style="margin-top:10px"><div class="k">Scadenza</div><div class="v" id="lic-expires">—</div></div>
+        </div>
+
+        <div class="card section-6"><h2>2) Dati attività</h2>
+          <div><div class="k">Locale</div><div class="v mono" id="biz-id">—</div></div>
+          <div style="margin-top:10px"><div class="k">Utenti</div><div class="v" id="users-count">—</div></div>
+        </div>
+
+        <div class="card section-wide"><h2>3) Gestione personale</h2>
+          <div class="form-row">
+            <label>Nome <input type="text" id="staff-name" placeholder="Mario" /></label>
+            <label>Cognome <input type="text" id="staff-surname" placeholder="Rossi" /></label>
+            <label>Username <input type="text" id="staff-username" placeholder="mario.rossi" autocomplete="off" /></label>
+            <label>Password <input type="password" id="staff-password" placeholder="Min. 6 caratteri" autocomplete="new-password" /></label>
+            <label>Ruolo
+              <select id="staff-role">
+                <option value="sala">Sala</option>
+                <option value="cucina">Cucina</option>
+                <option value="pizzeria">Pizzeria</option>
+                <option value="bar">Bar</option>
+                <option value="cassa">Cassa</option>
+                <option value="magazzino">Magazzino</option>
+                <option value="supervisor">Supervisor</option>
+                <option value="staff">Staff</option>
+              </select>
+            </label>
+            <label><button class="btn primary" id="btn-add-staff">Aggiungi</button></label>
+          </div>
+          <div id="form-msg" class="muted" style="margin-top:8px;"></div>
+          <div style="overflow:auto;max-height:240px;margin-top:12px">
+            <table><thead><tr><th>Username</th><th>Nome</th><th>Ruolo</th><th>Stato</th><th>Azioni</th></tr></thead>
+            <tbody id="staff-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <div class="card section-wide"><h2>4) Accesso ai moduli</h2>
+          <div class="muted" style="margin-bottom:12px">Apri i moduli operativi del tuo locale.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a class="btn" href="/dashboard/dashboard.html">Dashboard</a>
+            <a class="btn" href="/sala/sala.html">Sala</a>
+            <a class="btn" href="/cucina/cucina.html">Cucina</a>
+            <a class="btn" href="/cassa/cassa.html">Cassa</a>
+            <a class="btn" href="/bar/bar.html">Bar</a>
+            <a class="btn" href="/magazzino/magazzino.html">Magazzino</a>
+            <a class="btn" href="/supervisor/supervisor.html">Supervisor</a>
+            <a class="btn" href="/staff/staff.html">Staff</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function(){
+        const el=id=>document.getElementById(id);
+        const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+        async function loadStatus(){
+          const tid=(el("tenant-select").value||"").trim();
+          const q=tid?("?tenantId="+encodeURIComponent(tid)):"";
+          const res=await fetch("/dev-access/status"+q,{credentials:"same-origin"});
+          if(!res.ok){ window.location.href="/login/login.html"; return; }
+          const data=await res.json();
+
+          const tenantList=data.tenants?.tenants||[];
+          const select=el("tenant-select");
+          if(select.options.length<=1 && tenantList.length){
+            select.innerHTML="";
+            tenantList.forEach(t=>{
+              const opt=document.createElement("option");
+              opt.value=t; opt.textContent=t; select.appendChild(opt);
+            });
+            const preferred=data.currentTenant||tid||(tenantList[0]);
+          if(preferred) select.value=preferred;
+          }
+
+          const lic=data.localLicenses||{};
+          const dec=lic.decoratedLicense;
+          el("lic-status").textContent=dec?(dec.status+" • "+(dec.plan||"")):"—";
+          el("lic-plan").textContent=dec?.plan||"—";
+          el("lic-expires").textContent=dec?.expiresAt?new Date(dec.expiresAt).toLocaleDateString("it-IT"):"—";
+          el("biz-id").textContent=(tid||data.tenantId||"default");
+          const users=data.localUsers||{};
+          el("users-count").textContent=users.usersCount??0;
+
+          const sample=users.sample||[];
+          const staffRows=sample.filter(u=>String(u.role||"").toLowerCase()!=="owner").map(u=>
+            "<tr><td>"+esc(u.username)+"</td><td>"+esc(u.name||"")+" "+esc(u.surname||"")+"</td><td>"+esc(u.role)+"</td><td>"+(u.is_active===false?"Disattivo":"Attivo")+"</td><td><button class='btn' data-action='toggle' data-id='"+esc(u.id)+"' data-active='"+u.is_active+"'>"+(u.is_active?"Disattiva":"Attiva")+"</button> <button class='btn' data-action='reset' data-id='"+esc(u.id)+"'>Reset password</button></td></tr>"
+          );
+          el("staff-tbody").innerHTML=staffRows.join("");
+        }
+
+        async function api(method,url,body){
+          const opt={method,credentials:"same-origin",headers:{"Content-Type":"application/json"}};
+          if(body) opt.body=JSON.stringify(body);
+          const r=await fetch(url,opt);
+          let d=null;
+          try{d=await r.json();}catch(_){}
+          if(!r.ok) throw new Error(d?.message||d?.error||"Errore");
+          return d;
+        }
+
+        el("btn-add-staff")?.addEventListener("click",async ()=>{
+          const name=(el("staff-name").value||"").trim(), surname=(el("staff-surname").value||"").trim(),
+            username=(el("staff-username").value||"").trim(), password=el("staff-password").value, role=el("staff-role").value;
+          if(!username){el("form-msg").textContent="Username obbligatorio";return;}
+          if(!password||password.length<6){el("form-msg").textContent="Password min. 6 caratteri";return;}
+          el("form-msg").textContent="";
+          try{
+            await api("POST","/api/staff",{name,surname,username,password,role});
+            el("form-msg").textContent="Dipendente aggiunto.";
+            el("staff-name").value="";el("staff-surname").value="";el("staff-username").value="";el("staff-password").value="";
+            await loadStatus();
+          }catch(e){el("form-msg").textContent=e.message;}
+        });
+
+        el("staff-tbody")?.addEventListener("click",async e=>{
+          const btn=e.target.closest("button");
+          if(!btn?.dataset?.action) return;
+          const id=btn.dataset.id;
+          if(btn.dataset.action==="toggle"){
+            const isActive=btn.dataset.active==="true";
+            try{ await api("PATCH","/api/staff/"+id,{active:!isActive}); await loadStatus(); }
+            catch(err){ alert(err.message); }
+          }else if(btn.dataset.action==="reset"){
+            try{ const d=await api("POST","/api/staff/"+id+"/reset-password",{}); alert("Nuova password: "+d.temporaryPassword); await loadStatus(); }
+            catch(err){ alert(err.message); }
+          }
+        });
+
+        el("tenant-select")?.addEventListener("change",loadStatus);
+        el("btn-refresh")?.addEventListener("click",loadStatus);
+
+        el("btn-logout")?.addEventListener("click",async ()=>{try{await api("POST","/api/auth/logout",{});}catch(_){} window.location.href="/login/login.html";});
+        loadStatus().catch(()=>window.location.href="/login/login.html");
+      })();
+    </script>
+  </body>
+</html>

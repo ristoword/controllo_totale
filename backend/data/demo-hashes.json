@@ -1,0 +1,18 @@
+{
+  "risto_owner": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_supervisor": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_sala": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_cucina": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_cassa": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_bar": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_pizzeria": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_magazzino": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_staff": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_cashier": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_kitchen": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_customer": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_cash_manager": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_kitchen_manager": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_sala_manager": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6",
+  "risto_bar_manager": "$2b$10$38L25kPpDxZguh7MjYtkiu2SFcOvJ2PCyQjkxkhw3nLezfZmx9sa6"
+}
