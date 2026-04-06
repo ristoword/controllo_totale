@@ -136,7 +136,8 @@ app.use(requireMustChangePassword);
 app.use(requireOwnerSetup); // prima di requireSetup: owner va a owner-console se non completato
 app.use(requireSetup);
 
-// SYSTEM HEALTH (no auth – for monitoring/load balancers)
+// SYSTEM HEALTH + product metadata (no auth – monitoring, login branding)
+const branding = require("./config/branding");
 function healthHandler(req, res) {
   const uptimeMs = process.uptime() * 1000;
   const uptimeStr = `${Math.floor(uptimeMs / 3600000)}h ${Math.floor((uptimeMs % 3600000) / 60000)}m`;
@@ -144,11 +145,15 @@ function healthHandler(req, res) {
     status: "ok",
     serverTime: new Date().toISOString(),
     uptime: uptimeStr,
-    version: process.env.RISTOWORD_VERSION || "ristoword-dev",
+    version: branding.getAppVersion(),
+    product: branding.getProductInfo(),
   });
 }
 app.get("/api/system/health", healthHandler);
 app.get("/api/health", healthHandler); // alias for backward compatibility
+app.get("/api/system/product", (req, res) => {
+  res.json({ status: "ok", ...branding.getProductInfo() });
+});
 
 // Owner Console (configurazione iniziale cliente)
 try {

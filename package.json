@@ -1,6 +1,11 @@
 {
   "name": "controllo-totale",
+  "version": "1.0.0",
   "private": true,
+  "description": "Controllo Totale — gestionale ristorazione SaaS multi-tenant",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "cd backend && npm start"
   },

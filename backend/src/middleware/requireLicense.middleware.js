@@ -32,6 +32,7 @@ const SKIP_PREFIXES = [
   "/api/owner",
   "/api/super-admin",
   "/api/system/health",
+  "/api/system/product",
   "/api/health",
   "/qr",
   "/api/qr",

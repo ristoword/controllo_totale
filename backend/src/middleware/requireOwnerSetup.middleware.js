@@ -19,7 +19,7 @@ function shouldSkip(pathname) {
   if (p.startsWith("/super-admin")) return true; // super-admin bypass
   if (p.startsWith("/api/super-admin")) return true;
   if (p.startsWith("/dev-access")) return true;
-  if (p === "/api/system/health" || p === "/api/health") return true;
+  if (p === "/api/system/health" || p === "/api/system/product" || p === "/api/health") return true;
   if (p.startsWith("/qr") || p.startsWith("/api/qr")) return true;
   if (p === "/api/menu/active") return true;
   if (p.startsWith("/change-password")) return true;

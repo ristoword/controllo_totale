@@ -14,7 +14,7 @@
           <div class="logo-ct">CT</div>
           <div>
             <h1>Staff HR</h1>
-            <p class="subtitle">Presenze, schede dipendenti, ferie, permessi, stipendi — struttura dati in <code>docs/DATABASE_EXTENSIONS.sql</code></p>
+            <p class="subtitle">Presenze, schede dipendenti, ferie, permessi, stipendi — schema estensioni nel repository (<code>docs/DATABASE_EXTENSIONS.sql</code>).</p>
           </div>
         </div>
       </div>
@@ -23,6 +23,8 @@
         <a class="btn primary" href="/sala/sala-fullscreen.html">Sala fullscreen</a>
       </div>
     </header>
+
+    <p id="ct-product-line" class="subtitle" style="margin-bottom:20px;max-width:720px;"></p>
 
     <section class="grid-modules">
       <article class="card-hr">
@@ -56,6 +58,19 @@
         <span class="tag-roadmap">roadmap</span>
       </article>
     </section>
+
+    <p style="margin-top:28px;font-size:13px;color:#7c8195;">
+      Modulo operativo già integrato: <a href="/staff/staff.html" style="color:#f5b800;">Staff</a> (turni, richieste, report).
+    </p>
   </div>
+  <script>
+    fetch("/api/system/product", { credentials: "same-origin" })
+      .then((r) => r.json())
+      .then((p) => {
+        const el = document.getElementById("ct-product-line");
+        if (el && p.name) el.textContent = p.name + " · v" + (p.version || "—") + " · " + (p.tagline || "");
+      })
+      .catch(() => {});
+  </script>
 </body>
 </html>

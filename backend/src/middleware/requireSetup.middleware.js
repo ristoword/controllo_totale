@@ -7,7 +7,7 @@ const SKIP_PATHS = [
   "/owner-console",
   "/api/auth", "/api/license", "/api/setup", "/api/licenses", "/api/super-admin",
   "/api/checkout", "/api/stripe", "/api/owner",
-  "/api/system/health", "/api/health",
+  "/api/system/health", "/api/system/product", "/api/health",
   "/qr", "/api/qr",
   "/api/menu/active",
 ];

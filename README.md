@@ -1,37 +1,64 @@
 # Controllo Totale
 
-**Piano B** — evoluzione enterprise di Ristoword: stesso codice base, stessi colori e flussi operativi, con documentazione e scheletri per **multi-locale**, **SaaS** e **scala massiccia** (obiettivo progettuale: fino a 10.000 ristoranti in architettura multi-tenant).
+Gestionale ristorazione **multi-reparto** e **multi-tenant** (Sala, Cucina, Bar, Pizzeria, Cassa, Magazzino, Supervisor, Asporto, Catering, Staff).  
+Prodotto **pronto al deploy**: un solo backend Node in `backend/`, healthcheck `/api/health`, branding e metadati prodotto via variabili d’ambiente.
 
-Questa cartella è una **copia completa** del repository Ristoword (senza `node_modules` / `.git` al momento della copia). Va trattata come **prodotto separato** per roadmap, branding e deploy.
+**Questo repository è indipendente** da altri progetti sul computer (es. Ristoword): non condividere cartelle né dati con copie parallele.
 
-## Avvio rapido
+---
+
+## Avvio locale
 
 ```bash
 cd backend
-cp .env.example .env   # configura SESSION_SECRET, DB, ecc.
+cp .env.example .env
+# Imposta almeno SESSION_SECRET (lungo e casuale)
 npm install
 npm start
 ```
 
-Apri `http://localhost:8080/dashboard/dashboard.html` (porta da `.env`).
+*(Se cloni solo la cartella `backend` per il deploy, esegui `npm install` lì.)*
 
-## Documentazione chiave
+Apri il browser su `http://localhost:8080` (o la porta in `.env` / `PORT`).  
+Dashboard: `/dashboard/dashboard.html` · Login: `/login/login.html`
 
-| Documento | Contenuto |
-|-----------|-----------|
-| [docs/CONTROLLO_TOTALE_MASTER_PLAN.md](docs/CONTROLLO_TOTALE_MASTER_PLAN.md) | Visione moduli: Sala fullscreen, Cucina↔Menu, Magazzino, Staff HR, Cassa, SaaS |
-| [docs/ARCHITECTURE_SAAS_SCALING.md](docs/ARCHITECTURE_SAAS_SCALING.md) | Multi-tenant, MySQL, strategia 10k tenant |
-| [docs/DATABASE_EXTENSIONS.sql](docs/DATABASE_EXTENSIONS.sql) | Schema estensioni (HR, ricezioni, fornitori) — bozza evolutiva |
+---
 
-## Pagine aggiunte in questa fork
+## Deploy produzione
 
-- **Sala schermo intero:** `/sala/sala-fullscreen.html` — mappa centrale, barra superiore (personale + orologio), stesso flusso ordini del modulo Sala classico (iframe verso `sala.html`).
-- **Staff HR (scheletro):** `/staff-hr/index.html` — struttura per presenze, schede dipendenti, ferie, permessi, pagamenti (API da collegare alle tabelle in `DATABASE_EXTENSIONS.sql`).
+Leggi **[DEPLOY.md](./DEPLOY.md)** (Railway, variabili, healthcheck, MySQL).
 
-## Branding
+---
 
-Le nuove pagine usano il marchio **Controllo Totale (CT)**. Il resto dell’app può restare etichettato Ristoword fino a una passata di i18n/rebrand globale.
+## Documentazione
 
-## Licenza / vendita
+| File | Contenuto |
+|------|-----------|
+| [DEPLOY.md](./DEPLOY.md) | Deploy, healthcheck, env |
+| [docs/STRUCTURE.md](docs/STRUCTURE.md) | Albero cartelle (senza duplicati) |
+| [docs/PRODUCT_SAAS.md](docs/PRODUCT_SAAS.md) | Posizionamento SaaS e endpoint pubblici |
+| [docs/CONTROLLO_TOTALE_MASTER_PLAN.md](docs/CONTROLLO_TOTALE_MASTER_PLAN.md) | Roadmap moduli |
+| [docs/ARCHITECTURE_SAAS_SCALING.md](docs/ARCHITECTURE_SAAS_SCALING.md) | Multi-tenant e scala |
+| [docs/DATABASE_EXTENSIONS.sql](docs/DATABASE_EXTENSIONS.sql) | Estensioni DB (HR, fornitori, ricezioni) |
 
-Progettato per essere offerto come **gestionale multi-locale** e **SaaS**: isolamento tenant, sessioni, billing (Stripe già presente nel core) — vedi architettura.
+Storico e report di progetto sono in **`docs/_archive/`** (non servono al runtime).
+
+---
+
+## Moduli UI principali (dopo login)
+
+| Percorso | Modulo |
+|----------|--------|
+| `/sala/sala.html` | Sala |
+| `/sala/sala-fullscreen.html` | Sala mappa a schermo intero |
+| `/cucina/cucina.html` | Cucina / KDS |
+| `/cassa/cassa.html` | Cassa |
+| `/staff-hr/index.html` | HR (hub + roadmap) |
+| `/dashboard/dashboard.html` | Dashboard operativa |
+
+---
+
+## Identità prodotto (env)
+
+`APP_NAME`, `APP_VERSION`, `PRODUCT_SLUG` — vedi `backend/.env.example`.  
+`GET /api/system/product` — JSON pubblico (branding client / monitoraggio).

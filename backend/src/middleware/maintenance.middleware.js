@@ -31,7 +31,8 @@ async function maintenanceMiddleware(req, res, next) {
   if (isMaintenancePage(req.path)) return next();
 
   // Always allow health checks.
-  if (req.path === "/api/system/health" || req.path === "/api/health") return next();
+  if (req.path === "/api/system/health" || req.path === "/api/system/product" || req.path === "/api/health")
+    return next();
 
   // Keep assets available (maintenance page will be inline-styled).
   if (isAssetRequest(req.path)) return next();

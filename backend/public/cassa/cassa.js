@@ -85,7 +85,7 @@ async function enqueueCassaPrint(payload) {
       body: JSON.stringify(payload),
     });
     if (res.status === 401) {
-      return { routed: false, needsAuth: true, warning: "Accedi a Ristoword per usare la coda stampa sul server." };
+      return { routed: false, needsAuth: true, warning: "Accedi a Controllo Totale per usare la coda stampa sul server." };
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -361,7 +361,7 @@ function buildTableBillPlainText() {
   lines.push(`IVA (${bill.vatPerc}%):   ${toMoney(bill.vatAmount)}`);
   lines.push(`TOTALE FINALE:  ${toMoney(bill.finalTotal)}`);
   lines.push("");
-  lines.push("Scontrino non fiscale — RISTOWORD");
+  lines.push("Scontrino non fiscale — CONTROLLO TOTALE");
   return lines.join("\n");
 }
 
@@ -382,7 +382,7 @@ async function printTableBill() {
       const tmp = document.createElement("div");
       tmp.className = "print-area";
       const h2 = document.createElement("h2");
-      h2.textContent = `RISTOWORD – Conto tavolo ${selectedTable}`;
+      h2.textContent = `CONTROLLO TOTALE – Conto tavolo ${selectedTable}`;
       const pre = document.createElement("pre");
       pre.style.whiteSpace = "pre-wrap";
       pre.style.fontFamily = "system-ui, sans-serif";
@@ -1491,7 +1491,7 @@ async function printShopping() {
     browserPrintFn() {
       const text = plain.replace(/\n/g, "<br/>");
       area.innerHTML = `
-    <h2>RISTOWORD – Lista Spesa</h2>
+    <h2>CONTROLLO TOTALE – Lista Spesa</h2>
     <div style="font-size:12px;line-height:1.4">${text}</div>
   `;
       window.print();
@@ -1698,7 +1698,7 @@ async function exportReportPrint() {
 
   const html = `
     <div class="print-area">
-      <h2>RISTOWORD – Report</h2>
+      <h2>CONTROLLO TOTALE – Report</h2>
       <div>Data: <strong>${dateISO}</strong></div>
       <hr/>
       <div><strong>Oggi</strong>: ${fmt(c.base)}</div>
@@ -2440,7 +2440,7 @@ function setupTools() {
   document.getElementById("btn-invoice-email")?.addEventListener("click", () => {
     const email = document.getElementById("inv-cli-email")?.value || "";
     const tot = document.getElementById("inv-total")?.textContent || "";
-    openEmail(email, "Fattura RISTOWORD", `In allegato (stampa/PDF) fattura. Totale: ${tot}`);
+    openEmail(email, "Fattura CONTROLLO TOTALE", `In allegato (stampa/PDF) fattura. Totale: ${tot}`);
   });
 
   document.getElementById("btn-email")?.addEventListener("click", () => openModal("modal-email"));

@@ -51,6 +51,7 @@ const sessionMiddleware = require("./config/session");
 const { initWebSocket } = require("./service/websocket.service");
 const logger = require("./utils/logger");
 const { startAutoBackup, backupNow } = require("./utils/backup");
+const branding = require("./config/branding");
 
 const PORT = process.env.PORT || 3000;
 
@@ -69,13 +70,13 @@ server.listen(PORT, "0.0.0.0", () => {
     (process.env.APP_URL && String(process.env.APP_URL).trim()) ||
     "(non impostato)";
   // eslint-disable-next-line no-console
-  console.log("[Ristoword] MODE:", mode);
+  console.log(branding.getLogPrefix(), "MODE:", mode);
   // eslint-disable-next-line no-console
-  console.log("[Ristoword] PORT:", PORT);
+  console.log(branding.getLogPrefix(), "PORT:", PORT);
   // eslint-disable-next-line no-console
-  console.log("[Ristoword] BASE_URL:", baseUrl);
+  console.log(branding.getLogPrefix(), "BASE_URL:", baseUrl);
   // eslint-disable-next-line no-console
-  console.log("[Ristoword] SECURITY: basic checks done");
+  console.log(branding.getLogPrefix(), "SECURITY: basic checks done");
   logger.info("Server started", { port: PORT, websocket: "/ws" });
 
   // MySQL: ping opzionale (MYSQL_PING_ON_START=true + URL o host remoto). Non blocca né sostituisce JSON.
