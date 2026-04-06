@@ -108,7 +108,7 @@ async function completeActivation(req, res) {
 
     license = await licensesRepository.create({
       restaurantId: String(restaurantId).trim(),
-      plan: "ristoword_pro",
+      plan: require("../constants/productIdentity").DEFAULT_PLAN_SLUG,
       status: "active",
       activationCode: codeNorm,
       expiresAt: null,

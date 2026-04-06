@@ -62,10 +62,10 @@
         </div>
       </div>
 
-      <!-- MENU RISTOWORD – Tutte le pagine -->
+      <!-- Menu super-admin – tutte le pagine -->
       <section class="grid" style="margin-bottom:20px">
         <div class="card section-wide">
-          <h2>Menu Ristoword – Collegamento a tutte le pagine</h2>
+          <h2>Menu Controllo Totale – collegamento alle pagine</h2>
           <p class="muted" style="margin:0 0 8px">
             Le pagine usano il <strong>tenant attivo</strong> (vedi pill in alto): impostalo dalla tabella licenze/clienti con <strong>Entra</strong> o aprendo Supervisor/Cassa da lì.
             Usa Indietro o torna a <a href="/super-admin-dashboard" class="nav-link" style="padding:4px 8px;font-size:12px">Super Admin</a>.
@@ -257,7 +257,7 @@
           <div class="grid" style="margin-top:10px">
             <div class="section-6">
               <label>plan</label>
-              <input id="sa-license-plan" type="text" placeholder="ristoword_pro" />
+              <input id="sa-license-plan" type="text" placeholder="controllo_totale_pro" />
             </div>
             <div class="section-6">
               <label>giorni</label>
@@ -328,8 +328,8 @@
           <div class="grid" style="margin-top:12px">
             <div class="card section-6"><div class="k">STRIPE_SECRET_KEY</div><div class="mono" id="stripe-secret-key">—</div></div>
             <div class="card section-6"><div class="k">STRIPE_WEBHOOK_SECRET</div><div class="mono" id="stripe-webhook-secret">—</div></div>
-            <div class="card section-6"><div class="k">PRICE RISTOWORD MONTHLY</div><div class="mono" id="stripe-price-monthly">—</div></div>
-            <div class="card section-6"><div class="k">PRICE RISTOWORD ANNUAL</div><div class="mono" id="stripe-price-annual">—</div></div>
+            <div class="card section-6"><div class="k">PRICE CT MONTHLY</div><div class="mono" id="stripe-price-monthly">—</div></div>
+            <div class="card section-6"><div class="k">PRICE CT ANNUAL</div><div class="mono" id="stripe-price-annual">—</div></div>
           </div>
         </div>
         <div class="card section-6">
@@ -340,9 +340,9 @@
           <input id="sa-stripe-secret-key-input" type="password" placeholder="incolla qui..." />
           <label>STRIPE_WEBHOOK_SECRET</label>
           <input id="sa-stripe-webhook-secret-input" type="password" placeholder="incolla qui..." />
-          <label>STRIPE_PRICE_RISTOWORD_MONTHLY</label>
+          <label>STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY</label>
           <input id="sa-stripe-price-monthly-input" type="text" placeholder="price_..." />
-          <label>STRIPE_PRICE_RISTOWORD_ANNUAL</label>
+          <label>STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL</label>
           <input id="sa-stripe-price-annual-input" type="text" placeholder="price_..." />
 
           <div style="margin-top:12px" class="row">

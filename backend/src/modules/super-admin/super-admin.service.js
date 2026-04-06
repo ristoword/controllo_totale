@@ -16,6 +16,7 @@ const maintenanceService = require("../system/maintenance.service");
 const superAdminRepository = require("./super-admin.repository");
 const gsCodesMirror = require("../../repositories/gsCodesMirror.repository");
 const { pushCodesBatchToGs } = require("../../service/gsMasterSync.service");
+const { DEFAULT_PLAN_SLUG, DEV_VERSION_LABEL } = require("../../constants/productIdentity");
 const bcrypt = require("bcrypt");
 
 const BCRYPT_USER_ROUNDS = 10;
@@ -333,8 +334,8 @@ async function getSystemStatusForAdmin() {
   const stripeKeys = [
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
-    "STRIPE_PRICE_RISTOWORD_MONTHLY",
-    "STRIPE_PRICE_RISTOWORD_ANNUAL",
+    "STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY",
+    "STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL",
   ];
   const stripePresence = {};
   for (const k of stripeKeys) {
@@ -359,7 +360,7 @@ async function getSystemStatusForAdmin() {
     server: {
       serverTime: nowIso(),
       uptimeSeconds: Math.floor(process.uptime()),
-      version: process.env.RISTOWORD_VERSION || "ristoword-dev",
+      version: process.env.APP_VERSION || DEV_VERSION_LABEL,
     },
     maintenance: {
       enabled: maintenanceEnabled,
@@ -395,8 +396,8 @@ async function apiUpdateStripeConfig({ values } = {}) {
   const allowedKeys = [
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
-    "STRIPE_PRICE_RISTOWORD_MONTHLY",
-    "STRIPE_PRICE_RISTOWORD_ANNUAL",
+    "STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY",
+    "STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL",
   ];
   const input = values && typeof values === "object" ? values : {};
   const next = {};
@@ -468,7 +469,7 @@ async function apiCreateTempLicense({ restaurantId, plan, mode, expiresAt, exten
 
   const payload = {
     restaurantId: rid,
-    plan: plan || existing?.plan || "ristoword_pro",
+    plan: plan || existing?.plan || DEFAULT_PLAN_SLUG,
     activationCode,
     expiresAt: computedExpiresAt,
     status,

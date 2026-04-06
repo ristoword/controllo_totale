@@ -283,7 +283,7 @@ async function migrateLicenses(conn, dryRun) {
     const extra = JSON.stringify(lic);
     const row = [
       restaurantId,
-      lic.plan != null ? String(lic.plan) : "ristoword_pro",
+      lic.plan != null ? String(lic.plan) : "controllo_totale_pro",
       lic.status != null ? String(lic.status) : "active",
       lic.activationCode != null ? String(lic.activationCode) : null,
       toDateOrNull(lic.startDate),

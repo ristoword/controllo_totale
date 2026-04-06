@@ -258,7 +258,7 @@ try {
   console.warn("menu.routes non trovato:", e.message);
 }
 
-// LICENSE API Ristoword rimossa: la validazione licenza avviene solo via API Gestione Semplificata (vedi owner-activate).
+// Validazione licenza via API Gestione Semplificata (vedi owner-activate).
 
 // SETUP (no auth – for first-time configuration)
 try {

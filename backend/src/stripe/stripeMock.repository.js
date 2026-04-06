@@ -3,6 +3,7 @@ const crypto = require("crypto");
 
 const paths = require("../config/paths");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
+const { DEFAULT_PLAN_SLUG } = require("../constants/productIdentity");
 
 const STRIPE_MOCK_FILE = path.join(paths.DATA, "stripe-mock.json");
 
@@ -68,7 +69,7 @@ function createCheckoutSession({ restaurantId, plan, mode, customerEmail, custom
   const session = {
     id: sessionId,
     restaurantId: rid,
-    plan: plan || "ristoword_pro",
+    plan: plan || DEFAULT_PLAN_SLUG,
     mode: mode || "subscription", // subscription|trial
     status: "created", // created|paid|failed
     createdAt: nowIso,
@@ -80,7 +81,7 @@ function createCheckoutSession({ restaurantId, plan, mode, customerEmail, custom
     // Parità con Checkout Stripe (metadata + client_reference_id)
     metadata: {
       restaurantId: rid,
-      plan: plan || "ristoword_pro",
+      plan: plan || DEFAULT_PLAN_SLUG,
       mode: mode || "subscription",
     },
     client_reference_id: rid,

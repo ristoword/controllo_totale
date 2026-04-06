@@ -4,14 +4,14 @@
 
 const ORDERS_API = "/api/orders";
 
-const LS_RECIPES_KEY = "ristoword_cucina_recipes";
-const LS_HACCP_KEY = "ristoword_cucina_haccp";
-const LS_SHOPPING_KEY = "ristoword_cucina_shopping";
-const LS_SUPPLIER_EMAIL = "ristoword_cucina_supplier_email";
-const LS_SUPPLIER_SUBJECT = "ristoword_cucina_supplier_subject";
-const LS_SUPPLIER_AUTO = "ristoword_cucina_supplier_auto_email";
-const LS_SHIFTS_KEY = "ristoword_cucina_turni";
-const LS_VOICE_NOTES_KEY = "ristoword_cucina_voice_notes";
+const LS_RECIPES_KEY = "ct_cucina_recipes";
+const LS_HACCP_KEY = "ct_cucina_haccp";
+const LS_SHOPPING_KEY = "ct_cucina_shopping";
+const LS_SUPPLIER_EMAIL = "ct_cucina_supplier_email";
+const LS_SUPPLIER_SUBJECT = "ct_cucina_supplier_subject";
+const LS_SUPPLIER_AUTO = "ct_cucina_supplier_auto_email";
+const LS_SHIFTS_KEY = "ct_cucina_turni";
+const LS_VOICE_NOTES_KEY = "ct_cucina_voice_notes";
 
 // =======================================
 //   STATO IN MEMORIA

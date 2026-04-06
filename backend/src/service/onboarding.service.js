@@ -118,7 +118,7 @@ async function onboardRestaurant(payload, req) {
     adminEmail,
     phone: sanitizeInput(payload.phone, 30),
     contactName: sanitizeInput(payload.contactName, 80),
-    plan: sanitizeInput(payload.plan, 50) || "ristoword_pro",
+    plan: sanitizeInput(payload.plan, 50) || require("../constants/productIdentity").DEFAULT_PLAN_SLUG,
     language: sanitizeInput(payload.language, 10) || "it",
     currency: sanitizeInput(payload.currency, 5) || "EUR",
     status: "active",

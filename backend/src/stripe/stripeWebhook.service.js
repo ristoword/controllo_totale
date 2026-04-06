@@ -1,4 +1,5 @@
 const stripeMockRepository = require("./stripeMock.repository");
+const { DEFAULT_PLAN_SLUG } = require("../constants/productIdentity");
 const stripeLiveWebhookDedup = require("./stripeLiveWebhookDedup");
 const { syncLicenseFromPaidSession } = require("./stripeLicenseSync.service");
 
@@ -53,7 +54,7 @@ async function processVerifiedStripeEvent(event) {
     const syntheticSession = {
       id: session.id,
       restaurantId: String(rid).trim(),
-      plan: meta.plan || "ristoword_pro",
+      plan: meta.plan || DEFAULT_PLAN_SLUG,
       mode: modeFromMeta === "trial" ? "trial" : "subscription",
       customerEmail: session.customer_email || (session.customer_details && session.customer_details.email) || null,
       customerName: (session.customer_details && session.customer_details.name) || null,

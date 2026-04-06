@@ -46,7 +46,7 @@ function mergedToRow(merged) {
   const extra = JSON.stringify(merged);
   return [
     merged.restaurantId,
-    merged.plan || "ristoword_pro",
+    merged.plan || "controllo_totale_pro",
     merged.status || "active",
     merged.activationCode || null,
     toDate(merged.startDate),
@@ -103,7 +103,7 @@ async function syncFromTenantFileIfCodeMatches(userNeedle) {
     }
     return await create({
       restaurantId: rid,
-      plan: raw.plan || "ristoword_pro",
+      plan: raw.plan || "controllo_totale_pro",
       status: raw.status || "active",
       activationCode: raw.activationCode,
       expiresAt: raw.expiresAt || null,
@@ -194,7 +194,7 @@ async function create(license) {
   const record = {
     ...license,
     restaurantId: license.restaurantId,
-    plan: license.plan || "ristoword_pro",
+    plan: license.plan || "controllo_totale_pro",
     status: license.status || "active",
     source: license.source || "manual_onboarding",
     createdAt: license.createdAt || new Date().toISOString(),

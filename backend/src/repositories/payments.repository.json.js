@@ -43,7 +43,7 @@ async function readAllPayments() {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
-    console.error("[Ristoword] payments.json parse error:", err.message);
+    console.error("[payments] payments.json parse error:", err.message);
     return [];
   }
 }

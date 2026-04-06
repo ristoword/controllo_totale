@@ -38,7 +38,7 @@ async function readReportsList() {
     const list = data[REPORTS_KEY];
     return Array.isArray(list) ? list : [];
   } catch (err) {
-    console.error("[Ristoword] reports.json parse error:", err.message);
+    console.error("[reports] reports.json parse error:", err.message);
     return [];
   }
 }

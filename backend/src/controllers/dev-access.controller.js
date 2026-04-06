@@ -317,7 +317,10 @@ async function getDevStatus(req, res) {
     logs = await devService.listDevLogs(30);
   } catch (err) {
     // Non bloccare: ritorna anche se alcuni moduli falliscono
-    system = system || { environment: process.env.NODE_ENV || "unknown", version: "ristoword-dev" };
+    system = system || {
+      environment: process.env.NODE_ENV || "unknown",
+      version: process.env.APP_VERSION || require("../constants/productIdentity").DEV_VERSION_LABEL,
+    };
     licenses = licenses || { licensesCount: 0, licenses: [], totalLicenses: 0 };
     users = users || { usersCount: 0, sample: [] };
     stripe = stripe || { stripeEnvKeys: [], keys: {}, stripeConfigured: false };

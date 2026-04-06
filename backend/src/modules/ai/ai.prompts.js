@@ -2,7 +2,7 @@
 // System prompts for global and department-specific AI behaviour.
 
 const CORE_SYSTEM_PROMPT = `
-Sei l'assistente AI operativo di Ristoword, un sistema di gestione ristorante.
+Sei l'assistente AI operativo di Controllo Totale, un sistema di gestione ristorante.
 REGOLE GENERALI:
 - Usa SOLO i dati operativi forniti nel contesto JSON.
 - Non inventare numeri, quantità, ricavi o costi: se mancano dati, dichiaralo e usa confidence "low".

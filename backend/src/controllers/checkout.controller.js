@@ -5,14 +5,14 @@ const { getWebhookStatus } = require("../stripe/stripeWebhook.service");
 // Starts a local mock checkout session.
 // Body:
 // - restaurantId (required) — stesso ID tenant usato in gestionale / GS
-// - plan (optional, default ristoword_pro)
+// - plan (optional, default controllo_totale_pro)
 // - mode (optional: subscription|trial, default subscription)
 // - customerEmail / email / adminEmail (optional) — per email con codice dopo pagamento
 // - customerName (optional)
 async function startCheckout(req, res) {
   const body = req.body || {};
   const restaurantId = body.restaurantId || body.tenantId;
-  const plan = body.plan || body.product || "ristoword_pro";
+  const plan = body.plan || body.product || require("../constants/productIdentity").DEFAULT_PLAN_SLUG;
   const mode = body.mode || body.checkoutMode || "subscription";
   const customerEmail = body.customerEmail || body.email || body.adminEmail || null;
   const customerName = body.customerName || body.name || null;

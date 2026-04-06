@@ -1,5 +1,5 @@
 /**
- * Ristoword i18n - frontend-only internationalization
+ * Controllo Totale i18n — frontend-only internationalization
  * Loads JSON from /i18n/{lang}.json and replaces text on elements with data-i18n attribute.
  * Supports data-i18n-placeholder for input placeholders.
  */
@@ -142,7 +142,7 @@
     initLangSelector();
   }
 
-  window.RistowordI18n = {
+  window.ControlloTotaleI18n = {
     getLang: function () {
       return currentLang;
     },

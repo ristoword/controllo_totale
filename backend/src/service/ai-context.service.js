@@ -1,5 +1,5 @@
 // backend/src/service/ai-context.service.js
-// Builds summarized operational context for OpenAI from real Ristoword repositories.
+// Builds summarized operational context for OpenAI from application repositories.
 // Reuses same data sources as ai-assistant.service.js but produces a single JSON summary.
 
 const ordersRepository = require("../repositories/orders.repository");

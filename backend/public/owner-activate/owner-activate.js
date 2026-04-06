@@ -1,4 +1,4 @@
-// 1) GS validate — 2) POST /api/owner/complete-activation (sessione Ristoword)
+// 1) GS validate — 2) POST /api/owner/complete-activation (sessione Controllo Totale)
 
 const GS_VALIDATE_URL = "https://www.gestionesemplificata.com/api/licenses/validate";
 

@@ -162,11 +162,11 @@ async function loadAll() {
     const stripe = s.stripe || {};
     $("stripe-secret-key").textContent = textOrDash(stripe.masked?.STRIPE_SECRET_KEY);
     $("stripe-webhook-secret").textContent = textOrDash(stripe.masked?.STRIPE_WEBHOOK_SECRET);
-    $("stripe-price-monthly").textContent = textOrDash(stripe.masked?.STRIPE_PRICE_RISTOWORD_MONTHLY);
-    $("stripe-price-annual").textContent = textOrDash(stripe.masked?.STRIPE_PRICE_RISTOWORD_ANNUAL);
+    $("stripe-price-monthly").textContent = textOrDash(stripe.masked?.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY);
+    $("stripe-price-annual").textContent = textOrDash(stripe.masked?.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL);
 
     const pres = stripe.keysPresence || {};
-    const presText = `secret:${pres.STRIPE_SECRET_KEY ? "present" : "missing"} • webhook:${pres.STRIPE_WEBHOOK_SECRET ? "present" : "missing"} • priceMonthly:${pres.STRIPE_PRICE_RISTOWORD_MONTHLY ? "present" : "missing"} • priceAnnual:${pres.STRIPE_PRICE_RISTOWORD_ANNUAL ? "present" : "missing"}`;
+    const presText = `secret:${pres.STRIPE_SECRET_KEY ? "present" : "missing"} • webhook:${pres.STRIPE_WEBHOOK_SECRET ? "present" : "missing"} • priceMonthly:${pres.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY ? "present" : "missing"} • priceAnnual:${pres.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL ? "present" : "missing"}`;
     $("stripe-presence").textContent = presText;
 
     const wh = stripe.stripeMock || {};
@@ -355,8 +355,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const values = {
       STRIPE_SECRET_KEY: $("sa-stripe-secret-key-input").value || "",
       STRIPE_WEBHOOK_SECRET: $("sa-stripe-webhook-secret-input").value || "",
-      STRIPE_PRICE_RISTOWORD_MONTHLY: $("sa-stripe-price-monthly-input").value || "",
-      STRIPE_PRICE_RISTOWORD_ANNUAL: $("sa-stripe-price-annual-input").value || "",
+      STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY: $("sa-stripe-price-monthly-input").value || "",
+      STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL: $("sa-stripe-price-annual-input").value || "",
     };
 
     const out = await postJson("/api/super-admin/system-status", { values });

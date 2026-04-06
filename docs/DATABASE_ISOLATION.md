@@ -3,7 +3,7 @@
 ## Regola
 
 **Un deploy = un database MySQL dedicato**, creato per quel sito (vuoto prima del bootstrap).  
-**Non** riusare il database di altri progetti, ambienti legacy o installazioni Ristoword: rischi sovrascritture, sessioni mescolate e dati incoerenti.
+**Non** riusare il database di altri progetti o ambienti legacy: rischi sovrascritture, sessioni mescolate e dati incoerenti.
 
 ## Cosa fare per un sito nuovo
 

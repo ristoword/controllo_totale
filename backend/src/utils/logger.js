@@ -1,5 +1,6 @@
 // Lightweight server logging. No sensitive data.
-const PREFIX = "[Ristoword]";
+const { getLogPrefix } = require("../config/branding");
+const PREFIX = getLogPrefix();
 
 function safeMessage(msg, meta = {}) {
   const parts = [PREFIX, msg];

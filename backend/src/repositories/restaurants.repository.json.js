@@ -56,7 +56,7 @@ async function create(restaurant) {
     adminEmail: restaurant.adminEmail || "",
     phone: restaurant.phone || "",
     contactName: restaurant.contactName || "",
-    plan: restaurant.plan || "ristoword_pro",
+    plan: restaurant.plan || "controllo_totale_pro",
     language: restaurant.language || "it",
     currency: restaurant.currency || "EUR",
     status: restaurant.status || "active",

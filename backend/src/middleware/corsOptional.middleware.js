@@ -1,5 +1,5 @@
 /**
- * CORS opzionale per chiamate API da Gestione Semplificata (origine diversa da Ristoword).
+ * CORS opzionale per chiamate API da Gestione Semplificata (origine diversa da questo backend).
  * Senza variabile d'ambiente il middleware non modifica nulla (comportamento attuale).
  *
  * @example CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3001,https://gs.tuodominio.it

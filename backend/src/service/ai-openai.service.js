@@ -1,5 +1,5 @@
 // backend/src/service/ai-openai.service.js
-// Production OpenAI integration: backend-only, strict JSON output, real Ristoword context.
+// Production OpenAI integration: backend-only, strict JSON output, contesto operativo reale.
 
 const OpenAI = require("openai");
 const path = require("path");
@@ -33,7 +33,7 @@ const FALLBACK_RESPONSE = {
   nextActions: [],
 };
 
-const SYSTEM_PROMPT = `Sei l'assistente AI di Ristoword, un sistema di gestione ristorante. Rispondi SOLO sulla base dei dati operativi forniti.
+const SYSTEM_PROMPT = `Sei l'assistente AI di Controllo Totale, un sistema di gestione ristorante. Rispondi SOLO sulla base dei dati operativi forniti.
 REGOLE:
 1. Usa esclusivamente i dati nel contesto fornito. Non inventare numeri o fatti.
 2. Se un dato non è disponibile, dillo chiaramente nell'answer e metti confidence "low".
@@ -114,7 +114,7 @@ function writeDebugOutput(data) {
 
 /**
  * Call OpenAI and return structured JSON response.
- * Uses real context from Ristoword repositories.
+ * Uses real context from application repositories.
  * NEVER hangs: guarded by a hard timeout and robust fallbacks.
  */
 async function queryWithOpenAI(question, overrideSystemPrompt) {
@@ -163,7 +163,7 @@ async function queryWithOpenAI(question, overrideSystemPrompt) {
   }
 
   const contextStr = JSON.stringify(context, null, 2);
-  const userPrompt = `Contesto operativo Ristoword (usa SOLO questi dati):
+  const userPrompt = `Contesto operativo (usa SOLO questi dati):
 ${contextStr}
 
 Domanda dell'utente: ${question}

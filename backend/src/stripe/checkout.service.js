@@ -1,5 +1,7 @@
 const Stripe = require("stripe");
 const stripeMockRepository = require("./stripeMock.repository");
+const { priceMonthly, priceAnnual } = require("../config/stripeEnv");
+const { DEFAULT_PLAN_SLUG } = require("../constants/productIdentity");
 
 const STRIPE_API_VERSION = "2024-11-20.acacia";
 
@@ -14,25 +16,23 @@ function normalizeRestaurantId(id) {
 function useLiveStripeCheckout() {
   const sk = process.env.STRIPE_SECRET_KEY && String(process.env.STRIPE_SECRET_KEY).trim();
   if (!sk) return false;
-  const pm = process.env.STRIPE_PRICE_RISTOWORD_MONTHLY && String(process.env.STRIPE_PRICE_RISTOWORD_MONTHLY).trim();
-  const pa = process.env.STRIPE_PRICE_RISTOWORD_ANNUAL && String(process.env.STRIPE_PRICE_RISTOWORD_ANNUAL).trim();
-  return !!(pm || pa);
+  return !!(priceMonthly() || priceAnnual());
 }
 
 function resolvePriceId(billingPeriod) {
   const p = String(billingPeriod || "monthly").toLowerCase();
   const annual = p === "annual" || p === "year" || p === "yearly";
-  const annualId = process.env.STRIPE_PRICE_RISTOWORD_ANNUAL && String(process.env.STRIPE_PRICE_RISTOWORD_ANNUAL).trim();
-  const monthlyId = process.env.STRIPE_PRICE_RISTOWORD_MONTHLY && String(process.env.STRIPE_PRICE_RISTOWORD_MONTHLY).trim();
+  const annualId = priceAnnual();
+  const monthlyId = priceMonthly();
 
   if (annual) {
     if (!annualId) {
-      throw new Error("STRIPE_PRICE_RISTOWORD_ANNUAL mancante per fatturazione annuale");
+      throw new Error("STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL (o STRIPE_PRICE_CT_ANNUAL) mancante per fatturazione annuale");
     }
     return annualId;
   }
   if (!monthlyId) {
-    throw new Error("STRIPE_PRICE_RISTOWORD_MONTHLY mancante");
+    throw new Error("STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY (o STRIPE_PRICE_CT_MONTHLY) mancante");
   }
   return monthlyId;
 }
@@ -82,7 +82,7 @@ async function startCheckoutLive({
   });
 
   const priceId = resolvePriceId(billingPeriod);
-  const planVal = plan || "ristoword_pro";
+  const planVal = plan || DEFAULT_PLAN_SLUG;
   const modeVal = mode === "trial" ? "trial" : "subscription";
 
   const metadata = {
@@ -146,7 +146,7 @@ async function startCheckout({
 
   const session = stripeMockRepository.createCheckoutSession({
     restaurantId: rid,
-    plan: plan || "ristoword_pro",
+    plan: plan || DEFAULT_PLAN_SLUG,
     mode: mode === "trial" ? "trial" : "subscription",
     customerEmail,
     customerName,

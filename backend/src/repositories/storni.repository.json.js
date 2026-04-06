@@ -41,7 +41,7 @@ async function readEntries() {
     const list = data[ENTRIES_KEY];
     return Array.isArray(list) ? list : [];
   } catch (err) {
-    console.error("[Ristoword] storni.json parse error:", err.message);
+    console.error("[storni] storni.json parse error:", err.message);
     return [];
   }
 }

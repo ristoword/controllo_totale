@@ -22,6 +22,7 @@ const menuRepository = require("../../repositories/menu.repository");
 
 const { getLicense, saveLicense } = require("../../config/license");
 const storniRepository = require("../../repositories/storni.repository");
+const { DEFAULT_PLAN_SLUG, DEV_VERSION_LABEL } = require("../../constants/productIdentity");
 
 const REPO_ROOT = path.join(__dirname, "..", "..", "..");
 const DATA_DIR = path.join(REPO_ROOT, "data");
@@ -214,7 +215,7 @@ async function getSystemSnapshot({ tenantId = null } = {}) {
     serverTime: now.toISOString(),
     uptime: uptimeStr,
     environment: process.env.NODE_ENV || "unknown",
-    version: process.env.RISTOWORD_VERSION || "ristoword-dev",
+    version: process.env.APP_VERSION || DEV_VERSION_LABEL,
     node: { version: process.version, platform: process.platform },
     modules: moduleChecks,
     localLicense,
@@ -465,7 +466,7 @@ async function performActionForceActivate({ tenantId, plan }) {
   if (!record) {
     record = await licensesRepository.create({
       restaurantId: tid,
-      plan: plan || "ristoword_pro",
+      plan: plan || DEFAULT_PLAN_SLUG,
       status: "used",
       source: "dev-force-activate",
     });
@@ -474,7 +475,7 @@ async function performActionForceActivate({ tenantId, plan }) {
       restaurantId: tid,
       status: "used",
       activatedAt: new Date().toISOString(),
-      plan: plan || record.plan || "ristoword_pro",
+      plan: plan || record.plan || DEFAULT_PLAN_SLUG,
       source: record.source || "dev-force-activate",
     });
   }

@@ -1,6 +1,6 @@
 # Controllo Totale — Master plan operativo
 
-Documento di allineamento tra prodotto Ristoword (base) e roadmap **Controllo Totale**. Le voci “Implementato” si riferiscono al codice nella cartella `CONTROLLO_TOTALE`; “Roadmap” richiede sviluppo incrementale.
+Roadmap e stato funzionale di **Controllo Totale**. Le voci “Implementato” si riferiscono al codice in questo repository; “Roadmap” richiede sviluppo incrementale.
 
 ---
 
@@ -15,7 +15,7 @@ Documento di allineamento tra prodotto Ristoword (base) e roadmap **Controllo To
 
 | Requisito | Stato |
 |-----------|--------|
-| Flusso attuale (mappa, popup, corsi, invio ordini, cameriere, coperti) | **Base Ristoword** (invariato nel core) |
+| Flusso attuale (mappa, popup, corsi, invio ordini, cameriere, coperti) | **Core** |
 | **Unico schermo:** mappa al centro, menu/personale/orologio in alto | **Implementato:** `public/sala/sala-fullscreen.html` |
 | Click tavolo → stesso comportamento Sala | **Iframe** → `sala.html` (sessione condivisa, same-origin) |
 
@@ -39,7 +39,7 @@ Roadmap: eliminare iframe e fondere layout in un solo bundle JS/CSS per performa
 
 | Modulo | Stato |
 |--------|--------|
-| Stessa struttura e stile Ristoword | **Base copiata** |
+| Struttura moduli reparto (Bar, Pizzeria, Cassa, …) | **Base** |
 | Cassa: report vendita vs costo “sempre a vista” | **Roadmap:** dashboard margini in tempo reale (dati food cost + incassi) |
 | Supervisor | Invariato |
 | Asporto / Catering | Pagine presenti; estendere flussi dedicati |

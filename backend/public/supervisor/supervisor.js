@@ -511,7 +511,7 @@ function setupReportsActions(){
   });
 
   document.getElementById("btn-export-reports").addEventListener("click", ()=>{
-    downloadJson(`ristoword_closures_${todayKey()}.json`, closuresList);
+    downloadJson(`controllo_totale_closures_${todayKey()}.json`, closuresList);
   });
 
   const fileImport = document.getElementById("file-import-reports");
@@ -790,7 +790,7 @@ function setupMenu(){
   document.getElementById("menu-q").addEventListener("input", renderMenuList);
 
   document.getElementById("btn-menu-export").addEventListener("click", ()=>{
-    downloadJson(`ristoword_menu_${todayKey()}.json`, menuOfficial);
+    downloadJson(`controllo_totale_menu_${todayKey()}.json`, menuOfficial);
   });
 
   document.getElementById("file-menu-import").addEventListener("change", async (e)=>{

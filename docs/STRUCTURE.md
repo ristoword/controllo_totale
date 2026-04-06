@@ -24,4 +24,4 @@ CONTROLLO_TOTALE/
 
 **Non esiste** un secondo `backend` annidato: il percorso `backend/backend/` era un errore storico (sessioni duplicate) ed è stato rimosso.
 
-**Ristoword** non è in questa cartella: è un progetto separato sul tuo PC; qui lavori solo su **Controllo Totale**.
+Altri gestionali o repository non stanno in questa cartella: qui lavori solo su **Controllo Totale**.

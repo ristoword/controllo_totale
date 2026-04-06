@@ -18,7 +18,8 @@ function getAppShortName() {
 
 /** Versione build / release (health, API). */
 function getAppVersion() {
-  return trimEnv("APP_VERSION", trimEnv("RISTOWORD_VERSION", "controllo-totale-dev"));
+  const { DEV_VERSION_LABEL } = require("../constants/productIdentity");
+  return trimEnv("APP_VERSION", DEV_VERSION_LABEL);
 }
 
 /** Slug URL / billing (Stripe metadata). */

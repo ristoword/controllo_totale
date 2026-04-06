@@ -8,7 +8,7 @@
 - **SaaS** (abbonamento, Stripe, webhook)
 - **Deploy cloud** (Railway, Docker, MySQL gestito)
 
-Il repository **Ristoword originale non va modificato**; questo codice vive solo in `CONTROLLO_TOTALE`.
+Questo repository è **indipendente** da qualsiasi altro gestionale: non condividere deploy, database o cartelle dati con altri prodotti.
 
 ## Endpoint pubblici utili
 

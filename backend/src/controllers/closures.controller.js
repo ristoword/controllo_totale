@@ -200,7 +200,7 @@ function buildExportRows(closureOrPreview) {
   const storni = c.storniTotal ?? 0;
   const net = c.netTotal ?? (c.grandTotal ?? 0) - storni;
   return [
-    ["RISTOWORD – Chiusura Z", ""],
+    ["CONTROLLO TOTALE – Chiusura Z", ""],
     ["Data", c.date || ""],
     ["Chiusa il", c.closedAt || ""],
     ["Operatore", c.closedBy || ""],

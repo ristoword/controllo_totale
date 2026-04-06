@@ -1,6 +1,6 @@
 // Modulo Attrezzature – solo frontend, localStorage
 // Chiave di persistenza separata dal magazzino ingredienti
-const LS_KEY_ATTREZZATURE = "ristoword_attrezzature";
+const LS_KEY_ATTREZZATURE = "ct_attrezzature";
 
 // Categorie di base
 const BASE_CATEGORIES = [

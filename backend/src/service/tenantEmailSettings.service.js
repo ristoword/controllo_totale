@@ -12,7 +12,7 @@ function getKey() {
   const s =
     process.env.TENANT_SMTP_SECRET ||
     process.env.SESSION_SECRET ||
-    "ristoword-tenant-smtp-dev-do-not-use-prod";
+    "controllo-totale-tenant-smtp-dev-do-not-use-prod";
   return crypto.createHash("sha256").update(String(s)).digest();
 }
 

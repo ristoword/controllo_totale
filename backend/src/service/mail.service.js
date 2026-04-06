@@ -12,7 +12,11 @@ const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@ristoword.com";
+const { getAppName } = require("../config/branding");
+const { DEFAULT_PLAN_SLUG } = require("../constants/productIdentity");
+
+const SMTP_FROM =
+  process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@controllo-totale.local";
 
 function isConfigured() {
   return !!(SMTP_HOST && SMTP_USER && SMTP_PASS);
@@ -52,9 +56,9 @@ function getLoginUrl(req) {
 }
 
 /**
- * Dopo pagamento Stripe (mock o reale): invia codice attivazione Ristoword + link onboarding owner.
+ * Dopo pagamento Stripe (mock o reale): invia codice attivazione + link onboarding owner.
  */
-async function sendRistowordActivationEmail(options) {
+async function sendActivationEmail(options) {
   const {
     to,
     restaurantId,
@@ -66,7 +70,7 @@ async function sendRistowordActivationEmail(options) {
 
   const adminEmail = String(to || "").trim();
   if (!adminEmail) {
-    console.warn("[Mail] sendRistowordActivationEmail: destinatario mancante (nessuna email inviata)");
+    console.warn("[Mail] sendActivationEmail: destinatario mancante (nessuna email inviata)");
     return { sent: false, error: "recipient_missing" };
   }
   if (!activationCode) {
@@ -94,37 +98,39 @@ async function sendRistowordActivationEmail(options) {
     },
   });
 
-  const subject = "Ristoword – il tuo codice di attivazione";
+  const appName = getAppName();
+  const planSlug = plan || DEFAULT_PLAN_SLUG;
+  const subject = `${appName} – il tuo codice di attivazione`;
   const nameLine = customerName ? `<p>Ciao <strong>${escapeHtml(customerName)}</strong>,</p>` : "<p>Ciao,</p>";
   const html = `
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Attiva Ristoword</title></head>
+<head><meta charset="utf-8"><title>Attiva ${escapeHtml(appName)}</title></head>
 <body style="font-family:system-ui,sans-serif;line-height:1.6;color:#333;max-width:560px;margin:0 auto;padding:20px;">
-  <h1 style="color:#1a1a2e;">Attiva il tuo account Ristoword</h1>
+  <h1 style="color:#1a1a2e;">Attiva il tuo account ${escapeHtml(appName)}</h1>
   ${nameLine}
   <p>Il pagamento è andato a buon fine. Il tuo locale è identificato come <strong>${escapeHtml(String(restaurantId || ""))}</strong>.</p>
   <p><strong>Codice di attivazione:</strong></p>
   <p style="font-size:20px;font-weight:800;letter-spacing:1px;background:#f0f4ff;padding:14px 18px;border-radius:10px;font-family:ui-monospace,Menlo,monospace;">${escapeHtml(String(activationCode))}</p>
-  <p>Piano: <strong>${escapeHtml(String(plan || "ristoword_pro"))}</strong>${expiresAt ? ` • Valido fino al <strong>${escapeHtml(String(expiresAt).slice(0, 10))}</strong>` : ""}</p>
+  <p>Piano: <strong>${escapeHtml(String(planSlug))}</strong>${expiresAt ? ` • Valido fino al <strong>${escapeHtml(String(expiresAt).slice(0, 10))}</strong>` : ""}</p>
   <p><a href="${escapeHtml(activateUrl)}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 20px;border-radius:10px;font-weight:700;">Completa attivazione e password</a></p>
   <p style="color:#666;font-size:14px;">Oppure apri manualmente: <a href="${escapeHtml(activateUrl)}">${escapeHtml(activateUrl)}</a></p>
-  <p style="color:#888;font-size:12px;margin-top:28px;">— Ristoword</p>
+  <p style="color:#888;font-size:12px;margin-top:28px;">— ${escapeHtml(appName)}</p>
 </body>
 </html>
   `.trim();
 
   const text = `
-Attiva Ristoword
+Attiva ${appName}
 
 Codice di attivazione: ${activationCode}
 Locale (tenant): ${restaurantId || ""}
-Piano: ${plan || "ristoword_pro"}${expiresAt ? ` — scadenza: ${expiresAt}` : ""}
+Piano: ${planSlug}${expiresAt ? ` — scadenza: ${expiresAt}` : ""}
 
 Apri questo link per impostare la password e entrare:
 ${activateUrl}
 
-— Ristoword
+— ${appName}
   `.trim();
 
   try {
@@ -137,7 +143,7 @@ ${activateUrl}
     });
     return { sent: true };
   } catch (err) {
-    console.error("[Mail] sendRistowordActivationEmail failed:", err.message);
+    console.error("[Mail] sendActivationEmail failed:", err.message);
     return { sent: false, error: err.message };
   }
 }
@@ -165,13 +171,14 @@ async function sendWelcomeEmail(options) {
     },
   });
 
-  const subject = "Benvenuto in Ristoword – Credenziali di accesso";
+  const appName = getAppName();
+  const subject = `Benvenuto in ${appName} – Credenziali di accesso`;
   const html = `
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>Benvenuto in Ristoword</title></head>
+<head><meta charset="utf-8"><title>Benvenuto in ${escapeHtml(appName)}</title></head>
 <body style="font-family:system-ui,sans-serif;line-height:1.6;color:#333;max-width:560px;margin:0 auto;padding:20px;">
-  <h1 style="color:#1a1a2e;">Benvenuto in Ristoword</h1>
+  <h1 style="color:#1a1a2e;">Benvenuto in ${escapeHtml(appName)}</h1>
   <p>Ciao,</p>
   <p>Il tuo ristorante <strong>${escapeHtml(restaurantName)}</strong> è stato attivato con successo.</p>
   <p>Ecco le tue credenziali di accesso:</p>
@@ -181,14 +188,14 @@ async function sendWelcomeEmail(options) {
     <li><strong>Password temporanea:</strong> ${escapeHtml(temporaryPassword)}</li>
   </ul>
   <p><strong>Importante:</strong> Al primo accesso ti verrà chiesto di cambiare la password per motivi di sicurezza.</p>
-  <p>Buon lavoro con Ristoword!</p>
-  <p style="color:#888;font-size:12px;margin-top:32px;">— Il team Ristoword</p>
+  <p>Buon lavoro con ${escapeHtml(appName)}!</p>
+  <p style="color:#888;font-size:12px;margin-top:32px;">— Il team ${escapeHtml(appName)}</p>
 </body>
 </html>
   `.trim();
 
   const text = `
-Benvenuto in Ristoword
+Benvenuto in ${appName}
 
 Il tuo ristorante ${restaurantName} è stato attivato.
 
@@ -199,7 +206,7 @@ Credenziali:
 
 Importante: Al primo accesso dovrai cambiare la password.
 
-— Il team Ristoword
+— Il team ${appName}
   `.trim();
 
   try {
@@ -315,7 +322,7 @@ async function sendSupplierEmail(options, tenantRestaurantId) {
 module.exports = {
   isConfigured,
   sendWelcomeEmail,
-  sendRistowordActivationEmail,
+  sendActivationEmail,
   sendSupplierEmail,
   getLoginUrl,
   getAppBaseUrl,

@@ -1,10 +1,15 @@
 /**
- * Notifica GS quando un codice è stato attivato su Ristoword (GS resta master).
- * Push batch codici RW → GS e riserva post-Stripe.
+ * Notifica Gestione Semplificata (GS) quando un codice è stato attivato su Controllo Totale (GS resta master).
+ * Push batch codici → GS e riserva post-Stripe.
  * Se env non configurata, operazione viene saltata senza errori.
  */
 
 const gsCodesMirror = require("../repositories/gsCodesMirror.repository");
+const {
+  GS_SYNC_SOURCE,
+  GS_SYNC_SOURCE_BATCH,
+  GS_SYNC_SOURCE_STRIPE,
+} = require("../constants/productIdentity");
 
 function getNotifyUrl() {
   return String(process.env.GS_WEBHOOK_ACTIVATION_URL || "").trim();
@@ -23,7 +28,7 @@ function getCodesReserveUrl() {
 }
 
 /**
- * POST verso GS: { code, email, activatedAt, expiresAt?, source: "ristoword" }
+ * POST verso GS: { code, email, activatedAt, expiresAt?, source }
  */
 async function notifyGsCodeActivated({ code, email, activatedAt, expiresAt } = {}) {
   const url = getNotifyUrl();
@@ -37,7 +42,7 @@ async function notifyGsCodeActivated({ code, email, activatedAt, expiresAt } = {
     email: email != null ? String(email).trim() : null,
     activatedAt: activatedAt || new Date().toISOString(),
     expiresAt: expiresAt || null,
-    source: "ristoword",
+    source: GS_SYNC_SOURCE,
   };
 
   try {
@@ -80,14 +85,14 @@ async function pushCodesBatchToGs(codesArray) {
 
   const secret = getSharedSecret();
   const body = {
-    source: "ristoword",
+    source: GS_SYNC_SOURCE,
     codes: list.map((c) => ({
       code: gsCodesMirror.normalizeCode(c.code),
       status: c.status || "available",
       assignedEmail: c.assignedEmail != null ? String(c.assignedEmail).trim() : null,
       activatedAt: c.activatedAt || null,
       expiresAt: c.expiresAt || null,
-      source: c.source || "ristoword-batch",
+      source: c.source || GS_SYNC_SOURCE_BATCH,
     })),
   };
 
@@ -117,7 +122,7 @@ async function pushCodesBatchToGs(codesArray) {
 }
 
 /**
- * Dopo pagamento Stripe: un codice del pool è stato assegnato su RW — notifica GS (stesso DB validate).
+ * Dopo pagamento Stripe: un codice del pool è stato assegnato — notifica GS (stesso DB validate).
  */
 async function notifyGsStripeReserved({ code, email, expiresAt } = {}) {
   const url = getCodesReserveUrl();
@@ -130,7 +135,7 @@ async function notifyGsStripeReserved({ code, email, expiresAt } = {}) {
     assignedEmail: email != null ? String(email).trim() : null,
     expiresAt: expiresAt || null,
     status: "assigned",
-    source: "ristoword-stripe",
+    source: GS_SYNC_SOURCE_STRIPE,
     reservedAt: new Date().toISOString(),
   };
   try {

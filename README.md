@@ -3,7 +3,7 @@
 Gestionale ristorazione **multi-reparto** e **multi-tenant** (Sala, Cucina, Bar, Pizzeria, Cassa, Magazzino, Supervisor, Asporto, Catering, Staff).  
 Prodotto **pronto al deploy**: un solo backend Node in `backend/`, healthcheck `/api/health`, branding e metadati prodotto via variabili d’ambiente.
 
-**Questo repository è indipendente** da altri progetti sul computer (es. Ristoword): non condividere cartelle né dati con copie parallele.
+**Questo repository è indipendente** da altri progetti sul computer: non condividere cartelle, database né dati con altre installazioni.
 
 ---
 
@@ -41,6 +41,7 @@ Leggi **[DEPLOY.md](./DEPLOY.md)** (Railway, variabili, healthcheck, MySQL).
 | [docs/ARCHITECTURE_SAAS_SCALING.md](docs/ARCHITECTURE_SAAS_SCALING.md) | Multi-tenant e scala |
 | [docs/DATABASE_EXTENSIONS.sql](docs/DATABASE_EXTENSIONS.sql) | Estensioni DB (HR, fornitori, ricezioni) |
 | [docs/DATABASE_ISOLATION.md](docs/DATABASE_ISOLATION.md) | DB dedicato per deploy (non mischiare con altri progetti) |
+| [docs/PRODUCT_IDENTITY.md](docs/PRODUCT_IDENTITY.md) | Nomi e costanti del prodotto (Controllo Totale) |
 
 Storico e report di progetto sono in **`docs/_archive/`** (non servono al runtime).
 

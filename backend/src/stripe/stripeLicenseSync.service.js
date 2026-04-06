@@ -8,6 +8,7 @@ const licensesRepository = require("../repositories/licenses.repository");
 const mailService = require("../service/mail.service");
 const gsCodesMirror = require("../repositories/gsCodesMirror.repository");
 const { notifyGsStripeReserved } = require("../service/gsMasterSync.service");
+const { DEFAULT_PLAN_SLUG } = require("../constants/productIdentity");
 
 function normalizeTenantId(id) {
   return String(id || "").trim();
@@ -23,7 +24,7 @@ function generateActivationCode(restaurantId, seed) {
   const h = sha256Hex(base).toUpperCase();
   const p1 = h.slice(0, 4);
   const p2 = h.slice(4, 8);
-  return `${rid || "RW"}-${p1}-${p2}`;
+  return `${rid || "CT"}-${p1}-${p2}`;
 }
 
 function computeExpiresAt({ mode = "subscription" } = {}) {
@@ -63,7 +64,7 @@ async function syncLicenseFromPaidSession({
   const rid = normalizeTenantId(session?.restaurantId || event?.restaurantId);
   if (!rid) throw new Error("restaurantId_obbligatorio");
 
-  const plan = session?.plan || event?.plan || "ristoword_pro";
+  const plan = session?.plan || event?.plan || DEFAULT_PLAN_SLUG;
   const mode = session?.mode || event?.mode || "subscription";
   const nowIso = new Date().toISOString();
   const expiresAt = computeExpiresAt({ mode });
@@ -163,7 +164,7 @@ async function syncLicenseFromPaidSession({
 
   if (customerEmail && activationCode) {
     try {
-      const mailRes = await mailService.sendRistowordActivationEmail({
+      const mailRes = await mailService.sendActivationEmail({
         to: customerEmail,
         restaurantId: rid,
         activationCode,

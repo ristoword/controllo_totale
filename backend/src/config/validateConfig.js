@@ -1,5 +1,5 @@
 // backend/src/config/validateConfig.js
-// Centralized startup configuration checks for Ristoword.
+// Centralized startup configuration checks for Controllo Totale.
 // NOTE: This is a read-only validator: it never mutates config and
 // only throws for truly mandatory settings (e.g. SESSION_SECRET).
 // Other problems are logged as warnings so existing behaviour is preserved.
@@ -188,13 +188,14 @@ function validateProductionDangerousFlags() {
 }
 
 function validateStripeCheckout() {
+  const { priceMonthly, priceAnnual } = require("./stripeEnv");
   const sk = process.env.STRIPE_SECRET_KEY && String(process.env.STRIPE_SECRET_KEY).trim();
   if (!sk) return;
-  const pm = process.env.STRIPE_PRICE_RISTOWORD_MONTHLY && String(process.env.STRIPE_PRICE_RISTOWORD_MONTHLY).trim();
-  const pa = process.env.STRIPE_PRICE_RISTOWORD_ANNUAL && String(process.env.STRIPE_PRICE_RISTOWORD_ANNUAL).trim();
+  const pm = priceMonthly();
+  const pa = priceAnnual();
   if (!pm && !pa) {
     console.warn(
-      "[CONFIG][STRIPE] STRIPE_SECRET_KEY presente ma nessun STRIPE_PRICE_RISTOWORD_MONTHLY/ANNUAL; checkout resta in modalità mock."
+      "[CONFIG][STRIPE] STRIPE_SECRET_KEY presente ma nessun STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY/ANNUAL (o STRIPE_PRICE_CT_*); checkout resta in modalità mock."
     );
     return;
   }

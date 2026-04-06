@@ -15,7 +15,7 @@ function safeReadJson(filePath, fallback = null) {
     return parsed;
   } catch (err) {
     if (err.code === "ENOENT") return def;
-    console.error(`[Ristoword] safeReadJson error ${filePath}:`, err.message);
+    console.error(`[safeFileIO] safeReadJson error ${filePath}:`, err.message);
     return def;
   }
 }

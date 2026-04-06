@@ -30,7 +30,7 @@ function isBcryptHash(str) {
 }
 
 async function main() {
-  console.log("[Ristoword] Password migration to bcrypt");
+  console.log("[Controllo Totale] Password migration to bcrypt");
   fs.mkdirSync(DATA_DIR, { recursive: true });
 
   if (fs.existsSync(USERS_FILE)) {
