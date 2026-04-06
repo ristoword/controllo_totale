@@ -159,6 +159,53 @@
       .join("");
   }
 
+  async function fetchClosureHistory() {
+    try {
+      const from = new Date();
+      from.setDate(from.getDate() - 90);
+      const fromStr = `${from.getFullYear()}-${pad2(from.getMonth() + 1)}-${pad2(from.getDate())}`;
+      const res = await fetch(
+        `/api/closures?dateFrom=${encodeURIComponent(fromStr)}&dateTo=${encodeURIComponent(todayYMD())}`,
+        { credentials: "same-origin" }
+      );
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
+    }
+  }
+
+  function renderClosureHistory(closures) {
+    const box = document.getElementById("closure-history");
+    if (!box) return;
+    box.innerHTML = "";
+
+    if (!closures || closures.length === 0) {
+      box.innerHTML = '<div class="label-soft tiny">Nessuna chiusura Z trovata.</div>';
+      return;
+    }
+
+    const sorted = [...closures].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+    sorted.slice(0, 20).forEach((c) => {
+      const row = document.createElement("div");
+      row.className = "mini-row";
+      const closedAt = c.closedAt
+        ? new Date(c.closedAt).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" })
+        : "—";
+      row.innerHTML = `
+        <div class="left">
+          <div class="title">${c.date || "—"}</div>
+          <div class="meta">Chiusa: ${closedAt} • ${c.closedBy || "—"}</div>
+        </div>
+        <div class="right">${toMoney(c.grandTotal ?? 0)}</div>
+      `;
+      row.addEventListener("click", () => {
+        window.open(`/api/closures/${c.date}/export?format=csv`, "_blank");
+      });
+      box.appendChild(row);
+    });
+  }
+
   async function checkClosureStatus(dateYMD) {
     try {
       const res = await fetch(`/api/closures/check/${dateYMD}`, { credentials: "same-origin" });
@@ -241,6 +288,8 @@
       alert(`Giornata ${selectedDate} chiusa con successo.`);
       isClosed = true;
       updateClosureStatus(true);
+      const closures = await fetchClosureHistory();
+      renderClosureHistory(closures);
     } catch (err) {
       alert(err.message || "Errore nella chiusura della giornata.");
     }

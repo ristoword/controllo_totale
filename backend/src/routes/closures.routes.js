@@ -16,6 +16,9 @@ router.get("/check/:date", asyncHandler(closuresController.checkDateClosed));
 // GET /api/closures/preview/:date – preview totals before closing
 router.get("/preview/:date", asyncHandler(closuresController.getClosurePreview));
 
+// GET /api/closures/day-status/:date – stato giornata (apertura + Z)
+router.get("/day-status/:date", asyncHandler(closuresController.getDayStatus));
+
 // GET /api/closures/:date/export?format=csv|excel – export closure
 router.get("/:date/export", asyncHandler(closuresController.exportClosure));
 

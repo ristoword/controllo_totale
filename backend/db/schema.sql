@@ -190,6 +190,18 @@ CREATE TABLE IF NOT EXISTS closures (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
+-- Giornata aperta (day_open.json per tenant — un record per ristorante)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS day_open_status (
+  restaurant_id  VARCHAR(64)   NOT NULL PRIMARY KEY,
+  business_date  DATE          NOT NULL,
+  opened_at      DATETIME(3)   NOT NULL,
+  opened_by      VARCHAR(255)  NULL,
+  CONSTRAINT fk_day_open_restaurant FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
 -- Report salvati (reports.json → chiave "reports")
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS saved_reports (

@@ -2,7 +2,9 @@
 
 ## Overview
 
-Implementation plan for the staff access system (central login from cassa + direct login from modules for department managers). **Before applying changes**, this document describes exactly which files will be modified and why.
+Sistema di accesso staff (login centralizzato dalla **cassa** + login diretto **manager** da cucina, sala, bar, supervisor). Le sessioni operative sono persistite tramite API **`/api/sessions`** (non esiste un endpoint separato `/api/staff-access`).
+
+Questo documento descrive il **comportamento effettivo** nel codice in `CONTROLLO_TOTALE`; la versione precedente (file dedicati `staff-access.routes` e `staff-access.json`) è stata **sostituita** dall’integrazione con `sessions`.
 
 ---
 
@@ -10,170 +12,99 @@ Implementation plan for the staff access system (central login from cassa + dire
 
 | # | Feature | Description |
 |---|---------|-------------|
-| 1 | Central staff login/logout | From **cassa** (cash register) for normal operational staff |
-| 2 | Direct login from modules | Department managers: kitchen (cucina), sala, bar, supervisor |
-| 3 | Store staff access data | userId, name, role, department, loginTime, logoutTime, authorizedBy |
-| 4 | Future-proof architecture | Prepare for schedules, vacations, free days, worked hours, shift planning |
+| 1 | Central staff login/logout | Dalla **cassa** per lo staff operativo |
+| 2 | Direct login from modules | Manager reparto: cucina, sala, bar, supervisor |
+| 3 | Store staff access data | Sessioni con `userId`, reparto, `authorizedBy`, sorgente (`cassa` / `module`) |
+| 4 | Future-proof architecture | Base per turni, presenze, ore (estensioni future) |
 
-**Out of scope for now:** Full shift scheduling implementation.
-
----
-
-## 2. Files to Create (NEW)
-
-| File | Purpose |
-|------|---------|
-| `backend/data/staff-access.json` | JSON storage for staff access sessions (auto-created by repo) |
-| `backend/src/repositories/staff-access.repository.js` | CRUD for staff access records; persists to JSON (like closures.repository) |
-| `backend/src/controllers/staff-access.controller.js` | API: login, logout, list sessions, get active |
-| `backend/src/routes/staff-access.routes.js` | Express routes: POST /login, POST /logout, GET /sessions, GET /active |
-| `backend/public/shared/staff-access.js` | Shared frontend: staff login modal, auth state, API calls |
-| `backend/public/shared/staff-access.css` | Styles for staff login UI |
-| `backend/src/constants/departments.js` | Constants: departments, roles, manager→department mapping (for future schedules) |
+**Out of scope (per ora):** pianificazione turni completa.
 
 ---
 
-## 3. Files to Modify (EXISTING)
+## 2. File effettivi (backend)
 
-### Backend
+| File | Ruolo |
+|------|--------|
+| `backend/src/routes/sessions.routes.js` | `POST /login`, `POST /logout`, `GET /active`, `GET /active/:department` |
+| `backend/src/controllers/sessions.controller.js` | Logica sessioni staff |
+| `backend/src/repositories/sessions.repository.js` | Router JSON / MySQL |
+| `backend/src/app.js` | `app.use("/api/sessions", requireAuth, requireRole(...), sessionsRouter)` |
 
-| File | Modifications | Reason |
-|------|---------------|--------|
-| `backend/src/app.js` | Add `require("./routes/staff-access.routes")` and `app.use("/api/staff-access", ...)` | Register new staff access API |
-| `backend/src/repositories/auth.repository.js` | Add DEMO_USERS for `kitchen_manager`, `sala_manager`, `bar_manager` (supervisor already exists) with `department` and `redirectTo` | Support direct login for department managers |
-
-### Cassa (Cash Register)
-
-| File | Modifications | Reason |
-|------|---------------|--------|
-| `backend/public/cassa/cassa.html` | Add staff chip in header, modal for staff login (select staff + authorizedBy), logout button; include `staff-access.js` and `staff-access.css` | UI for central staff login/logout |
-| `backend/public/cassa/cassa.js` | On load: check staff session; add handlers for staff login modal (select staff from API, select authorizer); call POST /api/staff-access/login and /logout | Implement staff login flow from cassa |
-
-### Cucina (Kitchen)
-
-| File | Modifications | Reason |
-|------|---------------|--------|
-| `backend/public/cucina/cucina.html` | Add manager chip in header + "Manager login" button; include `staff-access.js` | UI for kitchen manager direct login |
-| `backend/public/cucina/cucina.js` | Add manager login handler: call auth API for kitchen_manager, then staff-access API; show current manager name | Integrate direct login for kitchen manager |
-
-### Sala
-
-| File | Modifications | Reason |
-|------|---------------|--------|
-| `backend/public/sala/sala.html` | Add manager chip + "Manager login" button; include `staff-access.js` | UI for sala manager direct login |
-| `backend/public/sala/sala.js` | Add manager login handler for sala_manager; call staff-access API | Integrate direct login for sala manager |
-
-### Bar
-
-| File | Modifications | Reason |
-|------|---------------|--------|
-| `backend/public/bar/bar.html` | Add manager chip + "Manager login" button; include `staff-access.js` | UI for bar manager direct login |
-| `backend/public/bar/bar.js` | Add manager login handler for bar_manager; call staff-access API | Integrate direct login for bar manager |
-
-### Supervisor
-
-| File | Modifications | Reason |
-|------|---------------|--------|
-| `backend/public/supervisor/supervisor.html` | Add manager chip + "Supervisor login" (or reuse existing auth) in header; include `staff-access.js` | UI for supervisor direct login |
-| `backend/public/supervisor/supervisor.js` | Add supervisor login handler; call staff-access API for supervisor role | Integrate direct login for supervisor |
-
-### Staff Module (optional, for future use)
-
-| File | Modifications | Reason |
-|------|---------------|--------|
-| `backend/src/repositories/staff.repository.js` | Load initial data from `data/staff.json` if present; add `department` field to create/update | Align staff with departments; ensure staff list available for cassa login |
-| `backend/data/staff.json` | Extend to array format with `id`, `name`, `role`, `department`, etc. | Seed data for staff (used by cassa for staff selection) |
+Registrazione in `app.js` (sezione `// SESSIONS (Staff access)`).
 
 ---
 
-## 4. Data Model: Staff Access Session
+## 3. File effettivi (frontend condiviso)
 
-```json
-{
-  "id": "sa_uuid",
-  "userId": "st_001",
-  "name": "Marco Rossi",
-  "role": "chef",
-  "department": "cucina",
-  "loginTime": "2026-03-10T10:00:00.000Z",
-  "logoutTime": null,
-  "authorizedBy": "cassiere1",
-  "loginSource": "cassa"
-}
-```
-
-- **loginSource**: `"cassa"` = central staff login; `"module"` = direct login from module (manager)
-- **authorizedBy**: Only for `loginSource === "cassa"`; null for module logins
-- **logoutTime**: Set when user logs out
+| File | Ruolo |
+|------|--------|
+| `backend/public/shared/staff-access.js` | `RW_StaffAccess`: login manager (`/api/auth/login` + `/api/sessions/login`), staff cassa (`/api/sessions/login` con `source: "cassa"`), logout, lista attivi |
+| `backend/public/shared/staff-access.css` | Stili chip/modal staff |
 
 ---
 
-## 5. API Endpoints
+## 4. Moduli UI che includono lo shared module
 
-| Method | Path | Description |
+Inclusi (non esaustivo): `cassa/cassa.html`, `cucina/cucina.html`, `sala/sala.html`, `bar/bar.html`, `supervisor/supervisor.html`, `supervisor/staff/staff.html`.
+
+---
+
+## 5. Modello dati (sessione operativa)
+
+Campi tipici restituiti da `POST /api/sessions/login` e letti dal frontend (vedi `sessions.controller` / repository):
+
+- Identificativo sessione, utente, nome, reparto (`department`)
+- `authorizedBy`: valorizzato per login da **cassa**; assente o vuoto per login da **modulo** (manager)
+- `source`: es. `"cassa"` | `"module"` (come inviato dal client in `staff-access.js`)
+
+---
+
+## 6. Endpoint API (riferimento)
+
+| Metodo | Path | Descrizione |
 |--------|------|-------------|
-| POST | `/api/staff-access/login` | Create new session (body: userId, name, role, department, authorizedBy?, loginSource) |
-| POST | `/api/staff-access/logout` | End session (body: sessionId or userId for active session) |
-| GET | `/api/staff-access/sessions` | List sessions (query: dateFrom, dateTo, department) |
-| GET | `/api/staff-access/active` | Get currently active sessions (no logoutTime) |
-| GET | `/api/staff-access/active/:userId` | Get active session for specific user |
+| POST | `/api/auth/login` | Autenticazione utente (manager / cassa) |
+| POST | `/api/sessions/login` | Registra sessione staff dopo login |
+| POST | `/api/sessions/logout` | Chiude sessione (`sessionId` o `userId`) |
+| GET | `/api/sessions/active` | Sessioni attive |
+| GET | `/api/sessions/active/:department` | Sessioni attive per reparto |
+| GET | `/api/staff` | Elenco staff (per selezione in cassa) |
 
 ---
 
-## 6. Architecture for Future Schedule Management
+## 7. Flussi (riepilogo)
 
-The following structure is **prepared but not implemented**:
+### Staff dalla cassa
 
-- `backend/src/constants/departments.js`: Defines `DEPARTMENTS`, `MANAGER_ROLES`, `getDepartmentForRole(role)`
-- Repository methods in `staff-access.repository.js` can later be extended with:
-  - `getSessionsByUserAndDateRange(userId, from, to)` → for worked hours
-  - `getActiveSessionsByDepartment(department)` → for shift overview
-- Each module (cucina, sala, bar, supervisor) will have a reserved section (e.g. "Turni" in cucina already exists) where future schedule management UI can be added
-- No new tables/files for schedules, vacations, free days yet
+1. Utente loggato sulla cassa apre il modal staff.
+2. Scelta dipendente da `/api/staff` e autorizzatore.
+3. `POST /api/sessions/login` con `source: "cassa"` e `authorizedBy`.
 
----
+### Manager da modulo
 
-## 7. Flow Summary
-
-### Central staff login (Cassa)
-
-1. User (cashier/supervisor) opens cassa.
-2. Clicks "Staff login" or similar.
-3. Modal opens: select staff member from `/api/staff`, select authorizer (current logged user or dropdown).
-4. Submit → POST `/api/staff-access/login` with `loginSource: "cassa"`, `authorizedBy: authorizerName`.
-5. Session stored; chip shows "Staff attivo: Marco Rossi" (or similar).
-
-### Direct login (Department manager)
-
-1. User opens cucina/sala/bar/supervisor.
-2. Clicks "Manager login".
-3. Modal: username, password (or PIN if we add it).
-4. Auth API validates; if role matches department (e.g. kitchen_manager for cucina) → POST `/api/staff-access/login` with `loginSource: "module"`, `authorizedBy: null`.
-5. Session stored; chip shows current manager.
+1. `POST /api/auth/login` con credenziali ruolo manager.
+2. `POST /api/sessions/login` con `source: "module"` e `authorizedBy: null`.
 
 ### Logout
 
-1. User clicks "Logout" in header.
-2. POST `/api/staff-access/logout` with sessionId.
-3. Session updated with `logoutTime`; UI cleared.
+`POST /api/sessions/logout` con corpo che identifica la sessione.
 
 ---
 
-## 8. Dependencies
+## 8. Dipendenze
 
-- No new npm packages. Uses existing: `express`, `fs`, `path`, `crypto` (for IDs).
-- Staff list: uses existing `/api/staff`. If empty, cassa can show "Nessuno staff" and suggest adding via `/staff/staff.html`.
+Nessun pacchetto aggiuntivo; si usano Express, sessioni e repository esistenti.
 
 ---
 
-## 9. Order of Implementation
+## 9. Order of Implementation (storico / manutenzione)
 
-1. Create `departments.js` constants
-2. Create `staff-access.repository.js`
-3. Create `staff-access.controller.js` and `staff-access.routes.js`
-4. Update `app.js` to register routes
-5. Update `auth.repository.js` with manager roles
-6. Create `staff-access.js` and `staff-access.css` (shared)
-7. Update cassa: HTML + JS
-8. Update cucina, sala, bar, supervisor: HTML + JS
-9. (Optional) Update staff.repository to load from JSON and add department
+L’implementazione effettiva segue il router **`sessions`** e il frontend **`shared/staff-access.js`**. Per modifiche future:
+
+1. Aggiornare `sessions` repository/controller se servono nuovi campi.
+2. Aggiornare `staff-access.js` per i testi e i payload.
+3. Eventuale estensione `auth` / ruoli manager in `auth.repository` o equivalente.
+
+---
+
+*Aggiornato: allineamento a `/api/sessions` e file reali nel repo Controllo Totale.*

@@ -40,6 +40,7 @@ function rowToClosure(row) {
   const dateStr = sqlDateToStr(row.closure_date);
   return {
     ...ex,
+    finalized: ex.finalized !== false,
     id: String(row.id),
     date: dateStr,
     cashTotal: Number(row.cash_total),
@@ -121,8 +122,9 @@ async function writeAllClosures(closures) {
 }
 
 async function createClosure(payload) {
-  const c = normalizeClosureInput(payload);
-  const extraObj = extraFromRawClosure(payload);
+  const c = normalizeClosureInput({ ...payload, finalized: true });
+  const baseEx = extraFromRawClosure(payload) || {};
+  const extraObj = { ...baseEx, finalized: c.finalized !== false };
   const rid = getRid();
   const pool = getPool();
   await pool.query(

@@ -168,17 +168,13 @@ function formatTimeFromISO(iso) {
 
 async function fetchDayStatus(dateISO) {
   const opts = { credentials: "same-origin" };
-  const [checkRes, closureRes] = await Promise.all([
-    fetch(`/api/closures/check/${dateISO}`, opts).then((r) => r.ok ? r.json() : { closed: false }).catch(() => ({ closed: false })),
-    fetch(`/api/closures/${dateISO}`, opts).then((r) => r.ok ? r.json() : null).catch(() => null),
-  ]);
-  const closed = checkRes && checkRes.closed;
-  const closure = closureRes;
-  return {
-    closed,
-    closedAt: closure?.closedAt,
-    closedBy: closure?.closedBy || "—",
-  };
+  try {
+    const res = await fetch(`/api/closures/day-status/${encodeURIComponent(dateISO)}`, opts);
+    if (!res.ok) throw new Error("day-status");
+    return await res.json();
+  } catch {
+    return { closed: false, open: true };
+  }
 }
 
 function renderDateTime() {
@@ -194,9 +190,12 @@ function renderDayStatus(status) {
     return;
   }
   if (status.closed) {
-    el.textContent = `Z chiusa • ${formatTimeFromISO(status.closedAt)} • ${status.closedBy}`;
+    el.textContent = `Z chiusa • ${formatTimeFromISO(status.closedAt)} • ${status.closedBy || "—"}`;
+  } else if (status.open && status.openedAt) {
+    const by = (status.openedBy || "").trim();
+    el.textContent = by ? `Aperta • ${formatTimeFromISO(status.openedAt)} • ${by}` : `Aperta • ${formatTimeFromISO(status.openedAt)}`;
   } else {
-    el.textContent = "Aperta";
+    el.textContent = "Non aperta";
   }
 }
 
@@ -929,6 +928,10 @@ async function createPaymentRecord(payload) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+  if (res.status === 403) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || err.error || "Operazione non consentita (giornata chiusa o non aperta).");
+  }
   if (res.status === 409) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || "Ordini già pagati. Impossibile registrare un secondo pagamento.");
@@ -1230,6 +1233,10 @@ function setupBillInteractions() {
       const dayStatus = await fetchDayStatus(todayISO());
       if (dayStatus.closed) {
         alert("La giornata è già stata chiusa con la Z. Non è possibile registrare nuovi pagamenti o chiudere tavoli.");
+        return;
+      }
+      if (dayStatus.open === false) {
+        alert("Giornata non aperta. Attendi il caricamento o riprova tra un attimo.");
         return;
       }
     } catch {
@@ -2839,7 +2846,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const status = await fetchDayStatus(todayISO());
         renderDayStatus(status);
       } catch {
-        renderDayStatus({ closed: false });
+        renderDayStatus({ closed: false, open: true });
       }
     }
     refreshDayStatus();

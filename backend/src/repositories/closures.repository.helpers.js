@@ -33,6 +33,7 @@ function normalizeClosureInput(input = {}) {
     closedBy: normalizeString(input.closedBy, ""),
     notes: normalizeString(input.notes, ""),
     createdAt: input.createdAt || nowIso,
+    finalized: input.finalized !== false,
   };
 }
 
@@ -52,6 +53,7 @@ const CLOSURE_KNOWN_KEYS = new Set([
   "closedBy",
   "notes",
   "createdAt",
+  "finalized",
 ]);
 
 function extraFromRawClosure(raw) {

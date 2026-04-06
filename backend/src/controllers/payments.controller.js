@@ -1,6 +1,7 @@
 const paymentsRepository = require("../repositories/payments.repository");
 const ordersRepository = require("../repositories/orders.repository");
 const closuresRepository = require("../repositories/closures.repository");
+const dayOpenRepository = require("../repositories/day-open.repository");
 const paymentsService = require("../service/payments.service");
 const ordersService = require("../service/orders.service");
 const { broadcastOrders, broadcastSupervisorSyncFromData } = require("../service/websocket.service");
@@ -159,10 +160,17 @@ async function createPayment(req, res) {
 
   const paymentDateIso = payload.closedAt || new Date().toISOString();
   const paymentDateStr = getPaymentDateStr({ closedAt: paymentDateIso });
+  const todayStr = new Date().toISOString().slice(0, 10);
   if (paymentDateStr) {
+    if (paymentDateStr === todayStr) {
+      await dayOpenRepository.ensureOpenForToday(
+        paymentDateStr,
+        req.session?.user?.username || "system"
+      );
+    }
     const dayClosed = await closuresRepository.isDayClosed(paymentDateStr);
     if (dayClosed) {
-      return res.status(409).json({
+      return res.status(403).json({
         error: "Giornata chiusa",
         message: "La giornata risulta già chiusa con la Z. Non è possibile registrare nuovi pagamenti."
       });

@@ -2,6 +2,7 @@
 // Daily Z closure: create, list, get by date, export CSV/Excel
 
 const closuresRepository = require("../repositories/closures.repository");
+const dayOpenRepository = require("../repositories/day-open.repository");
 const paymentsRepository = require("../repositories/payments.repository");
 const ordersRepository = require("../repositories/orders.repository");
 const storniRepository = require("../repositories/storni.repository");
@@ -129,6 +130,43 @@ async function listClosures(req, res) {
   res.json(closures);
 }
 
+// GET /api/closures/day-status/:date
+async function getDayStatus(req, res) {
+  const dateStr = String(req.params.date || "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return res.status(400).json({ error: "Data non valida (YYYY-MM-DD)" });
+  }
+
+  const closed = await closuresRepository.isDayClosed(dateStr);
+  if (closed) {
+    const c = await closuresRepository.getClosureByDate(dateStr);
+    return res.json({
+      open: false,
+      closed: true,
+      closedAt: c?.closedAt || null,
+      closedBy: c?.closedBy || null,
+      finalized: c?.finalized !== false,
+    });
+  }
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (dateStr !== todayStr) {
+    return res.json({ open: false, closed: false });
+  }
+
+  const state = await dayOpenRepository.ensureOpenForToday(dateStr, "system");
+  if (!state || !state.openedAt) {
+    return res.json({ open: false, closed: false });
+  }
+
+  return res.json({
+    open: true,
+    closed: false,
+    openedAt: state.openedAt,
+    openedBy: state.openedBy || "",
+  });
+}
+
 // GET /api/closures/check/:date
 async function checkDateClosed(req, res) {
   const { date } = req.params;
@@ -227,6 +265,7 @@ module.exports = {
   listClosures,
   getClosureByDate,
   getClosurePreview,
+  getDayStatus,
   checkDateClosed,
   exportClosure,
   computeDayTotals,
