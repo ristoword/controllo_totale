@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>CONTROLLO TOTALE – Fornitori</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/fornitori/" />
+  <link rel="stylesheet" href="fornitori.css" />
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,magazzino,cucina,supervisor,sala,cassa" defer></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar no-print">
+      <div>
+        <h1>Schedario fornitori</h1>
+        <p class="subtitle">Anagrafica, tipologie prodotto, ordini, fatture e pagamenti</p>
+      </div>
+      <div class="topbar-actions">
+        <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
+        <a href="/magazzino/magazzino.html" class="btn ghost">Magazzino</a>
+        <a href="/cucina/cucina.html" class="btn ghost">Cucina</a>
+        <a href="/supervisor/supervisor.html" class="btn ghost">Supervisor</a>
+        <button type="button" class="btn primary" id="btn-new-supplier">Nuovo fornitore</button>
+        <button type="button" class="btn ghost" id="btn-refresh">Aggiorna</button>
+      </div>
+    </header>
+
+    <div class="toolbar no-print">
+      <label class="filter-label">
+        Vista
+        <select id="filter-archived">
+          <option value="exclude">Fornitori attivi</option>
+          <option value="only">Solo archivio</option>
+          <option value="all">Tutti</option>
+        </select>
+      </label>
+      <input type="search" id="search-input" class="search-input" placeholder="Cerca ragione sociale, P.IVA, città…" />
+    </div>
+
+    <div class="main-split">
+      <aside class="supplier-list-wrap no-print">
+        <div id="supplier-list" class="supplier-list"></div>
+      </aside>
+
+      <main class="detail-panel" id="detail-panel">
+        <div id="detail-empty" class="empty-state">
+          <p>Seleziona un fornitore dall’elenco a sinistra oppure creane uno nuovo.</p>
+        </div>
+        <div id="detail-content" class="detail-content" hidden>
+          <div class="detail-header">
+            <div>
+              <h2 id="d-company">—</h2>
+              <p class="muted" id="d-meta"></p>
+            </div>
+            <div class="detail-header-actions no-print">
+              <button type="button" class="btn ghost" id="btn-print">Stampa scheda</button>
+              <button type="button" class="btn ghost" id="btn-archive" title="Sposta in archivio">Archivia</button>
+              <button type="button" class="btn ghost" id="btn-restore" hidden>Ripristina</button>
+            </div>
+          </div>
+
+          <nav class="subtabs no-print">
+            <button type="button" class="subtab active" data-sub="anagrafica">Anagrafica</button>
+            <button type="button" class="subtab" data-sub="prodotti">Tipologie prodotto</button>
+            <button type="button" class="subtab" data-sub="ordini">Ordini</button>
+            <button type="button" class="subtab" data-sub="fatture">Fatture</button>
+            <button type="button" class="subtab" data-sub="pagamenti">Pagamenti</button>
+          </nav>
+
+          <section class="subpanel" data-sub="anagrafica">
+            <div class="form-grid" id="form-anagrafica">
+              <label>Ragione sociale *
+                <input type="text" id="f-companyName" required />
+              </label>
+              <label>Ragione sociale estesa
+                <input type="text" id="f-legalName" />
+              </label>
+              <label>P. IVA
+                <input type="text" id="f-vatId" />
+              </label>
+              <label>Codice fiscale
+                <input type="text" id="f-fiscalCode" />
+              </label>
+              <label>Indirizzo
+                <input type="text" id="f-address" />
+              </label>
+              <label>CAP
+                <input type="text" id="f-cap" />
+              </label>
+              <label>Città
+                <input type="text" id="f-city" />
+              </label>
+              <label>Prov.
+                <input type="text" id="f-province" maxlength="3" />
+              </label>
+              <label>Paese
+                <input type="text" id="f-country" value="IT" />
+              </label>
+              <label>Telefono
+                <input type="text" id="f-phone" />
+              </label>
+              <label>Email
+                <input type="email" id="f-email" />
+              </label>
+              <label>PEC
+                <input type="text" id="f-pec" />
+              </label>
+              <label>Codice SDI
+                <input type="text" id="f-sdi" />
+              </label>
+              <label>Banca
+                <input type="text" id="f-bankName" />
+              </label>
+              <label>IBAN
+                <input type="text" id="f-iban" />
+              </label>
+              <label>Termini di pagamento
+                <input type="text" id="f-paymentTerms" placeholder="es. 30gg FM" />
+              </label>
+              <label class="full">Note
+                <textarea id="f-notes" rows="2"></textarea>
+              </label>
+              <label>Sconto predefinito
+                <select id="f-defaultDiscountType">
+                  <option value="none">Nessuno</option>
+                  <option value="percent">Percentuale</option>
+                  <option value="amount">Importo fisso</option>
+                </select>
+              </label>
+              <label>Valore sconto
+                <input type="number" id="f-defaultDiscountValue" step="0.01" min="0" />
+              </label>
+              <div class="form-actions full no-print">
+                <button type="button" class="btn primary" id="btn-save-anagrafica">Salva anagrafica</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="subpanel" data-sub="prodotti" hidden>
+            <p class="hint">Elenco delle categorie o tipologie di prodotto che ordini abitualmente da questo fornitore.</p>
+            <div class="row no-print">
+              <input type="text" id="input-product-type" placeholder="es. Carni, Latticini, Surgelati…" />
+              <button type="button" class="btn small" id="btn-add-product-type">Aggiungi</button>
+            </div>
+            <div id="tags-product-types" class="tags"></div>
+            <div class="form-actions no-print">
+              <button type="button" class="btn primary" id="btn-save-product-types">Salva tipologie</button>
+            </div>
+          </section>
+
+          <section class="subpanel" data-sub="ordini" hidden>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Rif.</th>
+                    <th>Prodotti / note</th>
+                    <th>Importo</th>
+                    <th>Stato</th>
+                    <th class="no-print"></th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-orders"></tbody>
+              </table>
+            </div>
+            <div class="inline-form no-print">
+              <h3>Nuovo ordine</h3>
+              <div class="form-grid small">
+                <label>Data
+                  <input type="date" id="o-date" />
+                </label>
+                <label>Riferimento
+                  <input type="text" id="o-ref" placeholder="Ordine / DDT" />
+                </label>
+                <label>Importo €
+                  <input type="number" id="o-amount" step="0.01" min="0" />
+                </label>
+                <label>Stato
+                  <select id="o-status">
+                    <option value="completed">Evaso</option>
+                    <option value="pending">In attesa</option>
+                    <option value="cancelled">Annullato</option>
+                  </select>
+                </label>
+                <label class="full">Prodotti ordinati
+                  <input type="text" id="o-items" placeholder="Descrizione sintetica" />
+                </label>
+                <label class="full">Note
+                  <input type="text" id="o-notes" />
+                </label>
+                <div class="full">
+                  <button type="button" class="btn primary" id="btn-add-order">Registra ordine</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="subpanel" data-sub="fatture" hidden>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>N. fattura</th>
+                    <th>Emissione</th>
+                    <th>Scadenza</th>
+                    <th>Importo</th>
+                    <th>Pagato</th>
+                    <th>Sconto</th>
+                    <th>Stato</th>
+                    <th class="no-print"></th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-invoices"></tbody>
+              </table>
+            </div>
+            <div class="inline-form no-print">
+              <h3>Nuova fattura</h3>
+              <div class="form-grid small">
+                <label>Numero
+                  <input type="text" id="i-number" />
+                </label>
+                <label>Data emissione
+                  <input type="date" id="i-issue" />
+                </label>
+                <label>Scadenza pagamento
+                  <input type="date" id="i-due" />
+                </label>
+                <label>Importo €
+                  <input type="number" id="i-amount" step="0.01" min="0" />
+                </label>
+                <label>Già pagato €
+                  <input type="number" id="i-paid" step="0.01" min="0" />
+                </label>
+                <label>Data pagamento
+                  <input type="date" id="i-paid-date" />
+                </label>
+                <label>Tipo sconto
+                  <select id="i-discount-type">
+                    <option value="none">Nessuno</option>
+                    <option value="percent">%</option>
+                    <option value="amount">€</option>
+                  </select>
+                </label>
+                <label>Valore sconto
+                  <input type="number" id="i-discount-val" step="0.01" min="0" />
+                </label>
+                <label class="full">Note
+                  <input type="text" id="i-notes" />
+                </label>
+                <div class="full">
+                  <button type="button" class="btn primary" id="btn-add-invoice">Aggiungi fattura</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="subpanel" data-sub="pagamenti" hidden>
+            <div class="payment-filters no-print">
+              <label>Da data
+                <input type="date" id="pay-from" />
+              </label>
+              <label>A data
+                <input type="date" id="pay-to" />
+              </label>
+              <button type="button" class="btn small" id="btn-apply-pay-range">Calcola</button>
+            </div>
+            <div id="payment-summary" class="payment-summary"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="modal-new" class="modal no-print" hidden>
+    <div class="modal-backdrop" data-close="1"></div>
+    <div class="modal-card">
+      <h2>Nuovo fornitore</h2>
+      <label>Ragione sociale *
+        <input type="text" id="m-companyName" />
+      </label>
+      <label>P. IVA
+        <input type="text" id="m-vatId" />
+      </label>
+      <label>Città
+        <input type="text" id="m-city" />
+      </label>
+      <label>Telefono
+        <input type="text" id="m-phone" />
+      </label>
+      <label>Email
+        <input type="email" id="m-email" />
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="modal-new-cancel">Annulla</button>
+        <button type="button" class="btn primary" id="modal-new-ok">Crea</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="fornitori.js"></script>
+</body>
+</html>

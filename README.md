@@ -1,9 +1,17 @@
 # Controllo Totale
 
+**Repository GitHub:** [github.com/ristoword/controllo_totale](https://github.com/ristoword/controllo_totale)
+
 Gestionale ristorazione **multi-reparto** e **multi-tenant** (Sala, Cucina, Bar, Pizzeria, Cassa, Magazzino, Supervisor, Asporto, Catering, Staff).  
 Prodotto **pronto al deploy**: un solo backend Node in `backend/`, healthcheck `/api/health`, branding e metadati prodotto via variabili d’ambiente.
 
 **Questo repository è indipendente** da altri progetti sul computer: non condividere cartelle, database né dati con altre installazioni.
+
+### Schema e logica dati
+
+- **MySQL (opzionale):** `USE_MYSQL_DATABASE=true` — tabelle tenant in `backend/src/db/` e `docs/` (es. `DATABASE_EXTENSIONS.sql`, `DATABASE_ISOLATION.md`).
+- **JSON per tenant:** file sotto `backend/data/tenants/<id>/` (inventario, fornitori quando non si usa MySQL, ecc.) — non committare dati sensibili di produzione; in repo restano solo esempi o cartelle vuote se presenti.
+- **Moduli JSON in MySQL:** payload in `tenant_module_data` (chiavi come `inventory`, `suppliers`).
 
 ---
 
@@ -57,6 +65,8 @@ Storico e report di progetto sono in **`docs/_archive/`** (non servono al runtim
 | `/cassa/cassa.html` | Cassa |
 | `/staff-hr/index.html` | HR (hub + roadmap) |
 | `/dashboard/dashboard.html` | Dashboard operativa |
+| `/magazzino/magazzino.html` | Magazzino centrale / ricezione |
+| `/fornitori/fornitori.html` | Schedario fornitori (anagrafica, ordini, fatture) |
 
 ---
 

@@ -11,6 +11,7 @@ const DEV_BRIDGE_MODULES = {
   pizzeria: { targetPath: "/pizzeria/pizzeria.html" },
   cassa: { targetPath: "/cassa/cassa.html" },
   magazzino: { targetPath: "/magazzino/magazzino.html" },
+  fornitori: { targetPath: "/fornitori/fornitori.html" },
   prenotazioni: { targetPath: "/prenotazioni/prenotazioni.html" },
   catering: { targetPath: "/catering/catering.html" },
   staff: { targetPath: "/staff/staff.html" },

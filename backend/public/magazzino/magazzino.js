@@ -43,9 +43,21 @@ function getSearchFilter() {
 function filterBySearch(items, qtyField) {
   const search = getSearchFilter();
   if (!search) return items;
-  return items.filter((item) =>
-    String(item.name || "").toLowerCase().includes(search)
-  );
+  return items.filter((item) => {
+    const name = String(item.name || "").toLowerCase();
+    const supplier = String(item.supplier || "").toLowerCase();
+    return name.includes(search) || supplier.includes(search);
+  });
+}
+
+function formatDeliveryDate(iso) {
+  if (!iso || typeof iso !== "string") return "";
+  const d = iso.slice(0, 10);
+  const parts = d.split("-");
+  if (parts.length !== 3) return escapeHtml(iso);
+  const [y, m, day] = parts;
+  if (!y || !m || !day) return escapeHtml(iso);
+  return `${day}/${m}/${y}`;
 }
 
 function showTab(tabName) {
@@ -114,6 +126,8 @@ function renderCentralList() {
             <div class="inv-meta">
               ${item.category ? `<span class="inv-cat">${escapeHtml(item.category)}</span>` : ""}
               ${item.lot ? `<span class="inv-lot">Lotto: ${escapeHtml(item.lot)}</span>` : ""}
+              ${item.supplier ? `<span class="inv-supplier">Fornitore: ${escapeHtml(item.supplier)}</span>` : ""}
+              ${item.deliveryDate ? `<span class="inv-delivery">Consegna: ${formatDeliveryDate(item.deliveryDate)}</span>` : ""}
             </div>
             <div class="inv-cost">Costo: € ${Number(item.cost || 0).toFixed(2)} · Valore riga: € ${lineValue.toFixed(2)}</div>
           </div>
@@ -453,6 +467,8 @@ async function addProduct() {
   const threshold = document.getElementById("field-threshold").value;
   const category = document.getElementById("field-category").value.trim();
   const lot = document.getElementById("field-lot").value.trim();
+  const supplier = document.getElementById("field-supplier")?.value?.trim() || "";
+  const deliveryDate = document.getElementById("field-delivery-date")?.value?.trim() || "";
   const notes = document.getElementById("field-notes").value.trim();
 
   if (!name) {
@@ -471,6 +487,8 @@ async function addProduct() {
         threshold: threshold ? parseFloat(threshold) : 0,
         category,
         lot,
+        supplier,
+        deliveryDate,
         notes,
       }),
     });
@@ -481,6 +499,8 @@ async function addProduct() {
     document.getElementById("field-threshold").value = "";
     document.getElementById("field-category").value = "";
     document.getElementById("field-lot").value = "";
+    if (document.getElementById("field-supplier")) document.getElementById("field-supplier").value = "";
+    if (document.getElementById("field-delivery-date")) document.getElementById("field-delivery-date").value = "";
     document.getElementById("field-notes").value = "";
     await loadAll();
   } catch (err) {

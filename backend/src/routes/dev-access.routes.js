@@ -81,6 +81,7 @@ router.get("/open/cucina", requireDevOwnerAuth, redirectToOpen("cucina"));
 router.get("/open/pizzeria", requireDevOwnerAuth, redirectToOpen("pizzeria"));
 router.get("/open/cassa", requireDevOwnerAuth, redirectToOpen("cassa"));
 router.get("/open/magazzino", requireDevOwnerAuth, redirectToOpen("magazzino"));
+router.get("/open/fornitori", requireDevOwnerAuth, redirectToOpen("fornitori"));
 router.get("/open/prenotazioni", requireDevOwnerAuth, redirectToOpen("prenotazioni"));
 router.get("/open/catering", requireDevOwnerAuth, redirectToOpen("catering"));
 router.get("/open/staff", requireDevOwnerAuth, redirectToOpen("staff"));

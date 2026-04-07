@@ -1,5 +1,7 @@
 # Controllo Totale — Master plan operativo
 
+Repository: **https://github.com/ristoword/controllo_totale**
+
 Roadmap e stato funzionale di **Controllo Totale**. Le voci “Implementato” si riferiscono al codice in questo repository; “Roadmap” richiede sviluppo incrementale.
 
 ---

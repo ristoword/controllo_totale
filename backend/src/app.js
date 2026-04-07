@@ -301,6 +301,15 @@ try {
   console.warn("inventory.routes non trovato (ok se non ancora creato)");
 }
 
+// SUPPLIERS (schedario fornitori — anagrafica, ordini, fatture)
+try {
+  const suppliersRouter = require("./routes/suppliers.routes");
+  const ROLES_SUPPLIERS = ["owner", "sala", "cucina", "cassa", "magazzino", "supervisor"];
+  app.use("/api/suppliers", requireAuth, requireRole(ROLES_SUPPLIERS), suppliersRouter);
+} catch (e) {
+  console.warn("suppliers.routes non trovato:", e.message);
+}
+
 // DAILY MENU (Menu del Giorno)
 try {
   const dailyMenuRouter = require("./routes/daily-menu.routes");

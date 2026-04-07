@@ -16,6 +16,8 @@ function normalizeItem(item) {
     category: item.category || "",
     lot: item.lot || "",
     notes: item.notes || "",
+    supplier: item.supplier != null ? String(item.supplier).trim() : "",
+    deliveryDate: item.deliveryDate || item.delivery_date || "",
     threshold: Number(item.threshold) ?? 0,
     cost: Number(item.cost) ?? 0,
   };
@@ -246,6 +248,8 @@ function createInventoryApi(store) {
       category: String(data.category || "").trim(),
       lot: String(data.lot || "").trim(),
       notes: String(data.notes || "").trim(),
+      supplier: data.supplier != null ? String(data.supplier).trim() : "",
+      deliveryDate: data.deliveryDate != null ? String(data.deliveryDate).trim() : "",
       barcode: data.barcode ? String(data.barcode).trim() : "",
       createdAt: now,
       updatedAt: now,

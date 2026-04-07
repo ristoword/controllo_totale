@@ -40,7 +40,7 @@ exports.getInventoryById = async (req, res) => {
 
 // POST /api/inventory
 exports.createInventory = async (req, res) => {
-  const { name, unit, quantity, cost, threshold, category, lot, notes, barcode } = req.body || {};
+  const { name, unit, quantity, cost, threshold, category, lot, notes, barcode, supplier, deliveryDate } = req.body || {};
   if (!name || typeof name !== "string") {
     return res.status(400).json({ error: "Nome obbligatorio" });
   }
@@ -57,6 +57,8 @@ exports.createInventory = async (req, res) => {
     lot,
     notes,
     barcode: barcode ? String(barcode).trim() : undefined,
+    supplier: supplier != null ? String(supplier).trim() : "",
+    deliveryDate: deliveryDate != null ? String(deliveryDate).trim() : "",
   });
   res.status(201).json(item);
 };
