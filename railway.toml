@@ -1,4 +1,4 @@
-main///railway.toml
+/main///railway.toml
 Root repo: npm start → cd backend && npm start
 # Healthcheck: app Express in backend; path deve rispondere 200
 [deploy]
