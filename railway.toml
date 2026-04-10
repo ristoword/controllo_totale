@@ -1,4 +1,5 @@
-# Root repo: npm start → cd backend && npm start
+https://github.com/ristoword/controllo_totale/edit/main///railway.toml
+Root repo: npm start → cd backend && npm start
 # Healthcheck: app Express in backend; path deve rispondere 200
 [deploy]
 startCommand = "npm start"
