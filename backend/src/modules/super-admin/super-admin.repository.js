@@ -131,16 +131,21 @@ async function getStripeConfig() {
   const raw = loadStripeConfigRaw();
   const values = raw && typeof raw === "object" ? raw.values || {} : {};
   // Merge with env presence (do not expose full keys; this is for masked preview only).
-  const keys = [
-    "STRIPE_SECRET_KEY",
-    "STRIPE_WEBHOOK_SECRET",
-    "STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY",
-    "STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL",
-  ];
   const merged = {};
-  for (const k of keys) {
-    merged[k] = values[k] || process.env[k] || "";
-  }
+  merged.STRIPE_SECRET_KEY = values.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY || "";
+  merged.STRIPE_WEBHOOK_SECRET = values.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET || "";
+  merged.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY =
+    values.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY ||
+    process.env.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY ||
+    process.env.STRIPE_PRICE_CT_MONTHLY ||
+    process.env.STRIPE_PRICE_RISTOWORD_MONTHLY ||
+    "";
+  merged.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL =
+    values.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL ||
+    process.env.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL ||
+    process.env.STRIPE_PRICE_CT_ANNUAL ||
+    process.env.STRIPE_PRICE_RISTOWORD_YEARLY ||
+    "";
 
   stripeConfigCache = { data: { values: merged }, atMs: Date.now() };
   return stripeConfigCache.data;
@@ -161,10 +166,16 @@ function listStripeMaskedConfig(stripeConfig) {
     STRIPE_SECRET_KEY: maskValue(values.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY),
     STRIPE_WEBHOOK_SECRET: maskValue(values.STRIPE_WEBHOOK_SECRET || process.env.STRIPE_WEBHOOK_SECRET),
     STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY: maskValue(
-      values.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY || process.env.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY
+      values.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY ||
+        process.env.STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY ||
+        process.env.STRIPE_PRICE_CT_MONTHLY ||
+        process.env.STRIPE_PRICE_RISTOWORD_MONTHLY
     ),
     STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL: maskValue(
-      values.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL || process.env.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL
+      values.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL ||
+        process.env.STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL ||
+        process.env.STRIPE_PRICE_CT_ANNUAL ||
+        process.env.STRIPE_PRICE_RISTOWORD_YEARLY
     ),
   };
 }

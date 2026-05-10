@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS users (
   name                 VARCHAR(255) NULL DEFAULT '',
   surname              VARCHAR(255) NULL DEFAULT '',
   email                VARCHAR(255) NULL,
+  phone                VARCHAR(64)  NULL,
+  address              VARCHAR(512) NULL,
   role                 VARCHAR(64)  NOT NULL,
   restaurant_id        VARCHAR(64)  NULL,
   is_active            TINYINT(1)   NOT NULL DEFAULT 1,

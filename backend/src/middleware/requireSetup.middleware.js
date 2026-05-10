@@ -10,6 +10,7 @@ const SKIP_PATHS = [
   "/api/system/health", "/api/system/product", "/api/health",
   "/qr", "/api/qr",
   "/api/menu/active",
+  "/staff/me",
 ];
 
 function shouldSkip(path) {

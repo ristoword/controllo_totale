@@ -6,6 +6,8 @@ const { requireAuth } = require("../middleware/requireAuth.middleware");
 // Utente loggato: storico e oggi (prima di :id)
 router.get("/me/today", requireAuth, asyncHandler(attendanceController.meToday));
 router.get("/me", requireAuth, asyncHandler(attendanceController.me));
+router.post("/me/clock-in", requireAuth, asyncHandler(attendanceController.clockIn));
+router.post("/me/clock-out", requireAuth, asyncHandler(attendanceController.clockOut));
 
 // Owner: lista e daily summary (path statici prima di :id)
 router.get("/daily-summary", requireAuth, asyncHandler(attendanceController.dailySummary));

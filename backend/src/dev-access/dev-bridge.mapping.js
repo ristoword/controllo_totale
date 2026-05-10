@@ -14,7 +14,7 @@ const DEV_BRIDGE_MODULES = {
   fornitori: { targetPath: "/fornitori/fornitori.html" },
   prenotazioni: { targetPath: "/prenotazioni/prenotazioni.html" },
   catering: { targetPath: "/catering/catering.html" },
-  staff: { targetPath: "/staff/staff.html" },
+  staff: { targetPath: "/staff/me/index.html" },
 
   // Views embedded in `cucina` (no dedicated HTML pages).
   ricette: { targetPath: "/cucina/cucina.html" },

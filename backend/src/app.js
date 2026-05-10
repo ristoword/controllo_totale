@@ -169,6 +169,7 @@ const ROLES_MENU = ["owner", "sala", "cassa", "supervisor"];
 const ROLES_PAYMENTS = ["owner", "cassa"];
 const ROLES_REPORTS = ["owner", "sala", "cucina", "cassa"];
 const ROLES_CLOSURES = ["owner", "cassa", "supervisor"];
+const ROLES_ARCHIVE = ["owner", "supervisor", "cassa", "magazzino", "cucina", "sala"];
 
 // =======================
 //  ROUTE PAGINA HOME / DASHBOARD (prima di static, così / serve la dashboard)
@@ -245,6 +246,15 @@ try {
   app.use("/api/qr", requireAuth, requireRole(ROLES_QR), qrRouter);
 } catch (e) {
   console.warn("qr.routes non trovato:", e.message);
+}
+
+// SALA TABLES (floor plan + stato tavoli persistiti)
+try {
+  const salaRouter = require("./routes/sala.routes");
+  const ROLES_SALA = ["owner", "sala", "supervisor"];
+  app.use("/api/sala", requireAuth, requireRole(ROLES_SALA), salaRouter);
+} catch (e) {
+  console.warn("sala.routes non trovato:", e.message);
 }
 
 // MENU – /api/menu (public GET /api/menu/active for QR)
@@ -334,11 +344,29 @@ try {
   console.warn("bookings.routes non trovato (ok se non ancora creato)");
 }
 
-// STAFF – owner: CRUD completo; supervisor: sola lettura (elenco, dettaglio) per dropdown/staff attivi
+// STAFF – owner: CRUD; supervisor: lettura; dipendenti: solo /api/staff/me*
 try {
   const staffRouter = require("./routes/staff.routes");
   const ROLES_STAFF_READ = ["owner", "supervisor"];
-  app.use("/api/staff", requireAuth, requireRole(ROLES_STAFF_READ), staffRouter);
+  const ROLES_STAFF_SELF = [
+    "owner",
+    "supervisor",
+    "sala",
+    "cucina",
+    "cassa",
+    "staff",
+    "bar",
+    "magazzino",
+    "pizzeria",
+  ];
+  function staffApiRoleGate(req, res, next) {
+    const p = req.path || "";
+    if (p === "/me" || p.startsWith("/me/")) {
+      return requireRole(ROLES_STAFF_SELF)(req, res, next);
+    }
+    return requireRole(ROLES_STAFF_READ)(req, res, next);
+  }
+  app.use("/api/staff", requireAuth, staffApiRoleGate, staffRouter);
 } catch (e) {
   console.warn("staff.routes non trovato (ok se non ancora creato)");
 }
@@ -389,6 +417,14 @@ try {
   app.use("/api/closures", requireAuth, requireRole(ROLES_CLOSURES), closuresRouter);
 } catch (e) {
   console.warn("closures.routes non trovato (ok se non ancora creato)");
+}
+
+// ARCHIVIO (incassi storici, fatture, comande servite)
+try {
+  const archiveRouter = require("./routes/archive.routes");
+  app.use("/api/archive", requireAuth, requireRole(ROLES_ARCHIVE), archiveRouter);
+} catch (e) {
+  console.warn("archive.routes non trovato:", e.message);
 }
 
 // STORNI – fonte unica per netto (lordo - storni)

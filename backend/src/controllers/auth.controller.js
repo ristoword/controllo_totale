@@ -7,6 +7,19 @@ const bcrypt = require("bcrypt");
 
 const BCRYPT_ROUNDS = 10;
 
+/** Dopo login se l’utente non ha redirectTo salvato (es. creato da owner). */
+const DEFAULT_REDIRECT_BY_ROLE = {
+  owner: "/dashboard/dashboard.html",
+  supervisor: "/supervisor/supervisor.html",
+  sala: "/sala/sala.html",
+  cucina: "/cucina/cucina.html",
+  cassa: "/cassa/cassa.html",
+  bar: "/bar/bar.html",
+  pizzeria: "/pizzeria/pizzeria.html",
+  magazzino: "/magazzino/magazzino.html",
+  staff: "/staff/me/index.html",
+};
+
 // POST /api/auth/login
 exports.login = async (req, res, next) => {
   try {
@@ -64,7 +77,9 @@ exports.login = async (req, res, next) => {
     }
 
     const mustChange = user.mustChangePassword === true;
-    let redirectTo = mustChange ? "/change-password" : (user.redirectTo || undefined);
+    let redirectTo = mustChange
+      ? "/change-password"
+      : user.redirectTo || DEFAULT_REDIRECT_BY_ROLE[user.role] || "/dashboard/dashboard.html";
     if (!mustChange && user.role === "owner") {
       const restaurantId = user.restaurantId ?? "default";
       const ownerSetupDone = await isOwnerSetupComplete(restaurantId);
@@ -131,10 +146,12 @@ exports.me = async (req, res, next) => {
     }
 
     res.json({
+      id: sessionUser.id,
       username: sessionUser.username,
       role: sessionUser.role,
       department: sessionUser.department,
       mustChangePassword: sessionUser.mustChangePassword === true,
+      restaurantId: sessionUser.restaurantId || req.session?.restaurantId || null,
     });
   } catch (err) {
     next(err);

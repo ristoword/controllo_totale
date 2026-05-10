@@ -7,6 +7,14 @@ const staffRequestsController = require("../controllers/staff-requests.controlle
 const staffDisciplineController = require("../controllers/staff-discipline.controller");
 const staffReportsController = require("../controllers/staff-reports.controller");
 
+// ========== SELF-SERVICE (sessione → solo il proprio profilo; prima di / e /:id) ==========
+router.get("/me", asyncHandler(staffController.getMe));
+router.patch("/me", asyncHandler(staffController.patchMe));
+router.get("/me/shifts", asyncHandler(staffController.getMyShifts));
+router.get("/me/shifts/history", asyncHandler(staffController.getMyShiftHistory));
+router.get("/me/hours/summary", asyncHandler(staffController.getMyHoursSummary));
+router.get("/me/requests", asyncHandler(staffController.getMyRequests));
+
 // ========== STAFF CRUD ==========
 router.get("/", asyncHandler(staffController.listStaff));
 router.post("/", asyncHandler(staffController.createStaff));

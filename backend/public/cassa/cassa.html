@@ -7,12 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="cassa.css" />
   <link rel="stylesheet" href="/shared/staff-access.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
 </head>
 <body>
   <div class="layout">
 
     <!-- HEADER -->
-    <header class="topbar">
+    <header class="topbar no-print">
       <div class="topbar-left">
         <h1>CONTROLLO TOTALE – Cassa</h1>
         <p class="subtitle">
@@ -61,13 +62,14 @@
           <span class="chip-label">Incasso simulato</span>
           <span class="chip-value" id="kpi-total-sim">€ 0.00</span>
         </div>
+        <button type="button" class="btn ghost" id="btn-print-cassa-page" title="Stampa la vista corrente (PDF / stampante)">Stampa</button>
         <button class="btn ghost" id="btn-refresh-orders">Aggiorna</button>
         <a class="btn ghost" href="/hardware/hardware.html" target="_blank" rel="noopener" title="Installa stampanti, dispositivi e percorsi di stampa">Hardware / Stampa</a>
       </div>
     </header>
 
     <!-- TABS PRINCIPALI -->
-    <nav class="tabs">
+    <nav class="tabs no-print">
       <button class="tab active" data-tab="tab-cassa">Cassa / Tavoli</button>
       <button class="tab" data-tab="tab-menu">Menù ufficiale</button>
       <button class="tab" data-tab="tab-report">Report</button>
@@ -898,5 +900,7 @@
   <script src="/shared/websocket.js"></script>
   <script src="/shared/staff-access.js"></script>
   <script src="cassa.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="cassa"></script>
 </body>
 </html>

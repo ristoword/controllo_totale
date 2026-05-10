@@ -624,6 +624,10 @@ function initFromUrl() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btn-print-staff-list")?.addEventListener("click", () => window.print());
+  document.getElementById("btn-print-staff-profile")?.addEventListener("click", () => window.print());
+  document.getElementById("btn-print-staff-reports")?.addEventListener("click", () => window.print());
+
   document.getElementById("btn-refresh-staff").addEventListener("click", loadAndRenderList);
   document.getElementById("btn-show-reports")?.addEventListener("click", showReportsView);
   document.getElementById("btn-back-reports")?.addEventListener("click", showList);

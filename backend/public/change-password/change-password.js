@@ -79,10 +79,15 @@ form.addEventListener("submit", async (event) => {
     showMessage("Password aggiornata.", "success");
     if (form) form.style.display = "none";
     if (successPanel) successPanel.style.display = "block";
-    // Fallback: dopo 12s porta alla dashboard se non si clicca
+    let nextUrl = "/";
+    try {
+      const me = await fetch("/api/auth/me", { credentials: "same-origin" }).then((r) => r.json());
+      if (me && me.role === "staff") nextUrl = "/staff/me/index.html";
+    } catch (_) {}
+    // Fallback: dopo 12s porta alla destinazione se non si clicca
     setTimeout(() => {
       if (successPanel && successPanel.style.display !== "none") {
-        window.location.href = "/";
+        window.location.href = nextUrl;
       }
     }, 12000);
   } catch (err) {

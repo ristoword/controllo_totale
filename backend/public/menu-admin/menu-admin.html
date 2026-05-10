@@ -6,12 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/dashboard/dashboard.css" />
   <link rel="stylesheet" href="menu-admin.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
 </head>
 <body>
   <div class="layout">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar no-print">
       <div class="brand">
         <div class="brand-logo">RW</div>
         <div class="brand-text">
@@ -52,10 +53,11 @@
           </p>
         </div>
         <div class="topbar-right">
-          <button class="btn ghost" type="button" onclick="window.location.href='/'">
+          <button type="button" class="btn ghost no-print" id="btn-print-menu-admin" title="Stampa elenco piatti / vista corrente">Stampa</button>
+          <button class="btn ghost no-print" type="button" onclick="window.location.href='/'">
             ⬅ Dashboard
           </button>
-          <button class="btn ghost" type="button" onclick="window.location.href='/cucina/cucina.html'">
+          <button class="btn ghost no-print" type="button" onclick="window.location.href='/cucina/cucina.html'">
             🍳 Torna in cucina
           </button>
         </div>
@@ -314,5 +316,7 @@
 
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa"></script>
   <script src="menu-admin.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="menu-admin"></script>
 </body>
 </html>

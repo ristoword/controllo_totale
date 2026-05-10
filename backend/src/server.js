@@ -1,6 +1,34 @@
 // backend/src/server.js
 // Route registration is in ./app.js (orders, menu, reports, ai, recipes, etc.)
+const crypto = require("crypto");
+
 require("./config/loadEnv").loadEnv();
+
+/**
+ * Hosting (Railway, ecc.): senza SESSION_SECRET il processo usciva prima di listen → 502.
+ * Generiamo un segreto effimero così il servizio risponde; l’utente deve comunque impostare
+ * SESSION_SECRET per sessioni stabili tra i deploy e in caso di più repliche.
+ */
+function ensureSessionSecret() {
+  const raw = process.env.SESSION_SECRET;
+  const s = raw != null ? String(raw).trim() : "";
+  if (s) return;
+  process.env.SESSION_SECRET = crypto.randomBytes(32).toString("hex");
+  process.env.CT_SESSION_SECRET_EPHEMERAL = "true";
+  const msg =
+    "[CONFIG] SESSION_SECRET non impostato: uso segreto temporaneo generato all'avvio. " +
+    "Aggiungi SESSION_SECRET nelle variabili d'ambiente (≥32 caratteri casuali); " +
+    "altrimenti tutti gli utenti verranno disconnessi a ogni deploy o riavvio.";
+  if (process.env.NODE_ENV === "production") {
+    // eslint-disable-next-line no-console
+    console.warn(msg);
+  } else {
+    // eslint-disable-next-line no-console
+    console.info(msg);
+  }
+}
+
+ensureSessionSecret();
 
 /**
  * Hardening minimo (blocco 1): solo warning, nessuna modifica alla logica applicativa.

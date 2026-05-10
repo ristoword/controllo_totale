@@ -125,3 +125,50 @@ exports.meToday = async (req, res) => {
     hasOpenShift: !!openShift,
   });
 };
+
+// POST /api/attendance/me/clock-in – dipendente: timbratura entrata
+exports.clockIn = async (req, res) => {
+  const user = req.session?.user;
+  if (!user || !user.id) {
+    return res.status(401).json({ error: "Non autenticato." });
+  }
+  const restaurantId = getRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(403).json({ error: "Ristorante non in sessione." });
+  }
+  const existingOpen = await attendanceRepository.findOpenShiftByUser(user.id, restaurantId);
+  if (existingOpen) {
+    return res.status(409).json({ error: "Hai già un turno aperto.", openShift: existingOpen });
+  }
+  const { notes } = req.body || {};
+  const record = await attendanceRepository.createShift(restaurantId, {
+    userId: user.id,
+    name: user.name || user.username || "",
+    role: user.role || "",
+    clockInAt: new Date().toISOString(),
+    notes: notes || "",
+  });
+  res.status(201).json(record);
+};
+
+// POST /api/attendance/me/clock-out – dipendente: timbratura uscita
+exports.clockOut = async (req, res) => {
+  const user = req.session?.user;
+  if (!user || !user.id) {
+    return res.status(401).json({ error: "Non autenticato." });
+  }
+  const restaurantId = getRestaurantId(req);
+  if (!restaurantId) {
+    return res.status(403).json({ error: "Ristorante non in sessione." });
+  }
+  const openShift = await attendanceRepository.findOpenShiftByUser(user.id, restaurantId);
+  if (!openShift) {
+    return res.status(404).json({ error: "Nessun turno aperto da chiudere." });
+  }
+  const { notes } = req.body || {};
+  const updated = await attendanceRepository.closeShift(restaurantId, openShift.id, {
+    clockOutAt: new Date().toISOString(),
+    notes: notes || openShift.notes || "",
+  });
+  res.json(updated);
+};

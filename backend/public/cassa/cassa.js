@@ -1991,16 +1991,57 @@ function saveInvoiceToHistory() {
   const bill = getCurrentBillData();
 
   const arr = loadInvoices();
-  arr.push({
+  const entry = {
     number: invNumber,
     date: dateISO,
     table: selectedTable,
     clientName: cliName,
     total: bill.finalTotal,
-  });
+  };
+  arr.push(entry);
   saveInvoices(arr);
   renderInvoiceHistory();
-  alert("Fattura salvata nello storico (locale).");
+  syncInvoiceEntryToArchive(entry);
+  alert("Fattura salvata nello storico (locale e archivio server se disponibile).");
+}
+
+function syncInvoiceEntryToArchive(entry) {
+  if (!entry || typeof window.fetch !== "function") return;
+  const payload = {
+    number: String(entry.number || ""),
+    date: String(entry.date || "").slice(0, 10),
+    table: entry.table != null ? entry.table : null,
+    clientName: String(entry.clientName || ""),
+    total: Number(entry.total) || 0,
+  };
+  const url = "/api/archive/cassa-invoices";
+  const opts = {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  };
+  if (window.RW_API && typeof window.RW_API.post === "function") {
+    window.RW_API.post(url, payload).catch(function () {});
+  } else {
+    fetch(url, opts).catch(function () {});
+  }
+}
+
+function syncAllLocalInvoicesToArchive() {
+  const arr = loadInvoices();
+  if (!arr.length) return;
+  const url = "/api/archive/cassa-invoices/sync";
+  const body = JSON.stringify({ invoices: arr });
+  if (window.RW_API && typeof window.RW_API.post === "function") {
+    return window.RW_API.post(url, { invoices: arr }).catch(function () {});
+  }
+  return fetch(url, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body,
+  }).catch(function () {});
 }
 
 // =============================
@@ -2745,6 +2786,8 @@ function setupShiftModals() {
 document.addEventListener("DOMContentLoaded", () => {
   setupTabs();
 
+  document.getElementById("btn-print-cassa-page")?.addEventListener("click", () => window.print());
+
   // Staff access (cassa: cash manager + operational staff login)
   (function initStaffAccess() {
     if (!window.RW_StaffAccess) return;
@@ -2884,6 +2927,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupReport();
   renderInvoiceHistory();
+  syncAllLocalInvoicesToArchive();
 
   document.getElementById("btn-clear-invoices")?.addEventListener("click", () => {
     if (!confirm("Svuotare storico fatture (locale)?")) return;

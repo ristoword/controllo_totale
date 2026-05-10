@@ -101,6 +101,8 @@ async function createUser(userData) {
     surname: userData.surname != null ? String(userData.surname).trim() : "",
     username: userData.username,
     email: userData.email != null ? String(userData.email).trim() : undefined,
+    phone: userData.phone != null ? String(userData.phone).trim() : undefined,
+    address: userData.address != null ? String(userData.address).trim() : undefined,
     password: userData.password,
     role: userData.role || "staff",
     is_active: userData.is_active !== false,
@@ -132,12 +134,18 @@ async function updateUser(id, patch) {
     "mustChangePassword",
     "hourlyRate",
     "employmentType",
+    "email",
+    "phone",
+    "address",
   ];
   for (const key of allowed) {
     if (patch[key] !== undefined) {
       if (key === "is_active") users[idx].is_active = patch[key] !== false;
       else if (key === "hourlyRate") users[idx].hourlyRate = patch[key] != null ? Number(patch[key]) : undefined;
-      else users[idx][key] = patch[key];
+      else if (key === "email" || key === "phone" || key === "address") {
+        const v = patch[key];
+        users[idx][key] = v != null && String(v).trim() !== "" ? String(v).trim() : undefined;
+      } else users[idx][key] = patch[key];
     }
   }
   if (patch.leaveBalances !== undefined && typeof patch.leaveBalances === "object") {

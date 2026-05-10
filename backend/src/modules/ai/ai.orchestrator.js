@@ -58,49 +58,60 @@ async function buildDepartmentContext(department) {
 
   switch (department) {
     case "kitchen": {
-      const [activeOrders, lowStock, dailyMenu] = await Promise.all([
-        aiTools.getActiveOrdersSummary().catch(() => null),
+      const [activeOrders, lowStock, dailyMenu, topDishes] = await Promise.all([
+        aiTools.getActiveOrdersWithItems().catch(() => []),
         aiTools.getLowStockItems().catch(() => []),
         aiTools.getDailyMenu().catch(() => ({})),
+        aiTools.getTopDishes().catch(() => []),
       ]);
       return {
         ...base,
         kitchen: {
-          activeOrders: activeOrders || {},
+          activeOrders,
+          activeOrdersCount: activeOrders.length,
           lowStockKitchen: lowStock,
           dailyMenu,
+          topDishes,
         },
       };
     }
     case "supervisor": {
-      const sales = await aiTools.getTodaySalesSummary().catch(() => ({}));
-      return { ...base, supervisor: { sales } };
+      const [sales, topDishes, salesHistory] = await Promise.all([
+        aiTools.getTodaySalesSummary().catch(() => ({})),
+        aiTools.getTopDishes().catch(() => []),
+        aiTools.getRecentSalesHistory(7).catch(() => []),
+      ]);
+      return { ...base, supervisor: { sales, topDishes, salesHistory } };
     }
     case "warehouse": {
-      const [inventory, lowStock] = await Promise.all([
+      const [inventory, lowStock, suppliers] = await Promise.all([
         aiTools.getInventorySnapshot().catch(() => []),
         aiTools.getLowStockItems().catch(() => []),
+        aiTools.getSuppliers().catch(() => []),
       ]);
       return {
         ...base,
         warehouse: {
           inventory,
           lowStock,
+          suppliers,
+          lowStockCount: lowStock.length,
         },
       };
     }
     case "cash": {
-      const sales = await aiTools.getTodaySalesSummary().catch(() => ({}));
-      return {
-        ...base,
-        cash: { sales },
-      };
+      const [sales, closures] = await Promise.all([
+        aiTools.getTodaySalesSummary().catch(() => ({})),
+        aiTools.getRecentClosures(7).catch(() => []),
+      ]);
+      return { ...base, cash: { sales, recentClosures: closures } };
     }
     case "creative": {
-      const [inventory, recipes, menuItems] = await Promise.all([
+      const [inventory, recipes, menuItems, dailyMenu] = await Promise.all([
         aiTools.getInventorySnapshot().catch(() => []),
         aiTools.getRecipes().catch(() => []),
         aiTools.getMenuItems().catch(() => []),
+        aiTools.getDailyMenu().catch(() => ({})),
       ]);
       return {
         ...base,
@@ -108,11 +119,177 @@ async function buildDepartmentContext(department) {
           inventory,
           recipes,
           menuItems,
+          dailyMenu,
         },
       };
     }
+    case "sala": {
+      const [activeOrders, sales, bookingsToday, menuGrouped] = await Promise.all([
+        aiTools.getActiveOrdersWithItems().catch(() => []),
+        aiTools.getTodaySalesSummary().catch(() => ({})),
+        aiTools.getBookingsToday().catch(() => []),
+        aiTools.getActiveMenuGrouped().catch(() => ({})),
+      ]);
+      return {
+        ...base,
+        sala: {
+          activeOrders,
+          activeOrdersCount: activeOrders.length,
+          openTables: [...new Set(activeOrders.map((o) => o.table))].length,
+          bookingsToday,
+          sales,
+          menuGrouped,
+        },
+      };
+    }
+    case "bar": {
+      const [allOrders, lowStock, menuItems] = await Promise.all([
+        aiTools.getActiveOrdersWithItems().catch(() => []),
+        aiTools.getLowStockItems().catch(() => []),
+        aiTools.getMenuItems().catch(() => []),
+      ]);
+      const barOrders = allOrders.filter((o) =>
+        (o.items || []).some((i) => (i.area || "").toLowerCase() === "bar")
+      );
+      const barMenu = menuItems.filter((i) => (i.area || "").toLowerCase() === "bar");
+      return {
+        ...base,
+        bar: {
+          activeBarOrders: barOrders,
+          activeBarOrdersCount: barOrders.length,
+          lowStock,
+          barMenu,
+        },
+      };
+    }
+    case "pizzeria": {
+      const [allOrders, lowStock, dailyMenu] = await Promise.all([
+        aiTools.getActiveOrdersWithItems().catch(() => []),
+        aiTools.getLowStockItems().catch(() => []),
+        aiTools.getDailyMenu().catch(() => ({})),
+      ]);
+      const pizzeriaOrders = allOrders.filter((o) =>
+        (o.items || []).some((i) => (i.area || "").toLowerCase() === "pizzeria")
+      );
+      return {
+        ...base,
+        pizzeria: {
+          activePizzeriaOrders: pizzeriaOrders,
+          activePizzeriaOrdersCount: pizzeriaOrders.length,
+          lowStock,
+          dailyMenu,
+        },
+      };
+    }
+    case "prenotazioni": {
+      const [bookingsToday, upcomingBookings, sales] = await Promise.all([
+        aiTools.getBookingsToday().catch(() => []),
+        aiTools.getUpcomingBookings(7).catch(() => []),
+        aiTools.getTodaySalesSummary().catch(() => ({})),
+      ]);
+      return {
+        ...base,
+        prenotazioni: {
+          bookingsToday,
+          bookingsTodayCount: bookingsToday.length,
+          upcomingBookings,
+          sales,
+        },
+      };
+    }
+    case "haccp": {
+      const [inventory, lowStock, expiring] = await Promise.all([
+        aiTools.getInventorySnapshot().catch(() => []),
+        aiTools.getLowStockItems().catch(() => []),
+        aiTools.getInventorySnapshot().catch(() => []),
+      ]);
+      const today = new Date();
+      const in3days = new Date(today); in3days.setDate(today.getDate() + 3);
+      const expiringItems = expiring.filter((i) => {
+        if (!i.expiryDate && !i.expiry_date) return false;
+        const exp = new Date(i.expiryDate || i.expiry_date);
+        return exp <= in3days;
+      });
+      return { ...base, haccp: { inventory, lowStock, expiringItems } };
+    }
+    case "turni": {
+      const [shifts, staff, sales] = await Promise.all([
+        aiTools.getShiftsThisWeek().catch(() => []),
+        aiTools.getStaffSummary().catch(() => []),
+        aiTools.getTodaySalesSummary().catch(() => ({})),
+      ]);
+      return {
+        ...base,
+        turni: {
+          shiftsThisWeek: shifts,
+          shiftsCount: shifts.length,
+          staff,
+          staffCount: staff.length,
+          sales,
+        },
+      };
+    }
+    case "fornitori": {
+      const [suppliers, inventory, lowStock] = await Promise.all([
+        aiTools.getSuppliers().catch(() => []),
+        aiTools.getInventorySnapshot().catch(() => []),
+        aiTools.getLowStockItems().catch(() => []),
+      ]);
+      return {
+        ...base,
+        fornitori: {
+          suppliers,
+          suppliersCount: suppliers.length,
+          inventory,
+          lowStock,
+          lowStockCount: lowStock.length,
+        },
+      };
+    }
+    case "archivio": {
+      const [salesHistory, topDishes, closures] = await Promise.all([
+        aiTools.getRecentSalesHistory(14).catch(() => []),
+        aiTools.getTopDishes().catch(() => []),
+        aiTools.getRecentClosures(14).catch(() => []),
+      ]);
+      return {
+        ...base,
+        archivio: {
+          salesHistory,
+          topDishes,
+          recentClosures: closures,
+        },
+      };
+    }
+    case "asporto": {
+      const [allOrders, sales] = await Promise.all([
+        aiTools.getActiveOrdersWithItems().catch(() => []),
+        aiTools.getTodaySalesSummary().catch(() => ({})),
+      ]);
+      const asportoOrders = allOrders.filter((o) =>
+        (o.area || "").toLowerCase() === "asporto" ||
+        (o.channel || "").toLowerCase() === "asporto"
+      );
+      return {
+        ...base,
+        asporto: {
+          asportoOrders,
+          asportoOrdersCount: asportoOrders.length,
+          allActiveOrders: allOrders.length,
+          sales,
+        },
+      };
+    }
+    case "catering": {
+      const [inventory, menuItems, recipes] = await Promise.all([
+        aiTools.getInventorySnapshot().catch(() => []),
+        aiTools.getMenuItems().catch(() => []),
+        aiTools.getRecipes().catch(() => []),
+      ]);
+      return { ...base, catering: { inventory, menuItems, recipes } };
+    }
     default:
-      console.log("[AI CONTEXT] buildDepartmentContext done", { department });
+      console.log("[AI CONTEXT] buildDepartmentContext done (default)", { department });
       return base;
   }
 }

@@ -690,4 +690,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   renderMenuList();
+
+  document.getElementById("btn-print-menu-admin")?.addEventListener("click", () => window.print());
 });

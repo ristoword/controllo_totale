@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="supervisor.css" />
   <link rel="stylesheet" href="/shared/staff-access.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
 </head>
 
 <body>
@@ -34,18 +35,22 @@
         <a class="nav-item" href="/prenotazioni/prenotazioni.html">Prenotazioni</a>
         <a class="nav-item active" href="/supervisor/supervisor.html">Supervisor</a>
         <a class="nav-item" href="/supervisor/staff/staff.html">Staff</a>
+        <a class="nav-item" href="/turni/turni.html">Turni</a>
+        <a class="nav-item" href="/staff-hr/index.html">Staff HR</a>
         <a class="nav-item" href="/supervisor/customers/customers.html">Clienti</a>
         <a class="nav-item" href="/daily-menu/daily-menu.html">Menu del Giorno</a>
+        <a class="nav-item" href="/archivio/archivio.html">Archivio</a>
+        <a class="nav-item" href="/archivio/comande.html">Archivio comande</a>
       </nav>
 
-      <div class="side-actions">
+      <div class="side-actions no-print">
         <button class="btn ghost" id="btn-refresh">Aggiorna</button>
         <button class="btn ghost" id="btn-open-email">Email fornitori</button>
         <button class="btn ghost" id="btn-open-shopping">Lista spesa</button>
       </div>
 
       <div class="side-footer">
-        <div class="tiny muted">© 2026 RistoWord</div>
+        <div class="tiny muted">© 2026 Controllo Totale</div>
         <div class="tiny muted" id="backend-status">Backend: —</div>
       </div>
     </aside>
@@ -63,7 +68,10 @@
         </div>
 
         <div class="topbar-right">
-          <div id="rw-supervisor-manager-chip" class="rw-staff-chip">
+          <button type="button" class="btn ghost no-print" id="btn-print-supervisor" title="Stampa la scheda aperta (Report, Storico, Storni, Menù, Magazzino…)">
+            Stampa
+          </button>
+          <div id="rw-supervisor-manager-chip" class="rw-staff-chip no-print">
             <span class="rw-label">Supervisor:</span>
             <span class="rw-value" id="rw-manager-value">—</span>
             <button type="button" class="rw-btn" id="rw-btn-manager-login">Supervisor login</button>
@@ -86,12 +94,12 @@
             <div class="chip-value" id="kpi-net">€ 0.00</div>
           </div>
 
-          <button class="btn primary" id="btn-close-day">Chiudi giornata (salva report)</button>
+          <button class="btn primary no-print" id="btn-close-day">Chiudi giornata (salva report)</button>
         </div>
       </header>
 
       <!-- TABS -->
-      <nav class="tabs" aria-label="Sezioni Supervisor">
+      <nav class="tabs no-print" aria-label="Sezioni Supervisor">
         <button class="tab active" data-tab="tab-report">Report</button>
         <button class="tab" data-tab="tab-storico">Storico giornaliero</button>
         <button class="tab" data-tab="tab-storni">Storni</button>
@@ -217,7 +225,7 @@
                 <p>Ultimi report (localStorage). Puoi esportare/importare.</p>
               </header>
               <div class="card-body">
-                <div class="row-actions">
+                <div class="row-actions no-print">
                   <button class="btn ghost" id="btn-export-reports">Esporta JSON</button>
                   <label class="btn ghost filebtn">
                     Importa JSON
@@ -470,7 +478,7 @@
               </header>
               <div class="card-body">
                 <div class="row-actions">
-                  <button class="btn ghost" id="btn-inv-refresh">Aggiorna magazzino</button>
+                  <button class="btn ghost no-print" id="btn-inv-refresh">Aggiorna magazzino</button>
                 </div>
 
                 <div class="inv-kpis">
@@ -538,7 +546,7 @@
   </div>
 
   <!-- MODAL: LISTA SPESA -->
-  <div class="modal-backdrop" id="modal-shopping" aria-hidden="true">
+  <div class="modal-backdrop no-print" id="modal-shopping" aria-hidden="true">
     <div class="modal">
       <div class="modal-header">
         <div class="modal-title">Lista spesa</div>
@@ -567,5 +575,7 @@
   <script src="/shared/websocket.js"></script>
   <script src="/shared/staff-access.js"></script>
   <script src="supervisor.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="supervisor"></script>
 </body>
 </html>

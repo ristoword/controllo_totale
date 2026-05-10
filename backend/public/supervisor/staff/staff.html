@@ -8,13 +8,14 @@
   <link rel="stylesheet" href="/supervisor/supervisor.css" />
   <link rel="stylesheet" href="staff.css" />
   <link rel="stylesheet" href="/shared/staff-access.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
 </head>
 
 <body>
   <div class="shell">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar no-print">
       <div class="brand">
         <div class="logo">RW</div>
         <div class="brand-txt">
@@ -34,11 +35,13 @@
         <a class="nav-item" href="/prenotazioni/prenotazioni.html">Prenotazioni</a>
         <a class="nav-item" href="/supervisor/supervisor.html">Supervisor</a>
         <a class="nav-item active" href="/supervisor/staff/staff.html">Staff</a>
+        <a class="nav-item" href="/turni/turni.html">Turni</a>
+        <a class="nav-item" href="/staff-hr/index.html">Staff HR</a>
         <a class="nav-item" href="/supervisor/customers/customers.html">Clienti</a>
       </nav>
 
       <div class="side-footer">
-        <div class="tiny muted">© 2026 RistoWord</div>
+        <div class="tiny muted">© 2026 Controllo Totale</div>
       </div>
     </aside>
 
@@ -47,12 +50,13 @@
 
       <!-- STAFF LIST VIEW -->
       <div id="staff-list-view" class="staff-view">
-        <header class="topbar">
+        <header class="topbar no-print">
           <div class="topbar-left">
             <h1>Staff</h1>
             <div class="sub">Gestione personale • Elenco dipendenti</div>
           </div>
           <div class="topbar-right">
+            <button type="button" class="btn ghost" id="btn-print-staff-list" title="Stampa elenco corrente">Stampa</button>
             <button class="btn ghost" id="btn-show-reports">Report</button>
             <button class="btn primary" id="btn-refresh-staff">Aggiorna</button>
           </div>
@@ -110,19 +114,20 @@
 
       <!-- STAFF PROFILE VIEW -->
       <div id="staff-profile-view" class="staff-view" style="display:none;">
-        <header class="topbar">
+        <header class="topbar no-print">
           <div class="topbar-left">
             <button class="btn ghost" id="btn-back-list">← Torna alla lista</button>
             <h1 id="profile-title">Profilo staff</h1>
           </div>
           <div class="topbar-right profile-actions">
+            <button type="button" class="btn ghost" id="btn-print-staff-profile" title="Stampa scheda profilo">Stampa</button>
             <button class="btn ghost" id="btn-cancel-profile" style="display:none;">Annulla</button>
             <button class="btn primary" id="btn-save-profile" style="display:none;">Salva</button>
             <button class="btn primary" id="btn-edit-profile">Modifica</button>
           </div>
         </header>
 
-        <nav class="profile-tabs" id="profile-tabs">
+        <nav class="profile-tabs no-print" id="profile-tabs">
           <button class="profile-tab active" data-tab="dati">Dati</button>
           <button class="profile-tab" data-tab="turni">Turni</button>
           <button class="profile-tab" data-tab="ore">Ore e contratti</button>
@@ -136,12 +141,13 @@
 
       <!-- REPORTS VIEW -->
       <div id="staff-reports-view" class="staff-view" style="display:none;">
-        <header class="topbar">
+        <header class="topbar no-print">
           <div class="topbar-left">
             <button class="btn ghost" id="btn-back-reports">← Torna alla lista</button>
             <h1>Report staff</h1>
           </div>
           <div class="topbar-right">
+            <button type="button" class="btn ghost" id="btn-print-staff-reports" title="Stampa report">Stampa</button>
             <select id="report-month"></select>
             <select id="report-year"></select>
             <button class="btn primary" id="btn-refresh-reports">Aggiorna</button>
@@ -159,5 +165,7 @@
   <script src="/shared/api.js"></script>
   <script src="/shared/staff-access.js"></script>
   <script src="staff.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="supervisor"></script>
 </body>
 </html>

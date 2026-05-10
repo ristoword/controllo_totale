@@ -608,6 +608,8 @@ function calcolaCatering() {
 
 // --- INIT ---
 document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btn-print-catering-view")?.addEventListener("click", () => window.print());
+
   document.querySelectorAll(".cat-nav .nav-btn").forEach((btn) => {
     btn.addEventListener("click", () => showView(btn.dataset.view));
   });

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="cucina.css" />
   <link rel="stylesheet" href="/shared/staff-access.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
 </head>
 <body>
   <div class="layout">
@@ -42,12 +43,12 @@
           <span class="chip-label">In ritardo</span>
           <span class="chip-value" id="kpi-late">–</span>
         </div>
-        <button class="btn ghost" id="btn-refresh">Aggiorna</button>
+        <button class="btn ghost no-print" id="btn-refresh">Aggiorna</button>
       </div>
     </header>
 
     <!-- NAV PULSANTI TOUCH -->
-    <nav class="kitchen-nav">
+    <nav class="kitchen-nav no-print">
       <button class="nav-btn active" data-view="comande">Comande</button>
 
       <!-- link alle altre pagine reparto -->
@@ -264,11 +265,14 @@
       <!-- VIEW 3: LISTA SPESA / COMANDI VOCALI -->
       <section id="view-spesa" class="view">
         <article class="card">
-          <header class="card-header">
-            <h2>Lista spesa vocale</h2>
-            <p>
-              Premi il microfono e detta: "2 casse acqua, 5 kg limoni, 10 kg entrecote..."
-            </p>
+          <header class="card-header" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px;">
+            <div>
+              <h2>Lista spesa vocale</h2>
+              <p>
+                Premi il microfono e detta: "2 casse acqua, 5 kg limoni, 10 kg entrecote..."
+              </p>
+            </div>
+            <button type="button" class="btn ghost no-print" id="btn-print-cucina-spesa" title="Stampa lista spesa">Stampa</button>
           </header>
           <div class="card-body">
             <div class="voice-row">
@@ -324,9 +328,12 @@
       <section id="view-haccp" class="view">
         <div class="two-cols">
           <article class="card">
-            <header class="card-header">
-              <h2>Registrazione HACCP</h2>
-              <p>Temperature frigo / congelatore + firma operatore</p>
+            <header class="card-header" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px;">
+              <div>
+                <h2>Registrazione HACCP</h2>
+                <p>Temperature frigo / congelatore + firma operatore</p>
+              </div>
+              <button type="button" class="btn ghost no-print" id="btn-print-haccp" title="Stampa modulo e storico visibile">Stampa</button>
             </header>
             <div class="card-body form-grid">
               <label>
@@ -382,9 +389,12 @@
       <!-- VIEW 5: TURNI CUCINA -->
       <section id="view-turni" class="view">
         <article class="card">
-          <header class="card-header">
-            <h2>Turni cucina – settimana</h2>
-            <p>Schema base per massimo 50 persone, salvato in locale</p>
+          <header class="card-header" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px;">
+            <div>
+              <h2>Turni cucina – settimana</h2>
+              <p>Schema base per massimo 50 persone, salvato in locale</p>
+            </div>
+            <button type="button" class="btn ghost no-print" id="btn-print-turni-cucina" title="Stampa elenco turni">Stampa</button>
           </header>
           <div class="card-body">
             <div class="turni-grid">
@@ -474,5 +484,7 @@
   <script src="/shared/websocket.js"></script>
   <script src="/shared/staff-access.js"></script>
   <script src="cucina.js?v=20260406"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="cucina"></script>
 </body>
 </html>

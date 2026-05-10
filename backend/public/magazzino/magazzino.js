@@ -755,6 +755,7 @@ function initVoice() {
 }
 
 function initMagazzino() {
+  document.getElementById("btn-print-magazzino")?.addEventListener("click", () => window.print());
   document.querySelectorAll(".mag-tab").forEach((btn) => {
     btn.addEventListener("click", () => showTab(btn.dataset.tab));
   });

@@ -27,12 +27,16 @@ function resolvePriceId(billingPeriod) {
 
   if (annual) {
     if (!annualId) {
-      throw new Error("STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL (o STRIPE_PRICE_CT_ANNUAL) mancante per fatturazione annuale");
+      throw new Error(
+        "Price annuale mancante: STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL, STRIPE_PRICE_CT_ANNUAL o STRIPE_PRICE_RISTOWORD_YEARLY"
+      );
     }
     return annualId;
   }
   if (!monthlyId) {
-    throw new Error("STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY (o STRIPE_PRICE_CT_MONTHLY) mancante");
+    throw new Error(
+      "Price mensile mancante: STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY, STRIPE_PRICE_CT_MONTHLY o STRIPE_PRICE_RISTOWORD_MONTHLY"
+    );
   }
   return monthlyId;
 }

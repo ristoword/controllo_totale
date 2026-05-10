@@ -271,6 +271,7 @@
   }
 
   document.getElementById("btn-add-dish").addEventListener("click", addDish);
+  document.getElementById("btn-print-daily-menu")?.addEventListener("click", () => window.print());
   document.getElementById("btn-toggle-menu").addEventListener("click", toggleMenuActive);
   document.getElementById("btn-save-edit").addEventListener("click", saveEdit);
   document.getElementById("btn-close-modal").addEventListener("click", () => {

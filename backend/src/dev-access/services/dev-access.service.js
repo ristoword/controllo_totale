@@ -19,6 +19,8 @@ const inventoryRepository = require("../../repositories/inventory.repository");
 const reportsRepository = require("../../repositories/reports.repository");
 const closuresRepository = require("../../repositories/closures.repository");
 const menuRepository = require("../../repositories/menu.repository");
+const restaurantsRepository = require("../../repositories/restaurants.repository");
+const { useMysqlPersistence } = require("../../config/mysqlPersistence");
 
 const { getLicense, saveLicense } = require("../../config/license");
 const storniRepository = require("../../repositories/storni.repository");
@@ -90,6 +92,16 @@ function withTenant(tenantId, fn) {
 }
 
 async function listTenants() {
+  // When MySQL is active, read tenant IDs from the restaurants table.
+  if (useMysqlPersistence()) {
+    try {
+      const restaurants = await restaurantsRepository.readRestaurants();
+      if (Array.isArray(restaurants) && restaurants.length > 0) {
+        return restaurants.map((r) => String(r.id || r.slug || r.restaurantId)).filter(Boolean).slice(0, 200);
+      }
+    } catch (_) {}
+  }
+  // Fallback: scan local data/tenants directory (local dev or MySQL unavailable).
   const tenantsDir = path.join(DATA_DIR, "tenants");
   try {
     const exists = fs.existsSync(tenantsDir);
@@ -295,7 +307,33 @@ async function getStripeStatus({ tenantId = null } = {}) {
     stripeConfigured,
     localLicense: tenantLic,
     mismatch,
-    stripePayments: null, // mock / non disponibile
+    stripePayments: await (async () => {
+      const secretKey = process.env.STRIPE_SECRET_KEY && String(process.env.STRIPE_SECRET_KEY).trim();
+      if (!secretKey || secretKey.startsWith("sk_test_512345")) return null;
+      try {
+        const Stripe = require("stripe");
+        const stripe = new Stripe(secretKey, { apiVersion: "2024-11-20.acacia" });
+        const charges = await stripe.charges.list({ limit: 10 });
+        const subs = await stripe.subscriptions.list({ limit: 10, status: "active" });
+        return {
+          recentCharges: charges.data.map((c) => ({
+            id: c.id,
+            amount: c.amount / 100,
+            currency: c.currency,
+            status: c.status,
+            created: new Date(c.created * 1000).toISOString(),
+          })),
+          activeSubscriptions: subs.data.map((s) => ({
+            id: s.id,
+            status: s.status,
+            customerId: s.customer,
+            currentPeriodEnd: new Date(s.current_period_end * 1000).toISOString(),
+          })),
+        };
+      } catch (e) {
+        return { error: e.message };
+      }
+    })(),
   };
 }
 
@@ -402,6 +440,22 @@ async function getBusinessSnapshot({ tenantId = null } = {}) {
     };
   } catch (_) {}
 
+  // Count tenants that actually have orders and menu items (real data, not placeholder).
+  let tenantsWithOrders = 0;
+  let tenantsWithMenu = 0;
+  await Promise.all(
+    tenants.slice(0, 50).map(async (tid2) => {
+      try {
+        const [orders, menu] = await Promise.all([
+          withTenant(tid2, () => ordersRepository.getAllOrders()).catch(() => []),
+          withTenant(tid2, () => menuRepository.getActive()).catch(() => []),
+        ]);
+        if (Array.isArray(orders) && orders.length > 0) tenantsWithOrders += 1;
+        if (Array.isArray(menu) && menu.length > 0) tenantsWithMenu += 1;
+      } catch (_) {}
+    })
+  );
+
   return {
     tenantsCount: tenants.length,
     clients: {
@@ -412,8 +466,8 @@ async function getBusinessSnapshot({ tenantId = null } = {}) {
     },
     licensesByPlan: byPlan,
     modulesActiveBase: {
-      tenantsWithOrders: tenants.length, // best-effort placeholder
-      tenantsWithMenu: tenants.length,
+      tenantsWithOrders,
+      tenantsWithMenu,
     },
     tenantKPIs,
   };

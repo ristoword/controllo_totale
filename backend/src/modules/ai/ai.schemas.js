@@ -1,7 +1,11 @@
 // backend/src/modules/ai/ai.schemas.js
 // Shared AI request/response shapes for all departments.
 
-const DEPARTMENTS = ["kitchen", "supervisor", "warehouse", "cash", "creative"];
+const DEPARTMENTS = [
+  "kitchen", "supervisor", "warehouse", "cash", "creative",
+  "sala", "bar", "prenotazioni", "haccp", "turni", "fornitori",
+  "archivio", "pizzeria", "asporto", "catering",
+];
 const MODES = ["read", "suggest", "act"];
 
 function normalizeDepartment(value) {

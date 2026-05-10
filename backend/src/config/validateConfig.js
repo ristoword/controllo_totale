@@ -23,12 +23,18 @@ function validateSession() {
     );
   }
   if (!s) {
-    // Hard fail: sessions are required for auth and multi-tenant isolation.
+    // Dovrebbe essere impossibile: server.js genera un segreto effimero prima di validateConfig.
     throw new Error(
       "CONFIG ERROR: SESSION_SECRET is required but not set.\n" +
         "Set SESSION_SECRET in your environment (e.g. .env) to a secure random string.\n" +
         "Example:\n" +
         '  SESSION_SECRET="change-this-to-a-long-random-string"'
+    );
+  }
+  if (String(process.env.CT_SESSION_SECRET_EPHEMERAL || "").toLowerCase() === "true") {
+    console.warn(
+      "[CONFIG] SESSION_SECRET effimero (generato all'avvio): imposta SESSION_SECRET su Railway " +
+        "per login stabili dopo deploy e se usi più istanze."
     );
   }
 }
@@ -195,7 +201,7 @@ function validateStripeCheckout() {
   const pa = priceAnnual();
   if (!pm && !pa) {
     console.warn(
-      "[CONFIG][STRIPE] STRIPE_SECRET_KEY presente ma nessun STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY/ANNUAL (o STRIPE_PRICE_CT_*); checkout resta in modalità mock."
+      "[CONFIG][STRIPE] STRIPE_SECRET_KEY presente ma nessun price ID mensile/annuale (CONTROLLO_TOTALE_*, CT_* o legacy STRIPE_PRICE_RISTOWORD_*); checkout resta in modalità mock."
     );
     return;
   }

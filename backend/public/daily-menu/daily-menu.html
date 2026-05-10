@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/cucina/cucina.css" />
   <link rel="stylesheet" href="daily-menu.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
 </head>
 <body>
   <div class="layout">
@@ -16,13 +17,14 @@
         <p class="subtitle">Gestione menu giornaliero – piatti singoli per portata</p>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
+        <a href="/dashboard/dashboard.html" class="btn ghost no-print" title="Torna alla dashboard operativa">← Dashboard</a>
         <div class="chip" id="menu-status-chip">
           <span class="chip-label">Menu</span>
           <span class="chip-value" id="menu-status-value">Spento</span>
         </div>
         <button class="btn primary" id="btn-toggle-menu">Attiva menu</button>
-        <button class="btn ghost" onclick="window.location.href='/cucina/cucina.html'">← Cucina</button>
+        <button type="button" class="btn ghost no-print" id="btn-print-daily-menu" title="Stampa menu del giorno">Stampa</button>
+        <button class="btn ghost no-print" onclick="window.location.href='/cucina/cucina.html'">← Cucina</button>
       </div>
     </header>
 
@@ -109,5 +111,7 @@
 
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,cucina,kitchen,kitchen_manager"></script>
   <script src="daily-menu.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="daily-menu"></script>
 </body>
 </html>

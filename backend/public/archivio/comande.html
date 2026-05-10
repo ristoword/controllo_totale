@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CONTROLLO TOTALE – Archivio comande</title>
+  <link rel="stylesheet" href="archivio.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar no-print">
+      <div class="brand-title">CONTROLLO TOTALE</div>
+      <div class="brand-sub">Comande servite</div>
+      <nav class="nav">
+        <a href="/dashboard/dashboard.html">Dashboard</a>
+        <a href="/archivio/archivio.html">Archivio</a>
+        <a class="active" href="/archivio/comande.html">Archivio comande</a>
+        <a href="/cucina/cucina.html">Cucina</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Archivio comande</h1>
+          <p class="subtitle">
+            Elenco delle comande con stato <strong>servito</strong> o <strong>chiuso</strong> (pagate). Puoi nascondere una riga dall’archivio senza cancellare l’ordine dal sistema operativo.
+          </p>
+        </div>
+        <div class="no-print">
+          <button type="button" class="btn ghost" id="btn-print">Stampa</button>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="filters">
+          <label>Da data
+            <input type="date" id="f-from" />
+          </label>
+          <label>A data
+            <input type="date" id="f-to" />
+          </label>
+          <button type="button" class="btn primary" id="btn-load">Carica</button>
+        </div>
+        <div id="load-err" class="err" style="display:none;"></div>
+        <p class="muted" id="tot-lbl"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data/ora</th>
+                <th>Tavolo</th>
+                <th>Area</th>
+                <th>Stato</th>
+                <th>Coperti</th>
+                <th>Cameriere</th>
+                <th>Anteprima piatti</th>
+                <th class="no-print">Azioni</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-orders"></tbody>
+          </table>
+        </div>
+        <div class="no-print" style="margin-top:12px;">
+          <button type="button" class="btn" id="btn-more">Carica altri</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,cassa,magazzino,cucina,sala"></script>
+  <script src="/shared/api.js"></script>
+  <script src="comande.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="archivio"></script>
+</body>
+</html>

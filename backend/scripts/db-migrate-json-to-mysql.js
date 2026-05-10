@@ -34,6 +34,7 @@
  *   node scripts/db-migrate-json-to-mysql.js --step=sessions
  *   node scripts/db-migrate-json-to-mysql.js --step=pos-shifts
  *   node scripts/db-migrate-json-to-mysql.js --step=inventory
+ *   node scripts/db-migrate-json-to-mysql.js --step=suppliers
  *   node scripts/db-migrate-json-to-mysql.js --step=all
  *   node scripts/db-migrate-json-to-mysql.js --step=restaurants --dry-run
  *
@@ -75,7 +76,7 @@ function parseArgs(argv) {
 
 function printUsage() {
   console.info(`
-Uso: node scripts/db-migrate-json-to-mysql.js --step=<restaurants|users|licenses|orders|payments|closures|reports|storni|cassa-shifts|menus|inventory-transfers|stock-movements|order-food-costs|all> [--dry-run]
+Uso: node scripts/db-migrate-json-to-mysql.js --step=<restaurants|users|…|inventory|suppliers|all> [--dry-run]
 
 Esegui dalla cartella backend (dove c'è package.json).
 Prima: node scripts/db-bootstrap.js (schema)
@@ -923,6 +924,8 @@ async function runStep(step, dryRun) {
       await migrateTenantModuleData(conn, dryRun, "catering-presets", "catering-presets.json");
     } else if (step === "inventory") {
       await migrateTenantModuleData(conn, dryRun, "inventory", "inventory.json");
+    } else if (step === "suppliers") {
+      await migrateTenantModuleData(conn, dryRun, "suppliers", "suppliers.json");
     } else if (step === "gs-codes-mirror") {
       await migrateGlobalModuleData(conn, dryRun, "gs-codes-mirror", "gs-codes-mirror.json");
     } else {
@@ -983,6 +986,7 @@ async function main() {
     "catering-events",
     "catering-presets",
     "inventory",
+    "suppliers",
     "gs-codes-mirror",
   ];
   let steps;

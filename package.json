@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "description": "Controllo Totale — gestionale ristorazione SaaS multi-tenant",
+  "workspaces": [
+    "backend"
+  ],
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "start": "cd backend && npm start"
-  },
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "openai": "^6.29.0"
+    "start": "npm run start --workspace=backend",
+    "test": "npm run test --workspace=backend"
   }
 }

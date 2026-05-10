@@ -1,1 +1,11 @@
-# Root repo: npm start → cd backend && npm start
+# Forza build Docker. In alternativa Railpack: `npm ci` sulla root ora include il workspace `backend`
+# (package.json: "workspaces": ["backend"] + package-lock unico) → dotenv/express installati.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+# Avvio esplicito (evita deploy con vecchio script "cd backend" senza workspaces in cache).
+[deploy]
+startCommand = "node backend/src/server.js"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300

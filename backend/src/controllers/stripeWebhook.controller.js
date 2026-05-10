@@ -3,12 +3,13 @@ const { processVerifiedStripeEvent, syncPendingWebhooks, getWebhookStatus } = re
 
 // Stripe SDK needs an API key to construct the client; webhook verification uses only STRIPE_WEBHOOK_SECRET.
 const STRIPE_API_VERSION = "2024-11-20.acacia";
-const PLACEHOLDER_SECRET_KEY =
-  "sk_test_51234567890123456789012345678901234567890123456789012";
 
 function getStripeClient() {
   const key = process.env.STRIPE_SECRET_KEY && String(process.env.STRIPE_SECRET_KEY).trim();
-  return new Stripe(key || PLACEHOLDER_SECRET_KEY, { apiVersion: STRIPE_API_VERSION });
+  if (!key) {
+    throw new Error("[stripeWebhook] STRIPE_SECRET_KEY non configurata. Impossibile processare webhook.");
+  }
+  return new Stripe(key, { apiVersion: STRIPE_API_VERSION });
 }
 
 // POST /api/stripe/webhook

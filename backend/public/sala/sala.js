@@ -1,1726 +1,997 @@
-// =============================
-//   STATO LOCALE
-// =============================
+// sala.js – CONTROLLO TOTALE Sala – redesign ristosaas-style v20260510
+// ============================================================
+//   STATO
+// ============================================================
+let tables      = [];  // sala tables from API
+let activeOrders = []; // active orders from API
+let menuItems   = [];  // menu items (caricati al primo open modal)
+let menuLoaded  = false;
 
-let allOrders = [];
-let activeFilters = {
-  status: "",
-  area: "",
-  table: "",
+let selectedTable    = null; // table obj attualmente nel modal
+let editLayout       = false;
+let tablesBusy       = false;
+
+// modale comanda
+let orderTable       = null;
+let courses          = [{ n: 1, items: [] }];
+let activeCourse     = 1;
+let orderCovers      = 2;
+let orderWaiter      = "";
+let orderNotes       = "";
+let sending          = false;
+let menuSearch       = "";
+let menuAreaFilter   = "all";
+let menuCatFilter    = "all";
+
+// drag state
+let dragState = null;
+
+// modal coperti/corsi
+let modalCoperti = 2;
+let modalCorsi   = 1;
+let noteDest     = "cucina";
+
+const MAX_TABLES = 30;
+
+// ============================================================
+//   API HELPERS
+// ============================================================
+async function api(method, path, body) {
+  const opts = { method, credentials: "same-origin", headers: {} };
+  if (body !== undefined) {
+    opts.headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(body);
+  }
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    const msg = await r.json().then(d => d.error || d.message).catch(() => r.statusText);
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+const tablesApi = {
+  list: () => api("GET", "/api/sala/tables"),
+  create: (data) => api("POST", "/api/sala/tables", data),
+  update: (id, patch) => api("PATCH", `/api/sala/tables/${encodeURIComponent(id)}`, patch),
+  patchStatus: (id, stato) => api("PATCH", `/api/sala/tables/${encodeURIComponent(id)}/status`, { stato }),
+  remove: (id) => api("DELETE", `/api/sala/tables/${encodeURIComponent(id)}`),
 };
 
-let menuOfficial = [];
-let selectedItems = [];
+const ordersApi = {
+  listActive: () => api("GET", "/api/orders?active=true"),
+  create: (body) => api("POST", "/api/orders", body),
+  patchStatus: (id, status) => api("PATCH", `/api/orders/${encodeURIComponent(id)}/status`, { status }),
+  patchActiveCourse: (id, activeCourse) => api("PATCH", `/api/orders/${encodeURIComponent(id)}/active-course`, { activeCourse }),
+};
 
-const LS_FLOOR = "rw_sala_floor_v1";
-const LS_FLAGS = "rw_sala_table_flags_v1";
-const LS_COURSES = "rw_sala_course_drafts_v1";
+const menuApi = {
+  list: () => api("GET", "/api/menu/active"),
+};
 
-const DEFAULT_TABLE_COUNT = 30;
-
-let floorTableNums = [];
-let floorLayout = {};
-let tableFlags = {};
-let courseDrafts = {};
-
-let activeTableContext = null;
-let orderFlowMode = null;
-
-let popupOpenTable = null;
-let dragState = null;
-let suppressTableClick = false;
-/** Evita doppio invio marcia (due PATCH ravvicinate → salto di corso). */
-let marciaRequestInFlight = false;
-
-// =============================
-//   LOCAL STORAGE — MAPPA / FLAGS / CORSI
-// =============================
-
-function loadFloorState() {
+// ============================================================
+//   LOAD / REFRESH
+// ============================================================
+async function loadAll() {
   try {
-    const raw = localStorage.getItem(LS_FLOOR);
-    if (raw) {
-      const data = JSON.parse(raw);
-      if (Array.isArray(data.tableNums) && data.tableNums.length) {
-        floorTableNums = data.tableNums.map(Number);
-        floorLayout = data.layout && typeof data.layout === "object" ? data.layout : {};
-        return;
+    const [t, o] = await Promise.all([tablesApi.list(), ordersApi.listActive()]);
+    tables = Array.isArray(t) ? t : [];
+    activeOrders = Array.isArray(o) ? o : [];
+
+    // Se non ci sono tavoli nella nuova installation, seminiamo 20 di default
+    if (tables.length === 0) {
+      await seedDefaultTables();
+    }
+  } catch (e) {
+    console.error("Errore caricamento dati sala:", e);
+  }
+  renderAll();
+}
+
+async function seedDefaultTables() {
+  const cols = 5;
+  const leftPad = 12, topPad = 18, colStep = 15, rowStep = 22;
+  const items = [];
+  for (let i = 1; i <= 20; i++) {
+    const row = Math.floor((i - 1) / cols);
+    const col = (i - 1) % cols;
+    items.push({
+      nome: `T${i}`,
+      posti: 4,
+      x: leftPad + col * colStep,
+      y: topPad + row * rowStep,
+      forma: i % 3 === 0 ? "tondo" : "quadrato",
+    });
+  }
+  for (const item of items) {
+    try { await tablesApi.create(item); } catch (_) {}
+  }
+  tables = await tablesApi.list();
+}
+
+// ============================================================
+//   RENDER
+// ============================================================
+function renderAll() {
+  renderKpis();
+  renderMgmtBar();
+  renderActiveOrders();
+  renderFloor();
+}
+
+function renderKpis() {
+  document.getElementById("kpi-active-orders").textContent = activeOrders.length;
+}
+
+function renderMgmtBar() {
+  document.getElementById("mgmt-count").textContent = `${tables.length} tavoli`;
+  const btnLayout = document.getElementById("btn-layout-toggle");
+  btnLayout.setAttribute("aria-pressed", String(editLayout));
+  btnLayout.textContent = editLayout ? "⤡ Esci dal layout" : "⤡ Sposta tavoli";
+  btnLayout.classList.toggle("btn", true);
+  btnLayout.classList.toggle("ghost", true);
+  if (editLayout) {
+    btnLayout.style.background = "var(--amber-bg)";
+    btnLayout.style.borderColor = "var(--amber-ring)";
+    btnLayout.style.color = "var(--accent-soft)";
+  } else {
+    btnLayout.style.background = "";
+    btnLayout.style.borderColor = "";
+    btnLayout.style.color = "";
+  }
+}
+
+// ============================================================
+//   ACTIVE ORDERS CARDS
+// ============================================================
+function courseChipClass(st, isActive) {
+  if (st === "servito") return "cb-servito";
+  if (st === "pronto") return "cb-pronto";
+  if (st === "in_preparazione") return "cb-in_prep";
+  if (isActive) return "cb-active";
+  return "cb-waiting";
+}
+
+function courseStateLabel(st) {
+  if (st === "servito") return "servito";
+  if (st === "pronto") return "pronto";
+  if (st === "in_preparazione") return "in prep";
+  if (st === "in_attesa") return "in coda";
+  return "attesa turno";
+}
+
+function renderActiveOrders() {
+  const grid = document.getElementById("active-orders-grid");
+  const relevant = activeOrders.filter(
+    (o) => !["servito", "chiuso", "annullato"].includes(o.status)
+  );
+  if (relevant.length === 0) {
+    grid.style.display = "none";
+    return;
+  }
+  grid.style.display = "grid";
+
+  grid.innerHTML = relevant.map((order) => {
+    const courseNums = [...new Set(order.items.map((i) => i.course))].sort((a, b) => a - b);
+    const badgesHtml = courseNums.map((cn) => {
+      const st = (order.courseStates && order.courseStates[String(cn)]) || "queued";
+      const isActive = cn === order.activeCourse;
+      const cls = courseChipClass(st, isActive);
+      const lbl = courseStateLabel(st === "queued" && isActive ? "active" : st);
+      return `<span class="course-badge ${cls}">${cn}° corso <span style="opacity:.7">${lbl}</span></span>`;
+    }).join("");
+
+    const isLastCourse = courseNums.indexOf(order.activeCourse) >= courseNums.length - 1;
+
+    return `
+      <div class="order-card">
+        <div class="order-card-head">
+          <span class="order-table-name">Tav. ${escHtml(String(order.table))}</span>
+          <span class="order-meta">${escHtml(order.waiter || "—")} · ${order.covers || "—"}p</span>
+        </div>
+        <div class="course-badges">${badgesHtml}</div>
+        <button class="marcia-btn" data-order-id="${escHtml(order.id)}" ${isLastCourse ? "disabled" : ""}>
+          🚀 Marcia
+        </button>
+      </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".marcia-btn[data-order-id]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const order = activeOrders.find((o) => o.id === btn.dataset.orderId);
+      if (order) {
+        btn.disabled = true;
+        await handleMarcia(order);
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+// ============================================================
+//   MARCIA LOGIC (identica a ristosaas)
+// ============================================================
+async function handleMarcia(order) {
+  const courseNums = [...new Set(order.items.map((i) => i.course))].sort((a, b) => a - b);
+  const currentCourse = order.activeCourse;
+  const courseStates = order.courseStates || {};
+  const currentState = courseStates[String(currentCourse)] || "queued";
+  const isLastCourse = courseNums.indexOf(currentCourse) === courseNums.length - 1;
+
+  try {
+    if (currentState === "queued" || currentState === "in_attesa") {
+      await ordersApi.patchActiveCourse(order.id, currentCourse);
+    } else if (currentState === "pronto" || currentState === "in_preparazione") {
+      if (!isLastCourse) {
+        await ordersApi.patchStatus(order.id, "servito");
+      } else {
+        await ordersApi.patchStatus(order.id, "servito");
       }
     }
-  } catch (_) {}
-  floorTableNums = Array.from({ length: DEFAULT_TABLE_COUNT }, (_, i) => i + 1);
-  floorLayout = buildDefaultGridLayout(floorTableNums);
-  saveFloorState();
+    await loadAll();
+  } catch (e) {
+    console.error("Errore marcia:", e);
+    showMgmtError("Errore marcia: " + e.message);
+  }
 }
 
-function saveFloorState() {
+// ============================================================
+//   FLOOR PLAN
+// ============================================================
+function renderFloor() {
+  const floor = document.getElementById("sala-floor");
+  const editHint = document.getElementById("floor-edit-hint");
+  editHint.style.display = editLayout ? "block" : "none";
+  floor.classList.toggle("edit-mode", editLayout);
+
+  // rimuovi vecchi tavoli
+  floor.querySelectorAll(".table-btn").forEach((el) => el.remove());
+
+  tables.forEach((t) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `table-btn forma-${t.forma} stato-${t.stato}`;
+    btn.style.left = `${t.x}%`;
+    btn.style.top  = `${t.y}%`;
+    btn.dataset.id = t.id;
+    if (editLayout) {
+      btn.setAttribute("aria-label", `Trascina il tavolo ${t.nome} per spostarlo.`);
+    } else {
+      const statoLabel = { libero: "Libero", aperto: "Aperto", conto: "Conto", sporco: "Da pulire" }[t.stato] || t.stato;
+      btn.setAttribute("aria-label", `Tavolo ${t.nome}, ${statoLabel}, ${t.posti} posti. Tocca per aprire le azioni.`);
+    }
+    btn.innerHTML = `
+      <span class="table-name">${escHtml(t.nome)}</span>
+      <span class="table-posti">${t.posti}p</span>
+    `;
+
+    if (editLayout) {
+      addDragHandlers(btn, t);
+    } else {
+      btn.addEventListener("click", () => openTableModal(t));
+    }
+
+    floor.appendChild(btn);
+  });
+}
+
+// ============================================================
+//   DRAG & DROP
+// ============================================================
+function addDragHandlers(btn, table) {
+  let dragging = false;
+  let lastX = table.x;
+  let lastY = table.y;
+
+  btn.addEventListener("pointerdown", (e) => {
+    if (!editLayout) return;
+    e.preventDefault();
+    e.stopPropagation();
+    btn.setPointerCapture(e.pointerId);
+    dragging = true;
+    lastX = table.x;
+    lastY = table.y;
+    btn.dataset.dragging = "1";
+  });
+
+  btn.addEventListener("pointermove", (e) => {
+    if (!dragging || !editLayout) return;
+    const floor = document.getElementById("sala-floor");
+    const rect = floor.getBoundingClientRect();
+    const x = clamp(((e.clientX - rect.left) / rect.width) * 100, 4, 96);
+    const y = clamp(((e.clientY - rect.top) / rect.height) * 100, 4, 96);
+    lastX = x;
+    lastY = y;
+    btn.style.left = `${x}%`;
+    btn.style.top  = `${y}%`;
+    // update local table
+    const t = tables.find((t) => t.id === table.id);
+    if (t) { t.x = x; t.y = y; }
+  });
+
+  async function endDrag(e) {
+    if (!dragging) return;
+    btn.releasePointerCapture(e.pointerId);
+    dragging = false;
+    delete btn.dataset.dragging;
+    if (lastX !== table.x || lastY !== table.y || true) {
+      try {
+        await tablesApi.update(table.id, { x: parseFloat(lastX.toFixed(2)), y: parseFloat(lastY.toFixed(2)) });
+        table.x = lastX;
+        table.y = lastY;
+      } catch (err) {
+        console.error("Salvataggio posizione fallito:", err);
+        await loadAll(); // reset to server truth
+      }
+    }
+  }
+
+  btn.addEventListener("pointerup", endDrag);
+  btn.addEventListener("pointercancel", endDrag);
+}
+
+function clamp(val, min, max) {
+  return Math.min(max, Math.max(min, val));
+}
+
+// ============================================================
+//   TABLE ACTIONS MODAL
+// ============================================================
+function openTableModal(t) {
+  if (editLayout) return;
+  selectedTable = t;
+  modalCoperti = t.posti;
+  modalCorsi   = 1;
+  noteDest     = "cucina";
+
+  document.getElementById("modal-table-title").textContent = t.nome;
+  document.getElementById("modal-table-sub").textContent =
+    `${t.posti} posti · stato: ${{ libero: "Libero", aperto: "Aperto", conto: "Conto", sporco: "Da pulire" }[t.stato] || t.stato}`;
+  document.getElementById("val-coperti").textContent = modalCoperti;
+  document.getElementById("val-corsi").textContent = modalCorsi;
+  hideModalFlash();
+
+  const backdrop = document.getElementById("modal-backdrop");
+  const modal    = document.getElementById("modal-table");
+  backdrop.style.display = "block";
+  modal.style.display = "flex";
+  modal.setAttribute("aria-hidden", "false");
+  document.getElementById("modal-close").focus();
+}
+
+function closeTableModal() {
+  document.getElementById("modal-backdrop").style.display = "none";
+  document.getElementById("modal-table").style.display = "none";
+  document.getElementById("modal-table").setAttribute("aria-hidden", "true");
+  selectedTable = null;
+}
+
+function showModalFlash(msg) {
+  const el = document.getElementById("modal-flash");
+  el.textContent = msg;
+  el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 2400);
+}
+function hideModalFlash() {
+  document.getElementById("modal-flash").style.display = "none";
+}
+
+async function handleTableAction(actionId) {
+  const t = selectedTable;
+  if (!t) return;
+
+  const ordersForTable = activeOrders.filter((o) =>
+    String(o.table) === String(t.nome) && !["chiuso", "annullato"].includes(o.status)
+  );
+
+  switch (actionId) {
+    case "apri-tavolo":
+      await tablesApi.patchStatus(t.id, "aperto").catch(console.error);
+      await loadAll();
+      // aggiorna modal sub
+      if (selectedTable) {
+        const updated = tables.find((x) => x.id === t.id);
+        if (updated) {
+          selectedTable = updated;
+          document.getElementById("modal-table-sub").textContent =
+            `${updated.posti} posti · stato: Aperto`;
+        }
+      }
+      showModalFlash("Tavolo aperto.");
+      break;
+
+    case "tavolo-libero":
+      await tablesApi.patchStatus(t.id, "libero").catch(console.error);
+      await loadAll();
+      showModalFlash("Tavolo libero.");
+      break;
+
+    case "chiedi-conto":
+      await tablesApi.patchStatus(t.id, "conto").catch(console.error);
+      await loadAll();
+      showModalFlash("Conto richiesto.");
+      break;
+
+    case "marcia-portata":
+      for (const order of ordersForTable) {
+        await handleMarcia(order);
+      }
+      showModalFlash("Marcia eseguita.");
+      break;
+
+    case "chiudi-tavolo":
+      for (const order of ordersForTable) {
+        await ordersApi.patchStatus(order.id, "chiuso").catch(console.error);
+      }
+      await tablesApi.patchStatus(t.id, "sporco").catch(console.error);
+      await loadAll();
+      showModalFlash("Tavolo chiuso, da pulire.");
+      break;
+
+    case "cancella-tavolo":
+      for (const order of ordersForTable) {
+        await ordersApi.patchStatus(order.id, "annullato").catch(console.error);
+      }
+      await tablesApi.patchStatus(t.id, "libero").catch(console.error);
+      await loadAll();
+      showModalFlash("Tavolo cancellato.");
+      break;
+
+    case "prendi-ordine":
+      closeTableModal();
+      openOrderModal(t);
+      break;
+
+    case "menu-casa":
+      closeTableModal();
+      window.location.href = "/menu-admin/menu-admin.html";
+      break;
+
+    case "menu-giorno":
+      closeTableModal();
+      window.location.href = "/cucina/cucina.html";
+      break;
+
+    case "ordine-bevande":
+      closeTableModal();
+      window.location.href = "/bar/bar.html";
+      break;
+
+    default:
+      showModalFlash(`Azione «${actionId}» non ancora implementata.`);
+  }
+}
+
+// ============================================================
+//   ORDER MODAL
+// ============================================================
+function openOrderModal(t) {
+  orderTable   = t;
+  orderCovers  = t.posti;
+  orderWaiter  = "";
+  orderNotes   = "";
+  courses      = [{ n: 1, items: [] }];
+  activeCourse = 1;
+  menuSearch   = "";
+  menuAreaFilter = "all";
+  menuCatFilter  = "all";
+  sending      = false;
+
+  document.getElementById("modal-order-title").textContent = `Tav. ${t.nome}`;
+  document.getElementById("modal-order-sub").textContent   = `${t.posti} posti`;
+  document.getElementById("order-coperti-val").textContent = orderCovers;
+  document.getElementById("order-waiter").value  = orderWaiter;
+  document.getElementById("order-notes").value   = "";
+  document.getElementById("order-send-error").style.display = "none";
+  document.getElementById("menu-search").value   = "";
+  document.getElementById("menu-area-filter").value = "all";
+  document.getElementById("menu-cat-filter").value  = "all";
+
+  document.getElementById("modal-backdrop").style.display = "block";
+  document.getElementById("modal-order").style.display = "flex";
+
+  renderCourseTabs();
+  renderCoursesSummary();
+  updateSendBtn();
+  loadMenuIfNeeded();
+}
+
+function closeOrderModal() {
+  document.getElementById("modal-backdrop").style.display = "none";
+  document.getElementById("modal-order").style.display = "none";
+  orderTable = null;
+}
+
+async function loadMenuIfNeeded() {
+  if (menuLoaded) {
+    renderMenuGrid();
+    return;
+  }
+  const loadEl = document.getElementById("menu-loading");
+  const errEl  = document.getElementById("menu-error");
+  loadEl.style.display = "block";
+  errEl.style.display  = "none";
   try {
-    localStorage.setItem(
-      LS_FLOOR,
-      JSON.stringify({ tableNums: floorTableNums, layout: floorLayout })
-    );
-  } catch (_) {}
+    const items = await menuApi.list();
+    menuItems = Array.isArray(items) ? items.filter((i) => i.active !== false) : [];
+    menuLoaded = true;
+    buildCategoryFilter();
+  } catch (e) {
+    errEl.textContent = "Errore caricamento menu: " + e.message;
+    errEl.style.display = "block";
+  } finally {
+    loadEl.style.display = "none";
+  }
+  renderMenuGrid();
 }
 
-function buildDefaultGridLayout(nums) {
-  const layout = {};
-  const cols = 6;
-  nums.forEach((num, idx) => {
-    const row = Math.floor(idx / cols);
-    const col = idx % cols;
-    layout[String(num)] = {
-      leftPct: 2 + (col * 96) / cols,
-      topPct: 2 + (row * 18),
+function buildCategoryFilter() {
+  const cats = [...new Set(menuItems.map((i) => i.category).filter(Boolean))];
+  const sel = document.getElementById("menu-cat-filter");
+  sel.innerHTML = `<option value="all">Tutte le categorie</option>`;
+  cats.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
+function filteredMenu() {
+  const q = menuSearch.trim().toLowerCase();
+  return menuItems.filter((item) => {
+    const area = (item.area || "cucina").toLowerCase();
+    const matchArea = menuAreaFilter === "all" || area === menuAreaFilter;
+    const matchCat  = menuCatFilter  === "all" || item.category === menuCatFilter;
+    const matchSearch = q === "" || item.name.toLowerCase().includes(q);
+    return matchArea && matchCat && matchSearch;
+  });
+}
+
+function areaBadge(area) {
+  const map = {
+    cucina: "area-cucina",
+    pizzeria: "area-pizzeria",
+    bar: "area-bar",
+  };
+  const cls = map[(area || "").toLowerCase()] || "area-sala";
+  return `<span class="area-badge ${cls}">${escHtml(area || "cucina")}</span>`;
+}
+
+function renderMenuGrid() {
+  const grid = document.getElementById("menu-grid");
+  const items = filteredMenu();
+  if (items.length === 0) {
+    grid.innerHTML = `<p class="menu-empty">Nessuna voce menu corrisponde ai filtri.</p>`;
+    return;
+  }
+  grid.innerHTML = items.map((item) => {
+    const area = (item.area || "cucina").toLowerCase();
+    return `
+      <button type="button" class="menu-item-btn" data-item-id="${escHtml(String(item.id))}">
+        <span class="menu-item-name">${escHtml(item.name)}</span>
+        <div class="menu-item-meta">
+          <span class="menu-item-price">€${Number(item.price || 0).toFixed(2)}</span>
+          ${areaBadge(area)}
+        </div>
+      </button>`;
+  }).join("");
+
+  grid.querySelectorAll(".menu-item-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const item = menuItems.find((i) => String(i.id) === btn.dataset.itemId);
+      if (item) addItemToActiveCourse(item);
+    });
+  });
+}
+
+function addItemToActiveCourse(item) {
+  const normalizeArea = (raw) => {
+    const v = (raw || "").toLowerCase();
+    return ["cucina", "pizzeria", "bar", "sala"].includes(v) ? v : "cucina";
+  };
+  courses = courses.map((c) => {
+    if (c.n !== activeCourse) return c;
+    const existing = c.items.find((i) => i.name === item.name);
+    if (existing) {
+      return { ...c, items: c.items.map((i) => i.name === item.name ? { ...i, qty: i.qty + 1 } : i) };
+    }
+    return {
+      ...c,
+      items: [...c.items, {
+        name: item.name,
+        qty: 1,
+        category: item.category || "",
+        area: normalizeArea(item.area),
+        price: item.price || 0,
+        note: null,
+      }],
     };
   });
-  return layout;
+  renderCoursesSummary();
+  renderCourseTabs();
+  updateSendBtn();
 }
 
-function loadFlags() {
-  try {
-    const raw = localStorage.getItem(LS_FLAGS);
-    tableFlags = raw ? JSON.parse(raw) : {};
-    if (!tableFlags || typeof tableFlags !== "object") tableFlags = {};
-  } catch (_) {
-    tableFlags = {};
-  }
-}
-
-function saveFlags() {
-  try {
-    localStorage.setItem(LS_FLAGS, JSON.stringify(tableFlags));
-  } catch (_) {}
-}
-
-function getFlags(tableNum) {
-  const k = String(tableNum);
-  return (
-    tableFlags[k] || {
-      reserved: false,
-      billRequested: false,
-      paid: false,
-    }
+function removeItemFromCourse(courseN, name) {
+  courses = courses.map((c) =>
+    c.n === courseN ? { ...c, items: c.items.filter((i) => i.name !== name) } : c
   );
+  renderCoursesSummary();
+  renderCourseTabs();
+  updateSendBtn();
 }
 
-function setFlags(tableNum, patch) {
-  const k = String(tableNum);
-  tableFlags[k] = { ...getFlags(tableNum), ...patch };
-  saveFlags();
-}
-
-function loadCourseDrafts() {
-  try {
-    const raw = localStorage.getItem(LS_COURSES);
-    courseDrafts = raw ? JSON.parse(raw) : {};
-    if (!courseDrafts || typeof courseDrafts !== "object") courseDrafts = {};
-  } catch (_) {
-    courseDrafts = {};
-  }
-}
-
-function saveCourseDrafts() {
-  try {
-    localStorage.setItem(LS_COURSES, JSON.stringify(courseDrafts));
-  } catch (_) {}
-}
-
-function ensureCourseDraft(tableNum) {
-  const k = String(tableNum);
-  if (!courseDrafts[k]) {
-    courseDrafts[k] = { courses: [], activeCourseId: null };
-  }
-  return courseDrafts[k];
-}
-
-function newCourseId() {
-  return "c_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
-}
-
-function courseStart(tableNum) {
-  const d = ensureCourseDraft(tableNum);
-  if (d.courses.length === 0) {
-    const id = newCourseId();
-    d.courses.push({ id, n: 1, items: [] });
-    d.activeCourseId = id;
-    saveCourseDrafts();
-  } else if (!d.activeCourseId) {
-    d.activeCourseId = d.courses[0].id;
-    saveCourseDrafts();
-  }
-}
-
-function courseAdd(tableNum) {
-  const d = ensureCourseDraft(tableNum);
-  const n = d.courses.length + 1;
-  const id = newCourseId();
-  d.courses.push({ id, n, items: [] });
-  d.activeCourseId = id;
-  saveCourseDrafts();
-}
-
-function setActiveCourse(tableNum, courseId) {
-  const d = ensureCourseDraft(tableNum);
-  if (d.courses.some((c) => c.id === courseId)) {
-    d.activeCourseId = courseId;
-    saveCourseDrafts();
-  }
-}
-
-function getActiveCourse(tableNum) {
-  const d = ensureCourseDraft(tableNum);
-  const id = d.activeCourseId;
-  return d.courses.find((c) => c.id === id) || d.courses[0] || null;
-}
-
-function pushItemToActiveCourse(tableNum, item) {
-  const d = ensureCourseDraft(tableNum);
-  if (!d.courses.length) {
-    alert("Premi Start nel pannello Corsi (tavolo attivo) per creare il Corso 1.");
-    return;
-  }
-  let c = getActiveCourse(tableNum);
-  if (!c) {
-    alert("Seleziona un corso nel popup o premi Start.");
-    return;
-  }
-  const label = `Corso ${c.n}`;
-  const row = {
-    ...item,
-    courseId: c.id,
-    courseIndex: c.n,
-    courseLabel: label,
-  };
-  c.items.push(row);
-  saveCourseDrafts();
-}
-
-function removeLastFromActiveCourse(tableNum) {
-  const d = ensureCourseDraft(tableNum);
-  const c = getActiveCourse(tableNum);
-  if (!c || !c.items.length) return false;
-  c.items.pop();
-  saveCourseDrafts();
-  return true;
-}
-
-function flattenCourseItemsForApi(tableNum) {
-  const d = ensureCourseDraft(tableNum);
-  const out = [];
-  for (const c of d.courses) {
-    for (const it of c.items) {
-      const courseNum = Number(c.n) >= 1 ? Number(c.n) : 1;
-      const userNote = it.note && String(it.note).trim() ? String(it.note).trim() : null;
-      out.push({
-        name: it.name,
-        qty: it.qty,
-        category: it.category || null,
-        area: it.area,
-        price: it.price != null ? Number(it.price) : null,
-        note: userNote,
-        course: courseNum,
-      });
-    }
-  }
-  return out;
-}
-
-function clearCourseDraft(tableNum) {
-  delete courseDrafts[String(tableNum)];
-  saveCourseDrafts();
-}
-
-// =============================
-//   UTILITÀ
-// =============================
-
-function formatTime(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function minutesFrom(iso) {
-  if (!iso) return null;
-  const d = new Date(iso).getTime();
-  const now = Date.now();
-  return Math.floor((now - d) / 60000);
-}
-
-function statusLabel(status) {
-  switch (status) {
-    case "in_attesa":
-      return "In attesa";
-    case "in_preparazione":
-      return "In preparazione";
-    case "pronto":
-      return "Pronto";
-    case "servito":
-      return "Servito";
-    case "chiuso":
-      return "Chiuso";
-    case "annullato":
-      return "Annullato";
-    default:
-      return status || "-";
-  }
-}
-
-function inferAreaFromCategory(cat) {
-  const c = (cat || "").toLowerCase();
-  if (c === "pizzeria") return "pizzeria";
-  if (c === "bar" || c === "vini" || c === "dessert") return "bar";
-  if (c === "ristorante" || c === "altro") return "cucina";
-  return "cucina";
-}
-
-// =============================
-//   API ORDINI
-// =============================
-
-async function apiGetOrders() {
-  const res = await fetch("/api/orders?active=true", { credentials: "same-origin" });
-  if (!res.ok) throw new Error("Errore caricamento ordini");
-  return await res.json();
-}
-
-async function apiCreateOrder(payload) {
-  const res = await fetch("/api/orders", {
-    method: "POST",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+function updateItemQty(courseN, name, delta) {
+  courses = courses.map((c) => {
+    if (c.n !== courseN) return c;
+    return {
+      ...c,
+      items: c.items
+        .map((i) => i.name === name ? { ...i, qty: Math.max(0, i.qty + delta) } : i)
+        .filter((i) => i.qty > 0),
+    };
   });
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error("Errore creazione ordine: " + txt);
-  }
-  return await res.json();
+  renderCoursesSummary();
+  renderCourseTabs();
+  updateSendBtn();
 }
 
-async function apiPatchActiveCourse(orderId, activeCourse) {
-  const res = await fetch(
-    `/api/orders/${encodeURIComponent(orderId)}/active-course`,
-    {
-      method: "PATCH",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ activeCourse }),
-    }
-  );
-  const contentType = res.headers.get("content-type") || "";
-  let data;
-  if (contentType.includes("application/json")) {
-    data = await res.json();
+function addCourse() {
+  const next = courses.length + 1;
+  if (next > 12) return;
+  courses = [...courses, { n: next, items: [] }];
+  activeCourse = next;
+  renderCourseTabs();
+  renderCoursesSummary();
+  updateMenuSectionLabel();
+}
+
+function renderCourseTabs() {
+  const container = document.getElementById("course-tabs");
+  container.innerHTML = courses.map((c) => {
+    const isActive = c.n === activeCourse;
+    const cls = isActive ? "course-tab active" : "course-tab inactive";
+    const cnt = c.items.length > 0 ? ` (${c.items.length})` : "";
+    return `<button type="button" class="${cls}" data-cn="${c.n}">${c.n}° corso${escHtml(cnt)}</button>`;
+  }).join("") +
+    `<button type="button" class="course-tab-add" id="btn-add-course">+ Corso</button>`;
+
+  container.querySelectorAll(".course-tab[data-cn]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      activeCourse = parseInt(btn.dataset.cn, 10);
+      renderCourseTabs();
+      updateMenuSectionLabel();
+    });
+  });
+  const addBtn = document.getElementById("btn-add-course");
+  if (addBtn) addBtn.addEventListener("click", addCourse);
+}
+
+function updateMenuSectionLabel() {
+  document.getElementById("menu-section-label").textContent =
+    `Aggiungi al ${activeCourse}° corso · ${menuItems.length} voci menu`;
+}
+
+function renderCoursesSummary() {
+  const container = document.getElementById("courses-summary");
+  const withItems = courses.filter((c) => c.items.length > 0);
+  if (withItems.length === 0) {
+    container.innerHTML = "";
+    return;
+  }
+  container.innerHTML = withItems.map((c) => {
+    const isFirst = c.n === 1;
+    const titleCls = isFirst ? "cs-active" : "cs-waiting";
+    const stateLabel = isFirst ? "ATTIVO" : "IN ATTESA";
+    const itemsHtml = c.items.map((it) => `
+      <div class="course-item-row">
+        <div>
+          <span class="ci-name">${escHtml(it.name)}</span>
+          <span class="ci-price">€${(it.price || 0).toFixed(2)}</span>
+        </div>
+        <div class="ci-qty-ctrl">
+          <button type="button" class="ci-qty-btn" data-cn="${c.n}" data-name="${escHtml(it.name)}" data-delta="-1">−</button>
+          <span class="ci-qty-val">${it.qty}</span>
+          <button type="button" class="ci-qty-btn" data-cn="${c.n}" data-name="${escHtml(it.name)}" data-delta="1">+</button>
+          <button type="button" class="ci-del-btn" data-cn="${c.n}" data-name="${escHtml(it.name)}">🗑</button>
+        </div>
+      </div>`).join("");
+    return `
+      <div class="course-summary-block">
+        <p class="course-summary-title ${titleCls}">${c.n}° corso — ${stateLabel}</p>
+        ${itemsHtml}
+      </div>`;
+  }).join("");
+
+  // qty buttons
+  container.querySelectorAll(".ci-qty-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      updateItemQty(parseInt(btn.dataset.cn, 10), btn.dataset.name, parseInt(btn.dataset.delta, 10));
+    });
+  });
+  container.querySelectorAll(".ci-del-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      removeItemFromCourse(parseInt(btn.dataset.cn, 10), btn.dataset.name);
+    });
+  });
+}
+
+function updateSendBtn() {
+  const total = courses.reduce((s, c) => s + c.items.reduce((ss, i) => ss + i.qty, 0), 0);
+  const btn = document.getElementById("btn-send-order");
+  btn.disabled = total === 0 || sending;
+  const label = document.getElementById("send-label");
+  const icon  = document.getElementById("send-icon");
+  if (sending) {
+    icon.textContent = "⏳";
+    label.textContent = "Invio in corso…";
   } else {
-    data = { message: await res.text() };
+    icon.textContent = "🚀";
+    label.textContent = `Invia comanda (${total} piatti, ${courses.length} ${courses.length === 1 ? "corso" : "corsi"})`;
   }
-  if (!res.ok) {
-    const msg =
-      (data && typeof data.message === "string" && data.message) ||
-      (data && typeof data.error === "string" && data.error !== "true" && data.error) ||
-      "Errore aggiornamento marcia";
-    throw new Error(msg);
-  }
-  return data;
 }
 
-/**
- * Comanda più vecchia sul tavolo ancora in ciclo (non servita/chiusa): marcia, sync bozza, hint popup.
- * Esclude `servito` così la marcia e la bozza non puntano a una comanda già finita.
- */
-function getPrimaryOrderForTableFlow(tableNum) {
-  const t = Number(tableNum);
-  const list = (allOrders || [])
-    .filter(
-      (o) =>
-        Number(o.table) === t &&
-        o.status !== "chiuso" &&
-        o.status !== "annullato" &&
-        String(o.status || "").toLowerCase() !== "servito"
-    )
-    .sort((a, b) => {
-      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return ta - tb;
-    });
-  return list[0] || null;
-}
-
-function getMaxCourseFromOrderItems(o) {
-  let m = 1;
-  if (o && Array.isArray(o.items) && o.items.length) {
-    o.items.forEach((it) => {
-      const n = Number(it.course) >= 1 ? Math.floor(Number(it.course)) : 1;
-      if (n > m) m = n;
-    });
-  }
-  return m;
-}
-
-/**
- * Dopo invio ordine la bozza locale è vuota o ha un solo corso:
- * ricostruisce corsi e voci dall'ordine sul server così popup / menù tornano allineati.
- * Usa solo ordini non serviti (vedi getPrimaryOrderForTableFlow).
- */
-/**
- * Sovrascrive la bozza locale con corsi e activeCourse dall’ordine primario sul server
- * (comanda non servita/chiusa). Non usa ensureCourseDraft per evitare ricorsione.
- * Tavoli senza ordine primario restano in bozza locale pre-invio.
- */
-function syncCourseDraftFromPrimaryOrder(tableNum) {
-  const o = getPrimaryOrderForTableFlow(tableNum);
-  if (!o || !Array.isArray(o.items) || o.items.length === 0) return;
-
-  const byN = new Map();
-  o.items.forEach((it) => {
-    const rawC = it.course != null ? Number(it.course) : NaN;
-    const n = Number.isFinite(rawC) && rawC >= 1 ? Math.floor(rawC) : 1;
-    if (!byN.has(n)) byN.set(n, []);
-    const noteVal =
-      it.note != null && String(it.note).trim() !== ""
-        ? it.note
-        : it.notes != null && String(it.notes).trim() !== ""
-          ? it.notes
-          : null;
-    byN.get(n).push({
+async function handleSendOrder() {
+  if (!orderTable || sending) return;
+  const allItems = courses.flatMap((c) =>
+    c.items.map((it, idx) => ({
+      id: `new-${c.n}-${idx}`,
       name: it.name,
       qty: it.qty,
-      category: it.category || null,
+      category: it.category,
       area: it.area,
-      price: it.price != null ? Number(it.price) : null,
-      note: noteVal,
+      price: it.price,
+      note: it.note,
+      course: c.n,
+    }))
+  );
+  if (allItems.length === 0) return;
+
+  sending = true;
+  updateSendBtn();
+  document.getElementById("order-send-error").style.display = "none";
+
+  try {
+    await ordersApi.create({
+      table: orderTable.nome,
+      covers: orderCovers,
+      area: "sala",
+      waiter: document.getElementById("order-waiter").value || "—",
+      notes: document.getElementById("order-notes").value,
+      items: allItems,
     });
-  });
-  const nums = [...byN.keys()].sort((a, b) => a - b);
-  const k = String(tableNum);
-  if (!courseDrafts[k]) courseDrafts[k] = { courses: [], activeCourseId: null };
-  const d = courseDrafts[k];
-  d.courses = nums.map((n) => ({
-    id: `sync_${tableNum}_${n}`,
-    n,
-    items: byN.get(n),
-    serverStatus: getCourseServerState(o, n),
-  }));
-  const ac = Number(o.activeCourse) >= 1 ? Math.floor(Number(o.activeCourse)) : 1;
-  const match = d.courses.find((c) => c.n === ac);
-  d.activeCourseId = match ? match.id : d.courses[0].id;
-  saveCourseDrafts();
-}
-
-function hasPrimaryOpenOrderForCourses(tableNum) {
-  return getPrimaryOrderForTableFlow(tableNum) != null;
-}
-
-function getCourseServerState(order, n) {
-  const cs = order && order.courseStates;
-  if (cs && typeof cs === "object") {
-    const v = cs[String(n)] ?? cs[n];
-    if (v != null && v !== "") return String(v).toLowerCase();
-  }
-  return null;
-}
-
-function statusLabelSalaCourse(st) {
-  const s = String(st || "").toLowerCase();
-  if (s === "queued") return "In attesa";
-  if (s === "in_attesa") return "In coda cucina";
-  if (s === "in_preparazione") return "In preparazione";
-  if (s === "pronto") return "Pronto";
-  if (s === "servito") return "Servito";
-  return s || "";
-}
-
-function resyncCourseDraftForActiveTable() {
-  const t = effectiveTableForItems();
-  if (t == null) return;
-  if (hasPrimaryOpenOrderForCourses(t)) {
-    syncCourseDraftFromPrimaryOrder(t);
+    // apri il tavolo se libero
+    if (orderTable.stato === "libero") {
+      await tablesApi.patchStatus(orderTable.id, "aperto").catch(() => {});
+    }
+    closeOrderModal();
+    await loadAll();
+  } catch (e) {
+    document.getElementById("order-send-error").textContent = e.message || "Invio comanda non riuscito.";
+    document.getElementById("order-send-error").style.display = "block";
+  } finally {
+    sending = false;
+    updateSendBtn();
   }
 }
 
-function renderMainCoursePanel() {
-  const el = document.getElementById("sala-main-course-panel");
-  if (!el) return;
-  const tableNum = effectiveTableForItems();
-  if (tableNum == null) {
-    el.innerHTML =
-      '<p class="order-meta">Imposta il tavolo o apri un tavolo dalla mappa.</p>';
+// ============================================================
+//   ADD / REMOVE TABLE
+// ============================================================
+function percentPositionForIndex(index) {
+  const cols = 5;
+  const leftPad = 12, rightPad = 12, topPad = 18, rowGap = 24;
+  const usableWidth = 100 - leftPad - rightPad;
+  const colStep = usableWidth / (cols - 1);
+  const row = Math.floor(index / cols);
+  const col = index % cols;
+  return {
+    x: Math.round(leftPad + col * colStep),
+    y: Math.round(topPad + row * rowGap),
+  };
+}
+
+function showMgmtError(msg) {
+  const el = document.getElementById("mgmt-error");
+  el.textContent = msg;
+  el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 3500);
+}
+
+async function handleAddTable() {
+  if (tables.length >= MAX_TABLES || tablesBusy || editLayout) return;
+  tablesBusy = true;
+  const usedNums = new Set(
+    tables.map((t) => t.nome.trim().toUpperCase())
+      .filter((n) => /^T\d+$/.test(n))
+      .map((n) => Number(n.slice(1)))
+  );
+  let nextNum = 1;
+  while (usedNums.has(nextNum)) nextNum++;
+
+  const pos = percentPositionForIndex(tables.length);
+  try {
+    await tablesApi.create({
+      nome: `T${nextNum}`,
+      posti: 4,
+      x: pos.x,
+      y: pos.y,
+      forma: tables.length % 2 === 0 ? "quadrato" : "tondo",
+    });
+    await loadAll();
+  } catch (e) {
+    showMgmtError("Errore aggiunta tavolo: " + e.message);
+  } finally {
+    tablesBusy = false;
+  }
+}
+
+async function handleRemoveTable() {
+  if (tables.length === 0 || tablesBusy || editLayout) return;
+  const candidate =
+    [...tables].reverse().find((t) => t.stato === "libero") || tables[tables.length - 1];
+  if (!candidate) return;
+
+  const ordersOnTable = activeOrders.filter((o) =>
+    String(o.table) === String(candidate.nome) && !["chiuso", "annullato"].includes(o.status)
+  );
+  if (ordersOnTable.length > 0) {
+    showMgmtError(`${candidate.nome} ha ordini attivi: chiudili prima di rimuoverlo.`);
     return;
   }
-  if (hasPrimaryOpenOrderForCourses(tableNum)) {
-    syncCourseDraftFromPrimaryOrder(tableNum);
-  }
-  ensureCourseDraft(tableNum);
-  let d = ensureCourseDraft(tableNum);
-  /* Bozza senza comanda sul server: almeno Corso 1, senza popup. */
-  if (!d.courses.length && !hasPrimaryOpenOrderForCourses(tableNum)) {
-    courseStart(tableNum);
-    d = ensureCourseDraft(tableNum);
-  }
+  if (!confirm(`Rimuovere ${candidate.nome}? L'azione non si può annullare.`)) return;
 
-  if (!d.courses.length) {
-    el.innerHTML = `
-      <div class="sala-courses-toolbar">
-        <button type="button" class="btn ghost" id="btn-sala-course-start">+ Corso (inizia)</button>
-      </div>
-      <p class="order-meta">Nessun corso — premi <strong>+ Corso</strong> oppure apri un ordine già inviato per questo tavolo.</p>
-    `;
-    return;
-  }
-
-  const actions = `
-    <div class="sala-courses-toolbar">
-      <button type="button" class="btn ghost" id="btn-sala-course-add" title="Aggiungi una portata">+ Corso</button>
-    </div>`;
-
-  const cards = d.courses
-    .map((c) => {
-      const active = c.id === d.activeCourseId;
-      const cardCls = active ? "sala-course-card is-active" : "sala-course-card";
-      const st = c.serverStatus;
-      const badge = st
-        ? `<span class="sala-course-status-badge">${escapeHtml(statusLabelSalaCourse(st))}</span>`
-        : "";
-      const activePill = active
-        ? `<span class="sala-course-active-pill" aria-current="true">Attivo</span>`
-        : "";
-
-      const dishRows =
-        c.items.length === 0
-          ? `<div class="sala-course-dish-empty">Nessun piatto — seleziona questo corso e aggiungi dal menù sotto.</div>`
-          : c.items
-              .map((it, idx) => {
-                const noteRaw = it.note != null ? it.note : it.notes;
-                const note = noteRaw ? ` · ${escapeHtml(String(noteRaw))}` : "";
-                return `<div class="sala-course-dish-row">
-                  <span class="sala-course-dish-text">${escapeHtml(it.name || "—")} <span class="sala-course-dish-qty">×${it.qty ?? 1}</span>${note}</span>
-                  <button type="button" class="btn-xs danger sala-course-remove-btn" data-sala-remove-item data-course-id="${escapeHtml(c.id)}" data-item-index="${idx}" aria-label="Rimuovi">Rimuovi</button>
-                </div>`;
-              })
-              .join("");
-
-      return `
-      <div class="${cardCls}" data-course-card="${c.id}">
-        <div class="sala-course-card-head" data-sala-select-course="${c.id}" role="button" tabindex="0" title="Clic per rendere attivo questo corso">
-          <div class="sala-course-head-left">
-            <span class="sala-course-num-label">Corso ${c.n}</span>
-            ${activePill}
-          </div>
-          <div class="sala-course-head-right">${badge}</div>
-        </div>
-        <div class="sala-course-card-body">${dishRows}</div>
-      </div>`;
-    })
-    .join("");
-
-  el.innerHTML = `${actions}<div class="sala-courses-cards">${cards}</div>`;
-}
-
-function initMainCoursePanelOnce() {
-  const card = document.getElementById("sala-courses-card");
-  if (!card || card.dataset.bound) return;
-  card.dataset.bound = "1";
-  card.addEventListener("click", (e) => {
-    const tableNum = effectiveTableForItems();
-    if (tableNum == null) return;
-
-    const rmBtn = e.target.closest("[data-sala-remove-item]");
-    if (rmBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      const courseId = rmBtn.getAttribute("data-course-id");
-      const idx = Number(rmBtn.getAttribute("data-item-index"));
-      const draft = ensureCourseDraft(tableNum);
-      const course = draft.courses.find((x) => x.id === courseId);
-      if (course && Array.isArray(course.items) && course.items[idx] !== undefined) {
-        course.items.splice(idx, 1);
-        saveCourseDrafts();
-        renderSelectedItems();
-      }
-      return;
-    }
-
-    /* Usa closest: il click può colpire testo/icona dentro il pulsante, non l'elemento con id. */
-    if (e.target.closest("#btn-sala-course-start")) {
-      courseStart(tableNum);
-      renderSelectedItems();
-      return;
-    }
-    if (e.target.closest("#btn-sala-course-add")) {
-      courseAdd(tableNum);
-      renderSelectedItems();
-      return;
-    }
-    const head = e.target.closest("[data-sala-select-course]");
-    if (head) {
-      const id = head.getAttribute("data-sala-select-course");
-      setActiveCourse(tableNum, id);
-      renderSelectedItems();
-    }
-  });
-}
-
-/** Con popup aperto, dopo ogni reload ordini riallinea la bozza al server (fonte di verità). */
-function resyncCourseDraftIfPopupOpen() {
-  if (popupOpenTable == null) return;
-  if (hasPrimaryOpenOrderForCourses(popupOpenTable)) {
-    syncCourseDraftFromPrimaryOrder(popupOpenTable);
-  }
-}
-
-async function apiSetStatus(id, status) {
-  const res = await fetch(`/api/orders/${id}/status`, {
-    method: "PATCH",
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status }),
-  });
-  const contentType = res.headers.get("content-type") || "";
-  let data;
-  if (contentType.includes("application/json")) {
-    data = await res.json();
-  } else {
-    const text = await res.text();
-    data = { message: text };
-  }
-  if (!res.ok) {
-    const msg =
-      (data && typeof data.message === "string" && data.message) ||
-      (data && typeof data.error === "string" && data.error !== "true" && data.error) ||
-      "Errore cambio stato";
-    throw new Error(msg);
-  }
-  return data;
-}
-
-// =============================
-//   MENÙ
-// =============================
-
-async function loadOfficialMenu() {
+  tablesBusy = true;
   try {
-    const res = await fetch("/api/menu/active", { credentials: "same-origin" });
-    if (res.ok) {
-      const arr = await res.json();
-      menuOfficial = Array.isArray(arr) ? arr : [];
-      if (menuOfficial.length) {
-        try {
-          localStorage.setItem("rw_menu_official", JSON.stringify(menuOfficial));
-        } catch (_) {}
-      }
-      return;
-    }
-  } catch (apiErr) {
-    console.warn("Menu API non disponibile, uso cache:", apiErr.message);
+    await tablesApi.remove(candidate.id);
+    await loadAll();
+  } catch (e) {
+    showMgmtError("Errore rimozione: " + e.message);
+  } finally {
+    tablesBusy = false;
   }
+}
+
+// ============================================================
+//   UTILITIES
+// ============================================================
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ============================================================
+//   WEBSOCKET REFRESH
+// ============================================================
+document.addEventListener("ws:orders-update", async () => {
   try {
-    const raw = localStorage.getItem("rw_menu_official");
-    if (raw) {
-      menuOfficial = JSON.parse(raw);
-      if (!Array.isArray(menuOfficial)) menuOfficial = [];
-      return;
-    }
+    const o = await ordersApi.listActive();
+    activeOrders = Array.isArray(o) ? o : [];
+    renderActiveOrders();
+    renderKpis();
   } catch (_) {}
-  menuOfficial = [];
-}
-
-function getMenuByCategory(category) {
-  if (!menuOfficial.length) return [];
-  if (!category) return menuOfficial;
-  const c = category.toLowerCase();
-  return menuOfficial.filter((item) => {
-    const cat = (item.category || item.type || "").toLowerCase();
-    return cat === c;
-  });
-}
-
-function populateMenuSelect() {
-  const select = document.getElementById("menu-item");
-  const categorySelect = document.getElementById("menu-category");
-  if (!select || !categorySelect) return;
-
-  const category = categorySelect.value;
-  const items = getMenuByCategory(category);
-
-  select.innerHTML = "";
-
-  if (!items.length) {
-    const opt = document.createElement("option");
-    opt.value = "";
-    opt.textContent = "Menù non configurato o vuoto";
-    select.appendChild(opt);
-    return;
-  }
-
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "Seleziona un piatto...";
-  select.appendChild(placeholder);
-
-  items.forEach((item) => {
-    const opt = document.createElement("option");
-    opt.value = String(item.id ?? item.name);
-    const price = item.price != null ? ` – € ${Number(item.price).toFixed(2)}` : "";
-    opt.textContent = `${item.name}${price}`;
-    opt.dataset.name = item.name;
-    opt.dataset.category = item.category || item.type || "";
-    opt.dataset.price = item.price != null ? String(item.price) : "";
-    if (item.recipeId || item.recipe_id) {
-      opt.dataset.recipeId = item.recipeId || item.recipe_id;
-    }
-    select.appendChild(opt);
-  });
-}
-
-// =============================
-//   ORDINI PER TAVOLO + COLORI
-// =============================
-
-function getOrdersForTable(tableNum) {
-  const t = Number(tableNum);
-  return (allOrders || []).filter(
-    (o) =>
-      Number(o.table) === t &&
-      o.status !== "chiuso" &&
-      o.status !== "annullato"
-  );
-}
-
-function computeTableStateClass(tableNum) {
-  const f = getFlags(tableNum);
-  const orders = getOrdersForTable(tableNum);
-
-  if (f.paid) return { cls: "tbl-paid", label: "Pagato / chiudi" };
-  if (f.billRequested) return { cls: "tbl-bill", label: "Conto richiesto" };
-
-  if (orders.length) {
-    if (orders.some((o) => o.status === "pronto")) {
-      return { cls: "tbl-ready", label: "Pronto in sala" };
-    }
-    if (orders.some((o) => o.status === "in_preparazione")) {
-      return { cls: "tbl-work", label: "In lavorazione" };
-    }
-    if (orders.some((o) => o.status === "servito")) {
-      return { cls: "tbl-served", label: "In servizio" };
-    }
-    return { cls: "tbl-open", label: "Aperto" };
-  }
-
-  if (f.reserved) return { cls: "tbl-reserved", label: "Riservato" };
-  return { cls: "tbl-free", label: "Libero" };
-}
-
-// =============================
-//   MAPPA TAVOLI
-// =============================
-
-function renderFloorMap() {
-  const floor = document.getElementById("sala-floor");
-  if (!floor) return;
-
-  floor.innerHTML = "";
-  floorTableNums.forEach((num) => {
-    const pos = floorLayout[String(num)] || { leftPct: 2, topPct: 2 };
-    const { cls, label } = computeTableStateClass(num);
-
-    const node = document.createElement("div");
-    node.className = `sala-table-node ${cls}`;
-    node.dataset.table = String(num);
-    node.style.left = `${pos.leftPct}%`;
-    node.style.top = `${pos.topPct}%`;
-
-    node.innerHTML = `
-      <span class="sala-table-num">${num}</span>
-      <span class="sala-table-label">${label}</span>
-    `;
-
-    node.addEventListener("click", (e) => {
-      if (suppressTableClick) return;
-      e.stopPropagation();
-      openTablePopup(num);
-    });
-
-    setupTableDrag(node, num, floor);
-    floor.appendChild(node);
-  });
-}
-
-function setupTableDrag(node, tableNum, floorEl) {
-  let startX = 0;
-  let startY = 0;
-  let startLeft = 0;
-  let startTop = 0;
-  let moved = false;
-
-  const onDown = (clientX, clientY) => {
-    const rect = floorEl.getBoundingClientRect();
-    const pos = floorLayout[String(tableNum)] || { leftPct: 0, topPct: 0 };
-    startLeft = (pos.leftPct / 100) * rect.width;
-    startTop = (pos.topPct / 100) * rect.height;
-    startX = clientX;
-    startY = clientY;
-    moved = false;
-    node.classList.add("dragging");
-    dragState = { tableNum, floorEl, node };
-  };
-
-  const onMove = (clientX, clientY) => {
-    if (!dragState || dragState.tableNum !== tableNum) return;
-    const rect = floorEl.getBoundingClientRect();
-    const dx = clientX - startX;
-    const dy = clientY - startY;
-    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
-
-    let nl = startLeft + dx;
-    let nt = startTop + dy;
-    const nw = node.offsetWidth;
-    const nh = node.offsetHeight;
-    nl = Math.max(0, Math.min(nl, rect.width - nw));
-    nt = Math.max(0, Math.min(nt, rect.height - nh));
-
-    const leftPct = (nl / rect.width) * 100;
-    const topPct = (nt / rect.height) * 100;
-    node.style.left = `${leftPct}%`;
-    node.style.top = `${topPct}%`;
-    floorLayout[String(tableNum)] = { leftPct, topPct };
-  };
-
-  const onUp = () => {
-    if (dragState && dragState.tableNum === tableNum) {
-      if (moved) {
-        suppressTableClick = true;
-        setTimeout(() => {
-          suppressTableClick = false;
-        }, 80);
-        saveFloorState();
-      }
-      node.classList.remove("dragging");
-      dragState = null;
-    }
-    window.removeEventListener("mousemove", onWinMove);
-    window.removeEventListener("mouseup", onWinUp);
-    window.removeEventListener("touchmove", onWinTouchMove);
-    window.removeEventListener("touchend", onWinUp);
-  };
-
-  function onWinMove(ev) {
-    onMove(ev.clientX, ev.clientY);
-  }
-  function onWinTouchMove(ev) {
-    if (ev.touches.length) onMove(ev.touches[0].clientX, ev.touches[0].clientY);
-  }
-  function onWinUp() {
-    onUp();
-  }
-
-  node.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    onDown(e.clientX, e.clientY);
-    window.addEventListener("mousemove", onWinMove);
-    window.addEventListener("mouseup", onWinUp);
-  });
-
-  node.addEventListener(
-    "touchstart",
-    (e) => {
-      if (!e.touches.length) return;
-      onDown(e.touches[0].clientX, e.touches[0].clientY);
-      window.addEventListener("touchmove", onWinTouchMove, { passive: false });
-      window.addEventListener("touchend", onWinUp);
-    },
-    { passive: true }
-  );
-}
-
-// =============================
-//   POPUP TAVOLO
-// =============================
-
-function closeTablePopup() {
-  popupOpenTable = null;
-  const back = document.getElementById("sala-popup-backdrop");
-  const pop = document.getElementById("sala-popup");
-  if (back) {
-    back.classList.remove("open");
-    back.setAttribute("aria-hidden", "true");
-  }
-  if (pop) {
-    pop.classList.remove("open");
-    pop.setAttribute("aria-hidden", "true");
-  }
-}
-
-function openTablePopup(tableNum) {
-  popupOpenTable = tableNum;
-  const back = document.getElementById("sala-popup-backdrop");
-  const pop = document.getElementById("sala-popup");
-  const title = document.getElementById("sala-popup-title");
-  const body = document.getElementById("sala-popup-body");
-
-  if (!back || !pop || !title || !body) return;
-
-  title.textContent = `Tavolo ${tableNum}`;
-  const orders = getOrdersForTable(tableNum);
-  const hasOrders = orders.length > 0;
-  const f = getFlags(tableNum);
-
-  /* Comanda attiva (non servita): server = unica verità corsi / activeCourse per il popup. */
-  if (hasPrimaryOpenOrderForCourses(tableNum)) {
-    syncCourseDraftFromPrimaryOrder(tableNum);
-  }
-
-  /* Contesto ordine come “Apri tavolo”: tavolo attivo e corsi pronti nel pannello sinistro. */
-  const ft = document.getElementById("field-table");
-  if (ft) ft.value = String(tableNum);
-  activeTableContext = tableNum;
-  orderFlowMode = "food";
-  {
-    const d = ensureCourseDraft(tableNum);
-    if (!d.courses.length) courseStart(tableNum);
-  }
-
-  if (!hasOrders && !f.reserved) {
-    body.innerHTML = buildPopupFree(tableNum);
-  } else if (!hasOrders && f.reserved) {
-    body.innerHTML = buildPopupReservedFree(tableNum);
-  } else {
-    body.innerHTML = buildPopupOccupied(tableNum);
-  }
-
-  back.classList.add("open");
-  back.setAttribute("aria-hidden", "false");
-  pop.classList.add("open");
-  pop.setAttribute("aria-hidden", "false");
-
-  /* Allinea pannello sinistro (piatti per corso) dopo sync da server */
-  renderSelectedItems();
-}
-
-function initPopupUiOnce() {
-  document.getElementById("sala-popup-close")?.addEventListener("click", closeTablePopup);
-  document.getElementById("sala-popup-backdrop")?.addEventListener("click", closeTablePopup);
-
-  document.getElementById("sala-popup")?.addEventListener("click", async (e) => {
-    const tableNum = popupOpenTable;
-    if (!tableNum) return;
-
-    const quick = e.target.closest("[data-popup-link]");
-    if (quick) {
-      const kind = quick.getAttribute("data-popup-link");
-      closeTablePopup();
-      requestAnimationFrame(() => {
-        if (kind === "menu") {
-          document.getElementById("sala-card-menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
-          document.getElementById("menu-category")?.focus();
-        } else if (kind === "daily") {
-          document.getElementById("daily-menu-sala-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else if (kind === "custom") {
-          document.getElementById("sala-card-menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
-          document.getElementById("custom-name")?.focus();
-        }
-      });
-      return;
-    }
-
-    const btn = e.target.closest("[data-act]");
-    if (!btn) return;
-    const act = btn.getAttribute("data-act");
-    const orders = getOrdersForTable(tableNum);
-
-    if (act === "open-table") {
-      document.getElementById("field-table").value = String(tableNum);
-      activeTableContext = tableNum;
-      orderFlowMode = "food";
-      setFlags(tableNum, { reserved: false });
-      {
-        const d = ensureCourseDraft(tableNum);
-        if (!d.courses.length) courseStart(tableNum);
-      }
-      closeTablePopup();
-      requestAnimationFrame(() => {
-        document.getElementById("sala-card-new-order")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-      document.getElementById("field-covers")?.focus();
-      renderFloorMap();
-      renderSelectedItems();
-      return;
-    }
-    if (act === "reserve") {
-      setFlags(tableNum, { reserved: true });
-      closeTablePopup();
-      renderFloorMap();
-      return;
-    }
-    if (act === "unreserve") {
-      setFlags(tableNum, { reserved: false });
-      closeTablePopup();
-      renderFloorMap();
-      return;
-    }
-
-    if (act === "order-food") {
-      activeTableContext = tableNum;
-      orderFlowMode = "food";
-      document.getElementById("field-table").value = String(tableNum);
-      document.getElementById("field-area").value = "cucina";
-      {
-        const d = ensureCourseDraft(tableNum);
-        if (!d.courses.length) courseStart(tableNum);
-      }
-      closeTablePopup();
-      requestAnimationFrame(() => {
-        document.getElementById("sala-card-new-order")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-      document.getElementById("field-covers")?.focus();
-      renderSelectedItems();
-      return;
-    }
-    if (act === "order-bar") {
-      activeTableContext = tableNum;
-      orderFlowMode = "bar";
-      document.getElementById("field-table").value = String(tableNum);
-      document.getElementById("field-area").value = "bar";
-      closeTablePopup();
-      const mc = document.getElementById("menu-category");
-      if (mc) {
-        mc.value = "bar";
-        populateMenuSelect();
-      }
-      return;
-    }
-    if (act === "next-course") {
-      if (marciaRequestInFlight) return;
-      const o = getPrimaryOrderForTableFlow(tableNum);
-      if (!o) {
-        alert("Nessun ordine attivo su questo tavolo per la marcia.");
-        return;
-      }
-      const maxC = getMaxCourseFromOrderItems(o);
-      const cur = Number(o.activeCourse) >= 1 ? Number(o.activeCourse) : 1;
-      if (cur >= maxC) {
-        alert("Sei già sull'ultimo corso di questa comanda.");
-        return;
-      }
-      const next = cur + 1;
-      marciaRequestInFlight = true;
-      try {
-        await apiPatchActiveCourse(o.id, next);
-        await loadOrdersAndRender();
-        openTablePopup(tableNum);
-      } catch (err) {
-        alert(err.message || "Errore aggiornamento marcia");
-      } finally {
-        marciaRequestInFlight = false;
-      }
-      return;
-    }
-    if (act === "remove-last") {
-      if (removeLastFromActiveCourse(tableNum)) renderSelectedItems();
-      else alert("Nessun articolo da rimuovere nel corso attivo.");
-      return;
-    }
-    if (act === "move-table") {
-      const dest = prompt("Sposta bozza locale al tavolo n°:", "");
-      if (!dest) return;
-      const n = Number(dest);
-      if (!Number.isFinite(n) || n <= 0) {
-        alert("Numero non valido.");
-        return;
-      }
-      moveTableLocalState(tableNum, n);
-      document.getElementById("field-table").value = String(n);
-      activeTableContext = n;
-      closeTablePopup();
-      renderFloorMap();
-      alert(
-        "Stato locale (corsi) spostato. Gli ordini già inviati al server restano sul tavolo originale."
-      );
-      return;
-    }
-    if (act === "ask-bill") {
-      setFlags(tableNum, { billRequested: true, paid: false });
-      closeTablePopup();
-      renderFloorMap();
-      return;
-    }
-    if (act === "paid") {
-      setFlags(tableNum, { paid: true, billRequested: false });
-      closeTablePopup();
-      renderFloorMap();
-      return;
-    }
-    if (act === "close-table") {
-      if (!confirm("Chiudere tutti gli ordini di questo tavolo?")) return;
-      try {
-        for (const o of orders) {
-          await apiSetStatus(o.id, "chiuso");
-        }
-        setFlags(tableNum, { paid: false, billRequested: false, reserved: false });
-        clearCourseDraft(tableNum);
-        await loadOrdersAndRender();
-        closeTablePopup();
-        renderFloorMap();
-      } catch (err) {
-        alert(err.message || "Errore chiusura");
-      }
-      return;
-    }
-    if (act === "view-order") {
-      const el = document.getElementById("sala-view-order");
-      if (!el) return;
-      const lines = [];
-      for (const o of orders) {
-        lines.push(`Ordine ${o.id} — ${statusLabel(o.status)}`);
-        if (o.items && o.items.length) {
-          o.items.forEach((i) => {
-            lines.push(`  • ${i.name} x${i.qty}${i.note ? " — " + i.note : ""}`);
-          });
-        }
-      }
-      if (hasPrimaryOpenOrderForCourses(tableNum)) {
-        syncCourseDraftFromPrimaryOrder(tableNum);
-      }
-      const d = ensureCourseDraft(tableNum);
-      lines.push("", "--- Bozza corsi (locale) ---");
-      d.courses.forEach((c) => {
-        lines.push(`Corso ${c.n}:`);
-        c.items.forEach((it) => lines.push(`  • ${it.name} x${it.qty}`));
-      });
-      el.textContent = lines.join("\n");
-      el.style.display = el.style.display === "none" ? "block" : "none";
-    }
-  });
-}
-
-/** Popup: stessi accessi del menu sinistro (chiude il popup e scorre al blocco). */
-function buildPopupCoursesBlockHtml() {
-  return `
-    <div class="sala-courses-block sala-popup-courses-hint">
-      <p class="sala-popup-hint" style="margin:0 0 8px;">
-        Tavolo già attivo a sinistra. Corsi in <strong>Corsi (tavolo attivo)</strong>. Piatti:
-      </p>
-      <div class="sala-popup-quick-links">
-        <button type="button" class="sala-popup-btn sala-popup-link" data-popup-link="menu">Menù</button>
-        <button type="button" class="sala-popup-btn sala-popup-link" data-popup-link="daily">Menu del giorno</button>
-        <button type="button" class="sala-popup-btn sala-popup-link" data-popup-link="custom">Fuori menù</button>
-      </div>
-    </div>
-  `;
-}
-
-function buildPopupFree(tableNum) {
-  return `
-    <p class="sala-popup-hint">Tavolo libero — i corsi si creano nel pannello <strong>Corsi (tavolo attivo)</strong> a sinistra; poi usa il menù sotto per i piatti.</p>
-    <div class="sala-popup-actions">
-      <button type="button" class="sala-popup-btn" data-act="open-table">Apri tavolo</button>
-      <button type="button" class="sala-popup-btn" data-act="reserve">Riserva tavolo</button>
-    </div>
-    <div class="sala-popup-actions" style="margin-top:8px;">
-      <button type="button" class="sala-popup-btn food" data-act="order-food">Prendi ordine (cucina / food)</button>
-      <button type="button" class="sala-popup-btn bar" data-act="order-bar">Aggiungi bevande (bar)</button>
-      <button type="button" class="sala-popup-btn" data-act="next-course">Marcia prossima portata</button>
-      <button type="button" class="sala-popup-btn" data-act="remove-last">Cancella ultimo articolo (corso attivo)</button>
-      <button type="button" class="sala-popup-btn" data-act="move-table">Sposta tavolo</button>
-      <button type="button" class="sala-popup-btn" data-act="view-order">Anteprima bozza / ordine</button>
-    </div>
-    <p class="sala-popup-hint" style="margin-top:12px;margin-bottom:6px;font-size:13px;">Corsi</p>
-    ${buildPopupCoursesBlockHtml()}
-    <div id="sala-view-order" class="sala-order-preview" style="display:none;margin-top:12px;"></div>
-  `;
-}
-
-function buildPopupReservedFree(tableNum) {
-  return `
-    <p class="sala-popup-hint">Tavolo riservato (nessun ordine ancora) — imposta i corsi qui sotto.</p>
-    <div class="sala-popup-actions">
-      <button type="button" class="sala-popup-btn" data-act="open-table">Apri tavolo</button>
-      <button type="button" class="sala-popup-btn" data-act="unreserve">Rimuovi riserva</button>
-    </div>
-    <div class="sala-popup-actions" style="margin-top:8px;">
-      <button type="button" class="sala-popup-btn food" data-act="order-food">Prendi ordine (cucina / food)</button>
-      <button type="button" class="sala-popup-btn bar" data-act="order-bar">Aggiungi bevande (bar)</button>
-      <button type="button" class="sala-popup-btn" data-act="next-course">Marcia prossima portata</button>
-      <button type="button" class="sala-popup-btn" data-act="remove-last">Cancella ultimo articolo (corso attivo)</button>
-      <button type="button" class="sala-popup-btn" data-act="move-table">Sposta tavolo</button>
-      <button type="button" class="sala-popup-btn" data-act="view-order">Anteprima bozza / ordine</button>
-    </div>
-    <p class="sala-popup-hint" style="margin-top:12px;margin-bottom:6px;font-size:13px;">Corsi</p>
-    ${buildPopupCoursesBlockHtml()}
-    <div id="sala-view-order" class="sala-order-preview" style="display:none;margin-top:12px;"></div>
-  `;
-}
-
-function buildPopupOccupied(tableNum) {
-  const po = getPrimaryOrderForTableFlow(tableNum);
-  const ac =
-    po && Number(po.activeCourse) >= 1 ? Math.floor(Number(po.activeCourse)) : 1;
-  const maxC = getMaxCourseFromOrderItems(po);
-  return `
-    <p class="sala-popup-hint">Comanda attiva — corso operativo in cucina: <strong>${ac}</strong>${maxC > 1 ? ` / fino a corso ${maxC}` : ""}. In cucina: <strong>In prep</strong> → <strong>Pronto</strong> per ogni portata; <strong>Servito</strong> solo sull’ultima portata pronta. Corsi e piatti a sinistra o con i link sotto.</p>
-    <div class="sala-popup-actions">
-      <button type="button" class="sala-popup-btn food" data-act="order-food">Prendi ordine (cucina / food)</button>
-      <button type="button" class="sala-popup-btn bar" data-act="order-bar">Aggiungi bevande (bar)</button>
-      <button type="button" class="sala-popup-btn" data-act="next-course">Marcia prossima portata</button>
-      <button type="button" class="sala-popup-btn" data-act="remove-last">Cancella ultimo articolo (corso attivo)</button>
-      <button type="button" class="sala-popup-btn" data-act="move-table">Sposta tavolo</button>
-      <button type="button" class="sala-popup-btn" data-act="reserve">Riserva / aggiorna riserva</button>
-      <button type="button" class="sala-popup-btn" data-act="ask-bill">Chiedi conto</button>
-      <button type="button" class="sala-popup-btn" data-act="paid">Conto incassato</button>
-      <button type="button" class="sala-popup-btn danger" data-act="close-table">Chiudi tavolo (ordini)</button>
-      <button type="button" class="sala-popup-btn" data-act="view-order">Vedi ordine completo</button>
-    </div>
-    ${buildPopupCoursesBlockHtml()}
-    <div id="sala-view-order" class="sala-order-preview" style="display:none;margin-top:12px;"></div>
-  `;
-}
-
-function moveTableLocalState(fromNum, toNum) {
-  const fs = String(fromNum);
-  const ts = String(toNum);
-
-  if (courseDrafts[fs]) {
-    courseDrafts[ts] = courseDrafts[fs];
-    delete courseDrafts[fs];
-    saveCourseDrafts();
-  }
-  if (tableFlags[fs]) {
-    tableFlags[ts] = tableFlags[fs];
-    delete tableFlags[fs];
-    saveFlags();
-  }
-  if (floorLayout[fs]) {
-    floorLayout[ts] = floorLayout[fs];
-    delete floorLayout[fs];
-    saveFloorState();
-  }
-}
-
-// =============================
-//   PIATTI — verso CORSO ATTIVO
-// =============================
-
-function effectiveTableForItems() {
-  if (activeTableContext != null) return activeTableContext;
-  const v = document.getElementById("field-table")?.value;
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-function renderSelectedItems() {
-  renderMainCoursePanel();
-  const box = document.getElementById("selected-items");
-  if (!box) return;
-
-  const tableNum = effectiveTableForItems();
-  if (tableNum == null) {
-    box.innerHTML = `<div class="order-meta">Imposta il tavolo o apri un tavolo dalla mappa.</div>`;
-    return;
-  }
-
-  box.innerHTML =
-    '<p class="order-meta sala-selected-hint">Corsi e piatti sono nel riquadro <strong>Corsi ordine</strong> sopra. Clic sul corso per attivarlo; il menù aggiunge al corso attivo.</p>';
-}
-
-function setupAddFromMenu() {
-  const btn = document.getElementById("btn-add-from-menu");
-  const categorySelect = document.getElementById("menu-category");
-  const itemSelect = document.getElementById("menu-item");
-  const qtyInput = document.getElementById("menu-qty");
-
-  if (!btn || !categorySelect || !itemSelect || !qtyInput) return;
-
-  categorySelect.addEventListener("change", () => {
-    populateMenuSelect();
-  });
-
-  btn.addEventListener("click", () => {
-    const tableNum = effectiveTableForItems();
-    if (tableNum == null) {
-      alert("Seleziona o apri un tavolo dalla mappa.");
-      return;
-    }
-
-    const d = ensureCourseDraft(tableNum);
-    if (!d.courses.length) {
-      courseStart(tableNum);
-    }
-    if (!d.courses.length) {
-      alert("Premi Start nel pannello Corsi (tavolo attivo) per creare il Corso 1.");
-      return;
-    }
-    if (!d.activeCourseId && d.courses.length) {
-      d.activeCourseId = d.courses[0].id;
-      saveCourseDrafts();
-    }
-
-    const selectedOption = itemSelect.options[itemSelect.selectedIndex];
-    if (!selectedOption || !selectedOption.value) return;
-
-    const qty = Number(qtyInput.value) || 1;
-    const name = selectedOption.dataset.name || selectedOption.textContent;
-    const cat = selectedOption.dataset.category || "";
-    const priceStr = selectedOption.dataset.price;
-    const price = priceStr ? Number(priceStr) : null;
-    let area = inferAreaFromCategory(cat);
-    if (orderFlowMode === "bar") area = "bar";
-    if (orderFlowMode === "food") area = area === "bar" ? "cucina" : area;
-
-    const item = {
-      source: "menu",
-      menuId: selectedOption.value,
-      name,
-      qty,
-      category: cat,
-      area,
-      price,
-      recipeId: selectedOption.dataset.recipeId || null,
-      note: "",
-    };
-
-    pushItemToActiveCourse(tableNum, item);
-    renderSelectedItems();
-  });
-}
-
-function setupAddCustom() {
-  const btn = document.getElementById("btn-add-custom");
-  const nameInput = document.getElementById("custom-name");
-  const qtyInput = document.getElementById("custom-qty");
-  const notesInput = document.getElementById("custom-notes");
-  const areaSelect = document.getElementById("custom-area");
-
-  if (!btn || !nameInput || !qtyInput || !notesInput || !areaSelect) return;
-
-  btn.addEventListener("click", () => {
-    const tableNum = effectiveTableForItems();
-    if (tableNum == null) {
-      alert("Seleziona o apri un tavolo dalla mappa.");
-      return;
-    }
-
-    const d = ensureCourseDraft(tableNum);
-    if (!d.courses.length) {
-      courseStart(tableNum);
-    }
-    if (!d.courses.length) {
-      alert("Premi Start nel pannello Corsi (tavolo attivo) per creare il Corso 1.");
-      return;
-    }
-
-    const name = nameInput.value.trim();
-    if (!name) return;
-
-    const qty = Number(qtyInput.value) || 1;
-    const note = notesInput.value.trim();
-    const customArea = areaSelect.value;
-    const orderArea = document.getElementById("field-area").value || "cucina";
-    let area = customArea || orderArea;
-    if (orderFlowMode === "bar") area = "bar";
-
-    pushItemToActiveCourse(tableNum, {
-      source: "custom",
-      name,
-      qty,
-      category: "fuori_menu",
-      area,
-      price: null,
-      note,
-    });
-
-    nameInput.value = "";
-    qtyInput.value = "1";
-    notesInput.value = "";
-    areaSelect.value = "";
-    renderSelectedItems();
-  });
-}
-
-// =============================
-//   FILTRI E KPI
-// =============================
-
-function applyFilters(orders) {
-  let filtered = [...orders];
-  if (activeFilters.status) {
-    filtered = filtered.filter((o) => o.status === activeFilters.status);
-  }
-  if (activeFilters.area) {
-    filtered = filtered.filter((o) => o.area === activeFilters.area);
-  }
-  if (activeFilters.table) {
-    const t = Number(activeFilters.table);
-    filtered = filtered.filter((o) => Number(o.table) === t);
-  }
-  return filtered;
-}
-
-function renderKpi(orders) {
-  const active = orders.filter(
-    (o) => o.status !== "chiuso" && o.status !== "annullato"
-  );
-  const awaitingBill = orders.filter((o) => o.status === "servito");
-
-  const tablesSet = new Set(
-    active
-      .map((o) => o.table)
-      .filter((t) => t !== undefined && t !== null && t !== "")
-  );
-
-  const el1 = document.getElementById("kpi-tables");
-  const el2 = document.getElementById("kpi-open-orders");
-  const el3 = document.getElementById("kpi-awaiting-bill");
-  if (el1) el1.textContent = tablesSet.size || "0";
-  if (el2) el2.textContent = active.length || "0";
-  if (el3) el3.textContent = awaitingBill.length || "0";
-}
-
-function renderOrdersList() {
-  /* Lista ordini centrale rimossa: filtri restano per uso futuro */
-}
-
-// =============================
-//   CARICAMENTO ORDINI
-// =============================
-
-/** Stesso trattamento per GET ordini e push WebSocket: dati sempre allineati al backend (JSON o MySQL). */
-function applySalaOrdersFromServer(orders) {
-  allOrders = Array.isArray(orders) ? orders : [];
-  renderKpi(allOrders);
-  renderFloorMap();
-  renderOrdersList();
-  /* Popup aperto su comanda attiva: bozza corsi = specchio server (cucina, marcia, altri client). */
-  resyncCourseDraftIfPopupOpen();
-  resyncCourseDraftForActiveTable();
-  renderSelectedItems();
-}
-
-async function loadOrdersAndRender() {
-  try {
-    const orders = await apiGetOrders();
-    applySalaOrdersFromServer(orders);
-  } catch (err) {
-    console.error(err);
-    alert("Errore caricamento ordini dalla sala.");
-  }
-}
-
-// =============================
-//   CREAZIONE ORDINE
-// =============================
-
-async function handleCreateOrder() {
-  const tableVal = document.getElementById("field-table").value.trim();
-  const coversVal = document.getElementById("field-covers").value.trim();
-  const area = document.getElementById("field-area").value;
-  const waiter = document.getElementById("field-waiter").value.trim();
-  const notes = document.getElementById("field-notes").value.trim();
-
-  const tableNum = Number(tableVal);
-  const coversNum = Number(coversVal);
-
-  if (!Number.isFinite(tableNum) || tableNum <= 0) {
-    alert("Inserisci un numero di tavolo valido.");
-    return;
-  }
-  if (!Number.isFinite(coversNum) || coversNum <= 0) {
-    alert("Inserisci un numero di coperti valido.");
-    return;
-  }
-  if (!waiter) {
-    alert("Inserisci il nome del cameriere.");
-    return;
-  }
-
-  const itemsPayload = flattenCourseItemsForApi(tableNum);
-  if (!itemsPayload.length) {
-    const ok = confirm(
-      "Nessun piatto nei corsi per questo tavolo. Creare comunque l'ordine vuoto?"
-    );
-    if (!ok) return;
-  }
-
-  /* Il backend imposta il primo corso con piatti (min course) come operativo; il corso attivo UI non conta. */
-  const payload = {
-    table: tableNum,
-    covers: coversNum,
-    area,
-    waiter,
-    notes,
-    items: itemsPayload,
-  };
-
-  try {
-    const order = await apiCreateOrder(payload);
-
-    document.getElementById("field-covers").value = "";
-    document.getElementById("field-waiter").value = "";
-    document.getElementById("field-notes").value = "";
-
-    clearCourseDraft(tableNum);
-    orderFlowMode = null;
-    renderSelectedItems();
-
-    if (order && order._printJobs && order._printJobs.length > 0) {
-      const withWarning = order._printJobs.filter((p) => p.warning);
-      const routed = order._printJobs.filter((p) => p.routed);
-      if (withWarning.length > 0) {
-        console.warn(
-          "Print routing:",
-          withWarning.map((p) => p.warning).join("; ")
-        );
-      }
-      if (routed.length > 0) {
-        routed.forEach((p) => {
-          if (p.jobId) {
-            const w = window.open(
-              `/api/print-jobs/${p.jobId}/print`,
-              "_blank",
-              "width=400,height=500"
-            );
-            if (w) setTimeout(() => w.print(), 600);
-          }
-        });
-      } else if (order._printJobs.some((p) => p.jobId)) {
-        order._printJobs.forEach((p) => {
-          if (p.jobId) {
-            window.open(
-              `/api/print-jobs/${p.jobId}/print`,
-              "_blank",
-              "width=400,height=500"
-            );
-          }
-        });
-      }
-    }
-
-    await loadOrdersAndRender();
-  } catch (err) {
-    console.error(err);
-    alert("Errore nella creazione dell'ordine.");
-  }
-}
-
-// =============================
-//   FILTRI
-// =============================
-
-function setupFilters() {
-  const statusSel = document.getElementById("filter-status");
-  const areaSel = document.getElementById("filter-area");
-  const tableInput = document.getElementById("filter-table");
-  const resetBtn = document.getElementById("btn-reset-filters");
-
-  statusSel.addEventListener("change", () => {
-    activeFilters.status = statusSel.value;
-    renderOrdersList();
-  });
-
-  areaSel.addEventListener("change", () => {
-    activeFilters.area = areaSel.value;
-    renderOrdersList();
-  });
-
-  tableInput.addEventListener("input", () => {
-    activeFilters.table = tableInput.value.trim();
-    renderOrdersList();
-  });
-
-  resetBtn.addEventListener("click", () => {
-    activeFilters = { status: "", area: "", table: "" };
-    statusSel.value = "";
-    areaSel.value = "";
-    tableInput.value = "";
-    renderOrdersList();
-  });
-}
-
-// =============================
-//   TOOLBAR MAPPA
-// =============================
-
-function setupFloorToolbar() {
-  document.getElementById("btn-floor-add-table")?.addEventListener("click", () => {
-    const next = floorTableNums.length ? Math.max(...floorTableNums) + 1 : 1;
-    floorTableNums.push(next);
-    const idx = floorTableNums.length - 1;
-    const cols = 6;
-    const row = Math.floor(idx / cols);
-    const col = idx % cols;
-    floorLayout[String(next)] = {
-      leftPct: 2 + (col * 96) / cols,
-      topPct: 2 + (row * 16),
-    };
-    saveFloorState();
-    renderFloorMap();
-  });
-
-  document.getElementById("btn-floor-remove-table")?.addEventListener("click", () => {
-    if (floorTableNums.length <= 1) {
-      alert("Serve almeno un tavolo.");
-      return;
-    }
-    const removed = floorTableNums.pop();
-    delete floorLayout[String(removed)];
-    saveFloorState();
-    renderFloorMap();
-  });
-
-  document.getElementById("btn-floor-reset-layout")?.addEventListener("click", () => {
-    if (!confirm("Riposizionare tutti i tavoli in griglia (solo layout locale)?")) return;
-    floorLayout = buildDefaultGridLayout(floorTableNums);
-    saveFloorState();
-    renderFloorMap();
-  });
-}
-
-// =============================
-//   INIT
-// =============================
-
-function initStaffAccess() {
-  if (!window.RW_StaffAccess) return;
-  RW_StaffAccess.init({ module: "sala", department: "sala" });
-
-  function refreshStaffUI() {
-    const sess = RW_StaffAccess.getCurrentSession();
-    const mgrVal = document.getElementById("rw-manager-value");
-    const btnLogin = document.getElementById("rw-btn-manager-login");
-    const btnLogout = document.getElementById("rw-btn-manager-logout");
-    if (mgrVal) mgrVal.textContent = sess ? sess.name : "—";
-    if (btnLogin) btnLogin.style.display = sess ? "none" : "";
-    if (btnLogout) btnLogout.style.display = sess ? "" : "none";
-    const chip = document.getElementById("rw-sala-manager-chip");
-    if (chip) chip.classList.toggle("logged-in", !!sess);
-    RW_StaffAccess.renderActiveStaff("rw-sala-active-staff", "sala");
-  }
-
-  document.getElementById("rw-btn-manager-login")?.addEventListener("click", () => {
-    RW_StaffAccess.showManagerLoginModal(refreshStaffUI, "sala_manager");
-  });
-  document.getElementById("rw-btn-manager-logout")?.addEventListener("click", async () => {
-    const s = RW_StaffAccess.getCurrentSession();
-    if (!s) return;
-    try {
-      await RW_StaffAccess.logout(s.id);
-      refreshStaffUI();
-    } catch (e) {
-      console.error(e);
-    }
-  });
-  refreshStaffUI();
-}
-
-function escapeHtml(s) {
-  const d = document.createElement("div");
-  d.textContent = s;
-  return d.innerHTML;
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  loadFloorState();
-  loadFlags();
-  loadCourseDrafts();
-
-  initPopupUiOnce();
-  initMainCoursePanelOnce();
-
-  await loadOfficialMenu();
-  populateMenuSelect();
-
-  renderSelectedItems();
-  setupAddFromMenu();
-  setupAddCustom();
-
-  document.getElementById("field-table")?.addEventListener("input", () => {
-    renderSelectedItems();
-  });
-
-  document
-    .getElementById("btn-create-order")
-    .addEventListener("click", handleCreateOrder);
-
-  document
-    .getElementById("btn-refresh")
-    .addEventListener("click", loadOrdersAndRender);
-
-  window.addEventListener("rw:orders-update", (ev) => {
-    if (ev.detail?.orders) {
-      applySalaOrdersFromServer(ev.detail.orders);
-    }
-  });
-
-  setupFilters();
-  setupFloorToolbar();
-  initStaffAccess();
-
-  renderFloorMap();
-  loadOrdersAndRender();
-
-  setInterval(loadOrdersAndRender, 15000);
-
-  loadDailyMenuSala();
 });
 
-async function loadDailyMenuSala() {
-  const container = document.getElementById("daily-menu-sala-content");
-  if (!container) return;
-  try {
-    const res = await fetch("/api/daily-menu/active", { credentials: "same-origin" });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    if (!data.menuActive || !data.dishes || data.dishes.length === 0) {
-      container.innerHTML =
-        '<div class="daily-menu-empty">Menu del giorno non attivo o vuoto.</div>';
-      return;
+// ============================================================
+//   INIT & EVENT LISTENERS
+// ============================================================
+document.addEventListener("DOMContentLoaded", () => {
+
+  // TOPBAR
+  document.getElementById("btn-refresh").addEventListener("click", loadAll);
+
+  // MGMT BAR
+  document.getElementById("btn-layout-toggle").addEventListener("click", () => {
+    editLayout = !editLayout;
+    renderMgmtBar();
+    renderFloor();
+  });
+  document.getElementById("btn-add-table").addEventListener("click", handleAddTable);
+  document.getElementById("btn-remove-table").addEventListener("click", handleRemoveTable);
+
+  // TABLE MODAL – chiudi
+  document.getElementById("modal-close").addEventListener("click", closeTableModal);
+  document.getElementById("modal-backdrop").addEventListener("mousedown", (e) => {
+    if (e.target === document.getElementById("modal-backdrop")) closeTableModal();
+  });
+
+  // ESC key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (document.getElementById("modal-order").style.display !== "none") {
+        closeOrderModal();
+      } else if (document.getElementById("modal-table").style.display !== "none") {
+        closeTableModal();
+      }
     }
-    const byCat = {};
-    data.dishes.forEach((d) => {
-      const c = d.category || "extra";
-      if (!byCat[c]) byCat[c] = [];
-      byCat[c].push(d);
+  });
+
+  // TABLE MODAL – coperti stepper
+  document.getElementById("btn-coperti-minus").addEventListener("click", () => {
+    modalCoperti = Math.max(1, modalCoperti - 1);
+    document.getElementById("val-coperti").textContent = modalCoperti;
+  });
+  document.getElementById("btn-coperti-plus").addEventListener("click", () => {
+    modalCoperti = Math.min(99, modalCoperti + 1);
+    document.getElementById("val-coperti").textContent = modalCoperti;
+  });
+
+  // TABLE MODAL – corsi stepper
+  document.getElementById("btn-corsi-minus").addEventListener("click", () => {
+    modalCorsi = Math.max(1, modalCorsi - 1);
+    document.getElementById("val-corsi").textContent = modalCorsi;
+  });
+  document.getElementById("btn-corsi-plus").addEventListener("click", () => {
+    modalCorsi = Math.min(12, modalCorsi + 1);
+    document.getElementById("val-corsi").textContent = modalCorsi;
+  });
+
+  // TABLE MODAL – azioni rapide
+  document.getElementById("actions-grid").addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    btn.disabled = true;
+    try {
+      await handleTableAction(btn.dataset.action);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // TABLE MODAL – dest tabs
+  document.querySelectorAll(".dest-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      noteDest = btn.dataset.dest;
+      document.querySelectorAll(".dest-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
     });
-    const labels = {
-      antipasto: "Antipasto",
-      primo: "Primo",
-      secondo: "Secondo",
-      contorno: "Contorno",
-      dolce: "Dolce",
-      bevanda: "Bevanda",
-      extra: "Extra",
-    };
-    const order = [
-      "antipasto",
-      "primo",
-      "secondo",
-      "contorno",
-      "dolce",
-      "bevanda",
-      "extra",
-    ];
-    let html = "";
-    order.forEach((cat) => {
-      const list = byCat[cat] || [];
-      if (list.length === 0) return;
-      html +=
-        '<div class="daily-cat"><div class="daily-cat-title">' +
-        (labels[cat] || cat) +
-        "</div>";
-      list.forEach((d) => {
-        const price = "€ " + (Number(d.price) || 0).toFixed(2);
-        html +=
-          '<div class="daily-dish-row"><span>' +
-          escapeHtml(d.name) +
-          "</span><span class='price'>" +
-          price +
-          "</span></div>";
-      });
-      html += "</div>";
-    });
-    container.innerHTML =
-      html || '<div class="daily-menu-empty">Nessun piatto attivo.</div>';
-  } catch (_) {
-    container.innerHTML =
-      '<div class="daily-menu-empty">Menu del giorno non disponibile.</div>';
-  }
-}
+  });
+
+  // TABLE MODAL – invia nota
+  document.getElementById("btn-send-note").addEventListener("click", () => {
+    const testo = document.getElementById("note-text").value.trim();
+    showModalFlash(`Nota per ${noteDest}${testo ? ": " + testo : " (vuota)"} – inviata.`);
+    document.getElementById("note-text").value = "";
+  });
+
+  // ORDER MODAL – close
+  document.getElementById("modal-order-close").addEventListener("click", closeOrderModal);
+
+  // ORDER MODAL – coperti
+  document.getElementById("order-coperti-minus").addEventListener("click", () => {
+    orderCovers = Math.max(1, orderCovers - 1);
+    document.getElementById("order-coperti-val").textContent = orderCovers;
+  });
+  document.getElementById("order-coperti-plus").addEventListener("click", () => {
+    orderCovers += 1;
+    document.getElementById("order-coperti-val").textContent = orderCovers;
+  });
+
+  // ORDER MODAL – search & filters
+  document.getElementById("menu-search").addEventListener("input", (e) => {
+    menuSearch = e.target.value;
+    renderMenuGrid();
+  });
+  document.getElementById("menu-area-filter").addEventListener("change", (e) => {
+    menuAreaFilter = e.target.value;
+    renderMenuGrid();
+  });
+  document.getElementById("menu-cat-filter").addEventListener("change", (e) => {
+    menuCatFilter = e.target.value;
+    renderMenuGrid();
+  });
+
+  // ORDER MODAL – send
+  document.getElementById("btn-send-order").addEventListener("click", () => void handleSendOrder());
+
+  // AVVIO
+  loadAll();
+
+  // Auto-refresh ogni 30s
+  setInterval(loadAll, 30000);
+});

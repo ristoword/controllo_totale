@@ -38,6 +38,7 @@ const SKIP_PREFIXES = [
   "/api/qr",
   "/api/menu/active",
   "/icons",
+  "/staff/me",
 ];
 
 function pathMatchesSkip(pathname) {

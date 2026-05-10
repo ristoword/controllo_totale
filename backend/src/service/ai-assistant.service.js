@@ -5,6 +5,7 @@ const recipesRepository = require("../repositories/recipes.repository");
 const reportsRepository = require("../repositories/reports.repository");
 const orderFoodCostsRepository = require("../repositories/order-food-costs.repository");
 const bookingsRepository = require("../repositories/bookings.repository");
+const menuRepository = require("../repositories/menu.repository");
 const { summarizeOrders } = require("./reports.service");
 
 const LATE_MINUTES = 15;
@@ -1041,154 +1042,40 @@ async function getInventoryWarehouseSuggestion() {
 }
 
 // Mapping: ingredient keyword -> dishes per course (antipasto, primo, secondo, dolce)
-const DISH_MAPPING = {
-  pane: {
-    antipasto: [
-      { name: "Bruschetta al pomodoro", desc: "Pane tostato con pomodori freschi e basilico", reason: "Usa pane in esubero" }
-    ],
-    primo: [
-      { name: "Pappa al pomodoro", desc: "Zuppa rustica toscana con pane raffermo", reason: "Consuma pane in abbondanza" }
-    ],
-    dolce: [
-      { name: "Buddino di pane", desc: "Dolce tradizionale con pane raffermo e uova", reason: "Recupero pane" }
-    ]
-  },
-  pomodoro: {
-    antipasto: [
-      { name: "Bruschetta al pomodoro", desc: "Pane tostato con pomodoro fresco e basilico", reason: "Usa pomodori in stock" }
-    ],
-    primo: [
-      { name: "Spaghetti al pomodoro fresco", desc: "Pasta con salsa di pomodoro semplice", reason: "Sfrutta surplus pomodori" }
-    ],
-    secondo: [
-      { name: "Pomodori ripieni", desc: "Pomodori al forno ripieni di riso e erbe", reason: "Consuma pomodori in scadenza" }
-    ]
-  },
-  pasta: {
-    primo: [
-      { name: "Pasta al pomodoro fresco", desc: "Pasta corta con salsa di pomodoro", reason: "Usa pasta in magazzino" }
-    ]
-  },
-  riso: {
-    primo: [
-      { name: "Risotto alla parmigiana", desc: "Risotto cremoso con burro e parmigiano", reason: "Sfrutta riso in stock" }
-    ]
-  },
-  carne: {
-    secondo: [
-      { name: "Tagliata di manzo", desc: "Carne ai ferri con rucola e grana", reason: "Usa carne da consumare" }
-    ]
-  },
-  manzo: {
-    secondo: [
-      { name: "Tagliata di manzo", desc: "Carne ai ferri con rucola e grana", reason: "Carne in magazzino" }
-    ]
-  },
-  pollo: {
-    secondo: [
-      { name: "Pollo al forno", desc: "Pollo aromatizzato con erbe e limone", reason: "Usa pollo disponibile" }
-    ]
-  },
-  pesce: {
-    secondo: [
-      { name: "Filetto di pesce al forno", desc: "Pesce con patate e olive", reason: "Consuma pesce fresco" }
-    ]
-  },
-  formaggio: {
-    antipasto: [
-      { name: "Tagliere di formaggi", desc: "Selezione di formaggi con miele e noci", reason: "Formaggio in esubero" }
-    ]
-  },
-  mozzarella: {
-    antipasto: [
-      { name: "Insalata caprese", desc: "Mozzarella, pomodoro e basilico", reason: "Mozzarella da consumare" }
-    ]
-  },
-  uova: {
-    primo: [
-      { name: "Spaghetti alla carbonara", desc: "Pasta con uova, guanciale e pecorino", reason: "Usa uova disponibili" }
-    ],
-    dolce: [
-      { name: "Tiramisù", desc: "Dolce con savoiardi, mascarpone e caffè", reason: "Consuma uova in scadenza" }
-    ]
-  },
-  farina: {
-    primo: [
-      { name: "Gnocchi di patate", desc: "Gnocchi fatti in casa con salsa al pomodoro", reason: "Farina in magazzino" }
-    ],
-    dolce: [
-      { name: "Torta della nonna", desc: "Torta con crema e pinoli", reason: "Sfrutta farina in stock" }
-    ]
-  },
-  zucchero: {
-    dolce: [
-      { name: "Panna cotta", desc: "Dolce al cucchiaio con frutti di bosco", reason: "Zucchero disponibile" }
-    ]
-  },
-  cioccolato: {
-    dolce: [
-      { name: "Brownies al cioccolato", desc: "Squares di cioccolato fondente", reason: "Usa cioccolato in magazzino" }
-    ]
-  },
-  latte: {
-    dolce: [
-      { name: "Panna cotta", desc: "Dolce al cucchiaio con vaniglia", reason: "Latte da consumare" }
-    ]
-  },
-  basilico: {
-    antipasto: [
-      { name: "Pesto genovese", desc: "Salsa con basilico, pinoli e parmigiano", reason: "Basilico fresco" }
-    ]
-  },
-  insalata: {
-    antipasto: [
-      { name: "Insalata mista", desc: "Insalata verde con olio e aceto", reason: "Consuma insalata" }
-    ]
-  },
-  verdure: {
-    antipasto: [
-      { name: "Antipasto di verdure grigliate", desc: "Zucchine, melanzane e peperoni", reason: "Verdure in magazzino" }
-    ]
-  },
-  patate: {
-    secondo: [
-      { name: "Patate al forno", desc: "Patate con rosmarino e sale", reason: "Patate disponibili" }
-    ]
-  }
-};
+// Match real menu items to available ingredients using name overlap.
+// No longer uses static DISH_MAPPING – suggestions come from the actual DB menu.
+function findMenuItemsForIngredients(ingredientNames = [], menuItems = [], maxResults = 4) {
+  if (!Array.isArray(menuItems) || menuItems.length === 0) return [];
+  const normalize = (s) => String(s || "").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const normIngredients = ingredientNames.map(normalize);
 
-const FALLBACK_DISHES = {
-  antipasto: { name: "Antipasto della casa", desc: "Selezione di salumi e formaggi", reason: "Basato su disponibilità magazzino" },
-  primo: { name: "Pasta del giorno", desc: "Piatto di pasta con ingredienti freschi", reason: "Ingredienti in stock" },
-  secondo: { name: "Secondo del giorno", desc: "Proteina con contorno fresco", reason: "Da consumare" },
-  dolce: { name: "Dolce della casa", desc: "Dessert fatto in casa", reason: "Stock disponibile" }
-};
+  const scored = menuItems
+    .filter((item) => item.active !== false)
+    .map((item) => {
+      const normName = normalize(item.name);
+      const score = normIngredients.reduce((s, ing) => {
+        return s + (normName.includes(ing) || ing.includes(normName) ? 2 : 0)
+          + (normName.split(" ").some((w) => ing.includes(w) && w.length > 3) ? 1 : 0);
+      }, 0);
+      return { item, score };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxResults)
+    .map(({ item }) => item);
 
-function normalizeIngredient(name) {
-  return String(name || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
-}
-
-function findDishForIngredient(ingredient, course) {
-  const norm = normalizeIngredient(ingredient);
-  for (const [key, courses] of Object.entries(DISH_MAPPING)) {
-    if (norm.includes(key) || key.includes(norm)) {
-      const dishList = courses[course];
-      if (Array.isArray(dishList) && dishList.length > 0) {
-        return dishList[0];
-      }
-    }
-  }
-  return null;
+  return scored;
 }
 
 async function gatherMenuContext() {
-  const inventory = await inventoryRepository.getAll();
+  const [inventory, menuItems] = await Promise.all([
+    inventoryRepository.getAll().catch(() => []),
+    menuRepository.getAll().catch(() => []),
+  ]);
   const today = new Date();
-  const items = inventory || [];
+  const items = Array.isArray(inventory) ? inventory : [];
+  const activeMenu = Array.isArray(menuItems) ? menuItems.filter((i) => i.active !== false) : [];
 
   const overstock = items
     .filter((item) => {
@@ -1231,7 +1118,8 @@ async function gatherMenuContext() {
     highQuantity: highQuantity.map((i) => i.name),
     priorityItems: priorityItems.map((i) => i.name),
     ingredientsForMenu: sortedNames.length > 0 ? sortedNames : items.map((i) => i.name || "Senza nome"),
-    allItems: items.map((i) => i.name || "Senza nome")
+    allItems: items.map((i) => i.name || "Senza nome"),
+    activeMenuItems: activeMenu,
   };
 }
 
@@ -1445,47 +1333,51 @@ function buildMenuSuggestion(context = {}) {
   const overstock = context.overstock || [];
   const priorityItems = context.priorityItems || [];
   const highQuantity = context.highQuantity || [];
+  const activeMenuItems = context.activeMenuItems || [];
   const allNames = [...new Set([...priorityItems, ...overstock, ...highQuantity, ...ingredients])];
 
   const menu = { starter: null, first: null, main: null, dessert: null };
 
-  const pickDish = (course) => {
-    const mapKey = course === "antipasto" ? "antipasto" : course === "primo" ? "primo" : course === "secondo" ? "secondo" : "dolce";
-    for (const ing of allNames) {
-      const dish = findDishForIngredient(ing, mapKey);
-      if (dish) {
-        return {
-          dishName: dish.name,
-          description: dish.desc,
-          mainIngredients: [ing],
-          whySuggested: dish.reason
-        };
+  // Try to match real menu items from DB using ingredient overlap
+  const matched = findMenuItemsForIngredients(allNames, activeMenuItems, 8);
+
+  function pickFromMatched(keywords = []) {
+    const kw = keywords.map((k) => k.toLowerCase());
+    for (const item of matched) {
+      const name = (item.name || "").toLowerCase();
+      const cat  = (item.category || "").toLowerCase();
+      if (kw.some((k) => name.includes(k) || cat.includes(k))) {
+        return { dishName: item.name, description: item.description || "", price: item.price, area: item.area, whySuggested: "Dal menu del ristorante – ingredienti disponibili" };
       }
     }
-    const fallback = FALLBACK_DISHES[mapKey];
-    return fallback ? {
-      dishName: fallback.name,
-      description: fallback.desc,
-      mainIngredients: allNames.slice(0, 2),
-      whySuggested: fallback.reason
-    } : null;
-  };
+    // fallback: first unassigned matched item
+    if (matched.length > 0) {
+      const used = Object.values(menu).filter(Boolean).map((m) => m.dishName);
+      const free = matched.find((m) => !used.includes(m.name));
+      if (free) return { dishName: free.name, description: free.description || "", price: free.price, area: free.area, whySuggested: "Dal menu del ristorante" };
+    }
+    return null;
+  }
 
-  menu.starter = pickDish("antipasto");
-  menu.first = pickDish("primo");
-  menu.main = pickDish("secondo");
-  menu.dessert = pickDish("dolce");
+  // Try to map to courses using category/name keywords
+  menu.starter = pickFromMatched(["antipasto", "starter", "entrée", "bruschetta", "carpaccio", "affettat"]);
+  menu.first   = pickFromMatched(["primo", "pasta", "risotto", "zuppa", "minestra", "gnocchi", "lasagna"]);
+  menu.main    = pickFromMatched(["secondo", "main", "carne", "pesce", "pollo", "tagliata", "costata", "filetto", "branzino"]);
+  menu.dessert = pickFromMatched(["dolce", "dessert", "tiramisù", "panna", "torta", "gelato", "budino"]);
 
-  if (!menu.starter) menu.starter = { dishName: FALLBACK_DISHES.antipasto.name, description: FALLBACK_DISHES.antipasto.desc, mainIngredients: allNames.slice(0, 2) || ["disponibili"], whySuggested: FALLBACK_DISHES.antipasto.reason };
-  if (!menu.first) menu.first = { dishName: FALLBACK_DISHES.primo.name, description: FALLBACK_DISHES.primo.desc, mainIngredients: allNames.slice(0, 2) || ["disponibili"], whySuggested: FALLBACK_DISHES.primo.reason };
-  if (!menu.main) menu.main = { dishName: FALLBACK_DISHES.secondo.name, description: FALLBACK_DISHES.secondo.desc, mainIngredients: allNames.slice(0, 2) || ["disponibili"], whySuggested: FALLBACK_DISHES.secondo.reason };
-  if (!menu.dessert) menu.dessert = { dishName: FALLBACK_DISHES.dolce.name, description: FALLBACK_DISHES.dolce.desc, mainIngredients: allNames.slice(0, 2) || ["disponibili"], whySuggested: FALLBACK_DISHES.dolce.reason };
+  // If no matched items, build descriptive fallback using ingredient list
+  const ingredientHint = allNames.slice(0, 3).join(", ") || "magazzino attuale";
+  if (!menu.starter) menu.starter = { dishName: "Antipasto del giorno", description: `Selezione basata su ${ingredientHint}`, whySuggested: "Ingredienti in stock" };
+  if (!menu.first)   menu.first   = { dishName: "Primo del giorno",     description: `Piatto con ${ingredientHint}`, whySuggested: "Ingredienti disponibili" };
+  if (!menu.main)    menu.main    = { dishName: "Secondo del giorno",   description: `Proteina con ${ingredientHint}`, whySuggested: "Da consumare" };
+  if (!menu.dessert) menu.dessert = { dishName: "Dolce della casa",     description: "Dessert fatto in casa", whySuggested: "Stock disponibile" };
 
   const summary = [];
   if (priorityItems.length > 0) summary.push(`Priorità consumo: ${priorityItems.join(", ")}`);
   if (overstock.length > 0) summary.push(`Esubero: ${overstock.join(", ")}`);
   if (highQuantity.length > 0) summary.push(`Alta quantità: ${highQuantity.join(", ")}`);
   if (summary.length === 0 && allNames.length > 0) summary.push(`Da magazzino: ${allNames.slice(0, 5).join(", ")}`);
+  if (matched.length > 0) summary.push(`Piatti dal menu: ${matched.map((m) => m.name).slice(0, 3).join(", ")}`);
 
   return {
     message: summary.length > 0

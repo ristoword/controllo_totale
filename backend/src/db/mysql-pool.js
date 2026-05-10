@@ -70,11 +70,26 @@ function getPool() {
     password: cfg.password,
     database: cfg.database,
     waitForConnections: true,
-    connectionLimit: Number(process.env.MYSQL_POOL_SIZE || 10),
-    queueLimit: 0,
+    // Increased for multi-tenant production (4+ restaurants with concurrent requests)
+    connectionLimit: Number(process.env.MYSQL_POOL_SIZE || 25),
+    queueLimit: 200,
     enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
+    // Auto-reconnect on connection loss
+    connectTimeout: 15000,
+    // Recycle stale connections
+    idleTimeout: 60000,
     namedPlaceholders: true,
   });
+
+  // Log pool errors so they don't crash the process silently
+  pool.on("error", (err) => {
+    console.error("[mysql-pool] Pool error:", err.message);
+    if (err.code === "PROTOCOL_CONNECTION_LOST" || err.code === "ECONNRESET") {
+      console.warn("[mysql-pool] Connessione persa, il pool si riconnetterà automaticamente.");
+    }
+  });
+
   return pool;
 }
 

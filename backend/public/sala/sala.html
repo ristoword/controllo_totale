@@ -5,283 +5,267 @@
   <title>CONTROLLO TOTALE – Sala</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="sala.css" />
-  <link rel="stylesheet" href="/shared/staff-access.css" />
 </head>
 <body>
-  <div class="layout">
 
-    <!-- HEADER -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Sala</h1>
-        <p class="subtitle">Gestione tavoli, ordini e stato servizio</p>
+  <!-- HEADER -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/dashboard/dashboard.html" class="back-btn" title="Dashboard">&#8592;</a>
+      <div>
+        <h1>Sala</h1>
+        <p class="subtitle">Planimetria touch: tocca un tavolo, scegli cosa fare. Invia comande con corsi.</p>
       </div>
-      <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
-        <div id="rw-sala-manager-chip" class="rw-staff-chip">
-          <span class="rw-label">Manager:</span>
-          <span class="rw-value" id="rw-manager-value">—</span>
-          <button type="button" class="rw-btn" id="rw-btn-manager-login">Manager login</button>
-          <button type="button" class="rw-btn" id="rw-btn-manager-logout" style="display:none">Logout</button>
-        </div>
-        <div class="chip">
-          <span class="chip-label">Tavoli attivi</span>
-          <span class="chip-value" id="kpi-tables">–</span>
-        </div>
-        <div class="chip">
-          <span class="chip-label">Ordini aperti</span>
-          <span class="chip-value" id="kpi-open-orders">–</span>
-        </div>
-        <div class="chip">
-          <span class="chip-label">In attesa conto</span>
-          <span class="chip-value" id="kpi-awaiting-bill">–</span>
-        </div>
-        <button class="btn ghost" id="btn-refresh">Aggiorna</button>
+    </div>
+    <div class="topbar-right">
+      <div class="chip">
+        <span class="chip-dot dot-accent"></span>
+        <span class="chip-label">Ordini attivi:</span>
+        <strong class="chip-value" id="kpi-active-orders">–</strong>
       </div>
+      <button class="btn ghost small" id="btn-refresh" title="Aggiorna">↻ Aggiorna</button>
+    </div>
+  </header>
+
+  <main class="sala-main">
+
+    <!-- LEGENDA -->
+    <div class="legend-bar">
+      <span class="legend-title">Legenda</span>
+      <ul class="legend-list">
+        <li><span class="legend-chip chip-libero">● Libero</span></li>
+        <li><span class="legend-chip chip-aperto">● Aperto</span></li>
+        <li><span class="legend-chip chip-conto">● Conto</span></li>
+        <li><span class="legend-chip chip-sporco">● Da pulire</span></li>
+      </ul>
+    </div>
+
+    <!-- BARRA GESTIONE TAVOLI -->
+    <div class="mgmt-bar">
+      <span class="mgmt-label">Gestione tavoli</span>
+      <span class="mgmt-count" id="mgmt-count">0 tavoli</span>
+      <div class="mgmt-actions">
+        <button type="button" class="btn ghost small" id="btn-layout-toggle" aria-pressed="false">
+          ⤡ Sposta tavoli
+        </button>
+        <button type="button" class="btn ghost small danger" id="btn-remove-table" title="Rimuovi tavolo libero">
+          − Rimuovi
+        </button>
+        <button type="button" class="btn primary small" id="btn-add-table">
+          + Aggiungi tavolo
+        </button>
+      </div>
+      <p class="mgmt-error" id="mgmt-error" role="alert" style="display:none"></p>
+    </div>
+
+    <!-- ORDINI ATTIVI (cards per tavolo) -->
+    <div id="active-orders-grid" class="active-orders-grid" style="display:none"></div>
+
+    <!-- PLANIMETRIA -->
+    <div id="sala-floor" class="sala-floor" aria-label="Mappa tavoli sala">
+      <div id="floor-edit-hint" class="floor-edit-hint" style="display:none">
+        Modalità layout — trascina i tavoli per riposizionarli
+      </div>
+      <!-- tavoli generati da JS -->
+    </div>
+
+  </main>
+
+  <!-- ===== MODAL AZIONI TAVOLO ===== -->
+  <div id="modal-backdrop" class="modal-backdrop" style="display:none" role="presentation"></div>
+  <div id="modal-table" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-table-title" style="display:none">
+    <header class="modal-head">
+      <div>
+        <p class="modal-pretitle">Tavolo</p>
+        <h2 id="modal-table-title" class="modal-title">—</h2>
+        <p id="modal-table-sub" class="modal-sub">—</p>
+      </div>
+      <button type="button" class="modal-close" id="modal-close" aria-label="Chiudi">✕</button>
     </header>
 
-    <!-- CONTENUTO PRINCIPALE -->
-    <main class="main">
+    <div class="modal-flash" id="modal-flash" style="display:none" role="status"></div>
 
-      <!-- COLONNA SINISTRA: INVARIATA -->
-      <section class="left-column">
-        <!-- NUOVO ORDINE BASE -->
-        <article class="card" id="sala-card-new-order">
-          <header class="card-header">
-            <h2>Nuovo ordine</h2>
-            <p>Apri un nuovo tavolo o aggiungi un ordine alla sala</p>
-          </header>
-          <div class="card-body form-grid">
-            <label>
-              Tavolo
-              <input type="number" id="field-table" min="1" placeholder="Es. 12" />
-            </label>
+    <div class="modal-body" id="modal-body">
 
-            <label>
-              Coperti
-              <input type="number" id="field-covers" min="1" placeholder="Es. 4" />
-            </label>
-
-            <label>
-              Reparto principale
-              <select id="field-area">
-                <option value="cucina">Cucina</option>
-                <option value="pizzeria">Pizzeria</option>
-                <option value="bar">Bar</option>
-              </select>
-            </label>
-
-            <label>
-              Cameriere
-              <input type="text" id="field-waiter" placeholder="Nome cameriere" />
-            </label>
-
-            <label class="full">
-              Note ordine
-              <textarea id="field-notes" rows="2" placeholder="Allergie, preferenze, note speciali..."></textarea>
-            </label>
+      <!-- Coperti + Corsi -->
+      <div class="stepper-row">
+        <div class="stepper-box">
+          <p class="stepper-label">Numero coperti</p>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" id="btn-coperti-minus" aria-label="Meno coperti">−</button>
+            <span class="stepper-val" id="val-coperti">2</span>
+            <button type="button" class="stepper-btn" id="btn-coperti-plus" aria-label="Più coperti">+</button>
           </div>
-        </article>
-
-        <article class="card" id="sala-courses-card">
-          <header class="card-header">
-            <h2>Corsi ordine</h2>
-            <p>
-              Tutte le portate qui: clic su un corso per attivarlo (evidenziato). I piatti dal menù vanno nel corso attivo.
-              <strong>+ Corso</strong> aggiunge una portata. Nessun popup necessario per cambiare corso.
-            </p>
-          </header>
-          <div class="card-body">
-            <div id="sala-main-course-panel" class="sala-main-course-panel" aria-live="polite"></div>
+        </div>
+        <div class="stepper-box">
+          <p class="stepper-label">Numero di corsi</p>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" id="btn-corsi-minus" aria-label="Meno corsi">−</button>
+            <span class="stepper-val" id="val-corsi">1</span>
+            <button type="button" class="stepper-btn" id="btn-corsi-plus" aria-label="Più corsi">+</button>
           </div>
-        </article>
+        </div>
+      </div>
 
-        <article class="card">
-          <header class="card-header">
-            <h2>Staff attivi (sala)</h2>
-            <p>Personale loggato in sala</p>
-          </header>
-          <div class="card-body">
-            <div id="rw-sala-active-staff"></div>
-          </div>
-        </article>
+      <!-- Azioni rapide -->
+      <p class="section-label">Azioni rapide</p>
+      <ul class="actions-grid" id="actions-grid">
+        <li>
+          <button type="button" class="action-btn success" data-action="apri-tavolo">
+            <span class="action-icon">🚪</span>
+            <span>Apri tavolo</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn danger" data-action="cancella-tavolo">
+            <span class="action-icon">🗑</span>
+            <span>Cancella tavolo</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn accent" data-action="prendi-ordine">
+            <span class="action-icon">📋</span>
+            <span>Nuova comanda</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn default" data-action="menu-casa">
+            <span class="action-icon">📖</span>
+            <span>Apri menu della casa</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn default" data-action="menu-giorno">
+            <span class="action-icon">📅</span>
+            <span>Menu del giorno</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn accent" data-action="marcia-portata">
+            <span class="action-icon">🚀</span>
+            <span>Marcia prossima portata</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn default" data-action="chiudi-tavolo">
+            <span class="action-icon">⭕</span>
+            <span>Chiudi tavolo</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn accent" data-action="chiedi-conto">
+            <span class="action-icon">💵</span>
+            <span>Chiedi conto</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn success" data-action="tavolo-libero">
+            <span class="action-icon">🍽</span>
+            <span>Tavolo libero</span>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="action-btn default" data-action="ordine-bevande">
+            <span class="action-icon">🍷</span>
+            <span>Ordine bevande</span>
+          </button>
+        </li>
+      </ul>
 
-        <article class="card" id="daily-menu-sala-card">
-          <header class="card-header">
-            <h2>Menu del Giorno</h2>
-            <p>Piatti del giorno per portata – gestito dalla Cucina</p>
-          </header>
-          <div class="card-body">
-            <div id="daily-menu-sala-content" class="daily-menu-readonly">
-              <div class="daily-menu-loading">Caricamento...</div>
-            </div>
-          </div>
-        </article>
+      <!-- Note reparto -->
+      <div class="note-section">
+        <p class="section-label">Note per cucina, pizzeria o bar</p>
+        <p class="section-sub">Scegli dove arriva la nota, poi scrivi.</p>
+        <div class="dest-tabs" role="group" aria-label="Destinazione nota">
+          <button type="button" class="dest-btn active" data-dest="cucina">👨‍🍳 Cucina</button>
+          <button type="button" class="dest-btn" data-dest="pizzeria">🍕 Pizzeria</button>
+          <button type="button" class="dest-btn" data-dest="bar">☕ Bar</button>
+        </div>
+        <textarea id="note-text" class="note-textarea" rows="3" placeholder="Es. senza aglio, pizza tonda, ghiaccio poco…"></textarea>
+        <button type="button" class="btn ghost full" id="btn-send-note">🍲 Invia nota</button>
+      </div>
 
-        <article class="card" id="sala-card-menu">
-          <header class="card-header">
-            <h2>Piatti e bevande</h2>
-            <p>
-              Seleziona dal menù ufficiale o aggiungi piatti fuori menù.
-            </p>
-          </header>
-          <div class="card-body form-grid">
-            <label class="full">
-              Categoria menù
-              <select id="menu-category">
-                <option value="">Tutte le categorie</option>
-                <option value="ristorante">Ristorante</option>
-                <option value="pizzeria">Pizzeria</option>
-                <option value="bar">Bar</option>
-                <option value="vini">Vini</option>
-                <option value="dessert">Dessert</option>
-                <option value="altro">Altro</option>
-              </select>
-            </label>
-
-            <label class="full">
-              Voce menù
-              <select id="menu-item">
-                <option value="">Menù non caricato o vuoto</option>
-              </select>
-            </label>
-
-            <label>
-              Quantità
-              <input type="number" id="menu-qty" min="1" value="1" />
-            </label>
-
-            <div class="form-actions">
-              <button class="btn primary" type="button" id="btn-add-from-menu">
-                Aggiungi da menù
-              </button>
-            </div>
-
-            <div class="full" style="border-top:1px solid #2b3140;margin:8px 0;"></div>
-
-            <label class="full">
-              Piatto fuori menù
-              <input type="text" id="custom-name" placeholder="Es. Piatto del giorno, fuori carta..." />
-            </label>
-
-            <label>
-              Quantità
-              <input type="number" id="custom-qty" min="1" value="1" />
-            </label>
-
-            <label>
-              Reparto
-              <select id="custom-area">
-                <option value="">Auto (come reparto ordine)</option>
-                <option value="cucina">Cucina</option>
-                <option value="pizzeria">Pizzeria</option>
-                <option value="bar">Bar</option>
-              </select>
-            </label>
-
-            <label class="full">
-              Note piatto
-              <textarea id="custom-notes" rows="2" placeholder="Es. poca cipolla, extra olive..."></textarea>
-            </label>
-
-            <div class="form-actions full">
-              <button class="btn ghost" type="button" id="btn-add-custom">
-                Aggiungi piatto fuori menù
-              </button>
-            </div>
-
-            <div class="full">
-              <h3 style="font-size:12px;margin:6px 0 4px;">Ordine</h3>
-              <div id="selected-items" class="selected-items-box sala-selected-items-hint">
-              </div>
-            </div>
-
-            <div class="form-actions full">
-              <button class="btn primary" id="btn-create-order">
-                Apri ordine / Invia comanda
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article class="card">
-          <header class="card-header">
-            <h2>Filtri</h2>
-            <p>Limita la lista degli ordini</p>
-          </header>
-          <div class="card-body filter-grid">
-            <label>
-              Stato
-              <select id="filter-status">
-                <option value="">Tutti</option>
-                <option value="in_attesa">In attesa</option>
-                <option value="in_preparazione">In preparazione</option>
-                <option value="pronto">Pronto</option>
-                <option value="servito">Servito</option>
-                <option value="chiuso">Chiuso</option>
-                <option value="annullato">Annullato</option>
-              </select>
-            </label>
-
-            <label>
-              Reparto
-              <select id="filter-area">
-                <option value="">Tutti</option>
-                <option value="cucina">Cucina</option>
-                <option value="pizzeria">Pizzeria</option>
-                <option value="bar">Bar</option>
-              </select>
-            </label>
-
-            <label>
-              Tavolo
-              <input type="number" id="filter-table" min="1" placeholder="N°" />
-            </label>
-
-            <div class="form-actions full">
-              <button class="btn ghost" id="btn-reset-filters">Reset filtri</button>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <!-- COLONNA DESTRA: MAPPA TAVOLI FULL -->
-      <section class="right-column sala-map-column">
-        <article class="card sala-floor-card">
-          <header class="card-header sala-floor-header">
-            <div>
-              <h2>Mappa sala</h2>
-              <p>Tavoli touch • trascina per posizionare • clic per azioni</p>
-            </div>
-            <div class="sala-floor-toolbar">
-              <button type="button" class="btn ghost sala-tb-btn" id="btn-floor-add-table" title="Aggiungi tavolo">+ Tavolo</button>
-              <button type="button" class="btn ghost sala-tb-btn" id="btn-floor-remove-table" title="Rimuovi ultimo tavolo">− Tavolo</button>
-              <button type="button" class="btn ghost sala-tb-btn" id="btn-floor-reset-layout" title="Riposiziona tutti i tavoli in griglia">Reset layout</button>
-            </div>
-          </header>
-          <div class="card-body sala-floor-body">
-            <div id="sala-floor" class="sala-floor" aria-label="Mappa tavoli sala">
-              <!-- tavoli generati da JS -->
-            </div>
-          </div>
-        </article>
-      </section>
-    </main>
+    </div>
   </div>
 
-  <!-- POPUP TAVOLO -->
-  <div id="sala-popup-backdrop" class="sala-popup-backdrop" aria-hidden="true"></div>
-  <div id="sala-popup" class="sala-popup" role="dialog" aria-modal="true" aria-hidden="true">
-    <header class="sala-popup-head">
-      <h2 id="sala-popup-title">Tavolo</h2>
-      <button type="button" class="sala-popup-close" id="sala-popup-close" aria-label="Chiudi">&times;</button>
+  <!-- ===== MODAL NUOVA COMANDA ===== -->
+  <div id="modal-order" class="modal-order" role="dialog" aria-modal="true" aria-labelledby="modal-order-title" style="display:none">
+    <header class="modal-head">
+      <div>
+        <p class="modal-pretitle">Nuova comanda</p>
+        <h2 id="modal-order-title" class="modal-title">—</h2>
+        <p id="modal-order-sub" class="modal-sub">—</p>
+      </div>
+      <button type="button" class="modal-close" id="modal-order-close" aria-label="Chiudi">✕</button>
     </header>
-    <div class="sala-popup-body" id="sala-popup-body"></div>
+    <div class="modal-body modal-body-order">
+
+      <!-- Coperti + Cameriere -->
+      <div class="order-meta-row">
+        <div>
+          <label class="field-label">Coperti</label>
+          <div class="stepper small">
+            <button type="button" class="stepper-btn" id="order-coperti-minus">−</button>
+            <span class="stepper-val" id="order-coperti-val">2</span>
+            <button type="button" class="stepper-btn" id="order-coperti-plus">+</button>
+          </div>
+        </div>
+        <div class="flex-1">
+          <label class="field-label" for="order-waiter">Cameriere</label>
+          <input type="text" id="order-waiter" class="field-input" placeholder="Nome cameriere" />
+        </div>
+      </div>
+
+      <!-- Tabs corsi -->
+      <div class="course-tabs" id="course-tabs" role="tablist"></div>
+
+      <!-- Ricerca + filtri menu -->
+      <div class="menu-header">
+        <p class="section-label" id="menu-section-label">Aggiungi al 1° corso</p>
+        <div class="menu-filters">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="menu-search" class="search-input" placeholder="Cerca..." />
+          </div>
+          <select id="menu-area-filter" class="filter-select">
+            <option value="all">Tutte le aree</option>
+            <option value="cucina">🍳 Cucina</option>
+            <option value="pizzeria">🍕 Pizzeria</option>
+            <option value="bar">🍹 Bar</option>
+          </select>
+          <select id="menu-cat-filter" class="filter-select">
+            <option value="all">Tutte le categorie</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid menu -->
+      <div id="menu-loading" class="menu-loading" style="display:none">⏳ Carico menu dal database…</div>
+      <div id="menu-error" class="menu-error" style="display:none"></div>
+      <div id="menu-grid" class="menu-grid"></div>
+
+      <!-- Riepilogo corsi selezionati -->
+      <div id="courses-summary" class="courses-summary"></div>
+
+      <!-- Note comanda -->
+      <textarea id="order-notes" class="note-textarea" rows="2" placeholder="Note comanda (allergie, preferenze…)"></textarea>
+
+      <!-- Errore invio -->
+      <div id="order-send-error" class="order-send-error" style="display:none"></div>
+
+      <!-- Bottone invio -->
+      <button type="button" id="btn-send-order" class="btn send-btn" disabled>
+        <span id="send-icon">🚀</span>
+        <span id="send-label">Invia comanda</span>
+      </button>
+
+    </div>
   </div>
 
-  <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala"></script>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,supervisor"></script>
   <script src="/shared/websocket.js"></script>
-  <script src="/shared/staff-access.js"></script>
-  <script src="sala.js?v=20260406"></script>
+  <script src="sala.js?v=20260510"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="sala"></script>
 </body>
 </html>

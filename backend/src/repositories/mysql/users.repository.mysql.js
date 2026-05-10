@@ -41,6 +41,8 @@ function rowToUser(row, includePassword = true) {
     name: row.name || "",
     surname: row.surname || "",
     email: row.email || undefined,
+    phone: row.phone || undefined,
+    address: row.address || undefined,
     role: row.role,
     restaurantId: row.restaurant_id || null,
     is_active: row.is_active === 1 || row.is_active === true,
@@ -109,12 +111,12 @@ async function upsertFullUser(conn, u) {
       : JSON.stringify(DEFAULT_LEAVE_BALANCES);
   await conn.query(
     `INSERT INTO users (
-      id, username, password_hash, name, surname, email, role, restaurant_id, is_active, must_change_password,
+      id, username, password_hash, name, surname, email, phone, address, role, restaurant_id, is_active, must_change_password,
       hourly_rate, employment_type, leave_balances, created_at, updated_at
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, NOW(3))
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, NOW(3))
     ON DUPLICATE KEY UPDATE
       username=VALUES(username), password_hash=VALUES(password_hash), name=VALUES(name), surname=VALUES(surname),
-      email=VALUES(email), role=VALUES(role), restaurant_id=VALUES(restaurant_id), is_active=VALUES(is_active),
+      email=VALUES(email), phone=VALUES(phone), address=VALUES(address), role=VALUES(role), restaurant_id=VALUES(restaurant_id), is_active=VALUES(is_active),
       must_change_password=VALUES(must_change_password), hourly_rate=VALUES(hourly_rate),
       employment_type=VALUES(employment_type), leave_balances=VALUES(leave_balances), updated_at=NOW(3)`,
     [
@@ -124,6 +126,8 @@ async function upsertFullUser(conn, u) {
       u.name != null ? String(u.name) : "",
       u.surname != null ? String(u.surname) : "",
       u.email != null ? String(u.email).trim() : null,
+      u.phone != null ? String(u.phone).trim() : null,
+      u.address != null ? String(u.address).trim() : null,
       String(u.role || "staff"),
       u.restaurantId != null ? String(u.restaurantId) : null,
       u.is_active !== false ? 1 : 0,
@@ -213,9 +217,9 @@ async function createUser(userData) {
 
   await pool.query(
     `INSERT INTO users (
-      id, username, password_hash, name, surname, email, role, restaurant_id, is_active, must_change_password,
+      id, username, password_hash, name, surname, email, phone, address, role, restaurant_id, is_active, must_change_password,
       hourly_rate, employment_type, leave_balances, created_at, updated_at
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?, NOW(3))`,
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, NOW(3))`,
     [
       id,
       String(userData.username || "").trim(),
@@ -223,6 +227,8 @@ async function createUser(userData) {
       userData.name != null ? String(userData.name).trim() : "",
       userData.surname != null ? String(userData.surname).trim() : "",
       userData.email != null ? String(userData.email).trim() : null,
+      userData.phone != null ? String(userData.phone).trim() : null,
+      userData.address != null ? String(userData.address).trim() : null,
       userData.role || "staff",
       userData.restaurantId || null,
       userData.is_active !== false ? 1 : 0,
@@ -271,6 +277,18 @@ async function updateUser(id, patch) {
   if (patch.employmentType !== undefined) {
     sets.push("employment_type = ?");
     vals.push(patch.employmentType != null ? String(patch.employmentType).trim() : null);
+  }
+  if (patch.email !== undefined) {
+    sets.push("email = ?");
+    vals.push(patch.email != null && String(patch.email).trim() !== "" ? String(patch.email).trim() : null);
+  }
+  if (patch.phone !== undefined) {
+    sets.push("phone = ?");
+    vals.push(patch.phone != null && String(patch.phone).trim() !== "" ? String(patch.phone).trim() : null);
+  }
+  if (patch.address !== undefined) {
+    sets.push("address = ?");
+    vals.push(patch.address != null && String(patch.address).trim() !== "" ? String(patch.address).trim() : null);
   }
   if (patch.leaveBalances !== undefined && typeof patch.leaveBalances === "object") {
     const cur = parseLeaveBalances(rows[0].leave_balances) || {};

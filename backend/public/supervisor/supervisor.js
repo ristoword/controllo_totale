@@ -957,7 +957,7 @@ function printShopping(){
     <html>
       <head>
         <meta charset="utf-8"/>
-        <title>Lista spesa - RistoWord</title>
+        <title>Lista spesa - Controllo Totale</title>
         <style>
           body{ font-family:system-ui; padding:20px; }
           h1{ margin:0 0 10px; }
@@ -1098,7 +1098,7 @@ function setupEmail(){
     const notes = document.getElementById("shopping-notes") ? document.getElementById("shopping-notes").value.trim() : "";
     const lines = [];
 
-    lines.push("LISTA SPESA (RistoWord)");
+    lines.push("LISTA SPESA (Controllo Totale)");
     lines.push("Data: " + todayLabel());
     lines.push("");
 
@@ -1227,6 +1227,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
   document.getElementById("btn-refresh").addEventListener("click", refreshAll);
   document.getElementById("btn-inv-refresh").addEventListener("click", loadInventory);
+  document.getElementById("btn-print-supervisor")?.addEventListener("click", () => window.print());
 
   window.addEventListener("rw:orders-update", (ev) => {
     if (ev.detail?.orders) {

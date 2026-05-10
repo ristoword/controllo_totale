@@ -5,6 +5,7 @@
   <title>CONTROLLO TOTALE – Magazzino</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="magazzino.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
 </head>
 <body>
   <div class="layout">
@@ -17,8 +18,8 @@
         </p>
       </div>
       <div class="kpi-row">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
-        <a href="/fornitori/fornitori.html" class="btn ghost" title="Schedario fornitori">Fornitori</a>
+        <a href="/dashboard/dashboard.html" class="btn ghost no-print" title="Torna alla dashboard operativa">← Dashboard</a>
+        <a href="/fornitori/fornitori.html" class="btn ghost no-print" title="Schedario fornitori">Fornitori</a>
         <div class="kpi">
           <span class="kpi-label">Prodotti</span>
           <span class="kpi-value" id="kpi-count">0</span>
@@ -31,13 +32,14 @@
           <span class="kpi-label">Valore</span>
           <span class="kpi-value" id="kpi-value">€ 0.00</span>
         </div>
-        <button class="btn ghost" id="btn-refresh" type="button">Aggiorna</button>
-        <button class="btn ghost" id="btn-to-cucina" type="button" title="Apri modulo Cucina">Torna in cucina</button>
+        <button class="btn ghost no-print" id="btn-print-magazzino" type="button" title="Stampa la vista magazzino">Stampa</button>
+        <button class="btn ghost no-print" id="btn-refresh" type="button">Aggiorna</button>
+        <button class="btn ghost no-print" id="btn-to-cucina" type="button" title="Apri modulo Cucina">Torna in cucina</button>
       </div>
     </header>
 
     <!-- TAB NAVIGAZIONE -->
-    <nav class="mag-tabs">
+    <nav class="mag-tabs no-print">
       <button class="mag-tab active" data-tab="centrale">Magazzino Centrale</button>
       <button class="mag-tab" data-tab="ricezione">Ricezione merce</button>
       <button class="mag-tab" data-tab="cucina">Scorta Cucina</button>
@@ -366,5 +368,7 @@
 
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa,magazzino"></script>
   <script src="magazzino.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="magazzino"></script>
 </body>
 </html>

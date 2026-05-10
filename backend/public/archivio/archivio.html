@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CONTROLLO TOTALE – Archivio</title>
+  <link rel="stylesheet" href="archivio.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar no-print">
+      <div class="brand-title">CONTROLLO TOTALE</div>
+      <div class="brand-sub">Archivio &amp; storico</div>
+      <nav class="nav">
+        <a href="/dashboard/dashboard.html">Dashboard</a>
+        <a class="active" href="/archivio/archivio.html">Archivio</a>
+        <a href="/archivio/comande.html">Archivio comande</a>
+        <a href="/cassa/cassa.html">Cassa</a>
+        <a href="/supervisor/supervisor.html">Supervisor</a>
+        <a href="/turni/turni.html">Turni</a>
+        <a href="/staff-hr/index.html">Staff HR</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Archivio</h1>
+          <p class="subtitle">
+            Incassi da sempre (pagamenti registrati), confronti per giorno/mese/anno, personale in turno (da pianificazione turni),
+            spese da fatture fornitori e da fatture d’acquisto caricate qui. Le fatture emesse da cassa si sincronizzano sul server quando salvi in cassa.
+          </p>
+        </div>
+        <div class="no-print">
+          <button type="button" class="btn ghost" id="btn-print">Stampa</button>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>Report incassi</h2>
+        <div class="filters">
+          <label>Da
+            <input type="date" id="f-from" />
+          </label>
+          <label>A
+            <input type="date" id="f-to" />
+          </label>
+          <label>Raggruppa
+            <select id="f-group">
+              <option value="day">Giorni</option>
+              <option value="month">Mesi</option>
+              <option value="year">Anni</option>
+            </select>
+          </label>
+          <button type="button" class="btn primary" id="btn-load-financial">Carica</button>
+        </div>
+        <p class="muted">L’intervallo predefinito copre dall’inizio anno corrente a oggi. Modifica le date per includere tutta la storia disponibile nei dati.</p>
+        <div id="financial-err" class="err" style="display:none;"></div>
+        <div class="table-wrap">
+          <table id="tbl-financial">
+            <thead>
+              <tr id="tbl-financial-head"></tr>
+            </thead>
+            <tbody id="tbl-financial-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Confronto stesso mese, due anni</h2>
+        <div class="filters">
+          <label>Anno A
+            <input type="number" id="cmp-ya" min="2000" max="2100" />
+          </label>
+          <label>Anno B
+            <input type="number" id="cmp-yb" min="2000" max="2100" />
+          </label>
+          <label>Mese
+            <select id="cmp-m"></select>
+          </label>
+          <button type="button" class="btn primary" id="btn-compare">Confronta</button>
+        </div>
+        <div id="compare-err" class="err" style="display:none;"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Giorno</th>
+                <th class="num">Incasso A</th>
+                <th class="num">Incasso B</th>
+                <th class="num">Coperti A</th>
+                <th class="num">Coperti B</th>
+                <th class="num">Staff A</th>
+                <th class="num">Staff B</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-compare-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="tabs no-print" role="tablist">
+        <button type="button" class="tab active" data-tab="in">Fatture in entrata (acquisti)</button>
+        <button type="button" class="tab" data-tab="out">Fatture da cassa (uscita clienti)</button>
+      </div>
+
+      <div class="panels">
+        <div class="panel active" id="panel-in">
+          <section class="card">
+            <h2>Nuova fattura d’acquisto</h2>
+            <p class="muted">Inserisci i dati della fattura ricevuta dal fornitore. Puoi allegare uno scan (PDF/immagine) — file salvato sul server.</p>
+            <div class="form-grid">
+              <label>Fornitore / da chi
+                <input type="text" id="pi-supplier" placeholder="Ragione sociale" />
+              </label>
+              <label>Numero fattura
+                <input type="text" id="pi-number" />
+              </label>
+              <label>Data
+                <input type="date" id="pi-date" />
+              </label>
+              <label>Imponibile €
+                <input type="number" step="0.01" id="pi-amount" />
+              </label>
+              <label>IVA €
+                <input type="number" step="0.01" id="pi-vat" />
+              </label>
+              <label>Totale € (opz. se calcoli a mano)
+                <input type="number" step="0.01" id="pi-total" placeholder="auto" />
+              </label>
+            </div>
+            <label>Allegato (scanner / foto / PDF)
+              <input type="file" id="pi-file" accept="image/*,application/pdf,.pdf" />
+            </label>
+            <label>Note
+              <input type="text" id="pi-notes" style="width:100%;max-width:560px;" />
+            </label>
+            <div style="margin-top:12px;">
+              <button type="button" class="btn primary" id="btn-pi-save">Salva in archivio</button>
+            </div>
+            <div id="pi-err" class="err" style="display:none;"></div>
+          </section>
+
+          <section class="card">
+            <h2>Elenco fatture in entrata</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Fornitore</th>
+                    <th>N.</th>
+                    <th class="num">Totale</th>
+                    <th>Allegato</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-purchase"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div class="panel" id="panel-out">
+          <section class="card">
+            <h2>Fatture emesse da cassa (sincronizzate)</h2>
+            <p class="muted">Quando salvi una fattura dalla cassa, viene registrata qui. Puoi anche usare «Sincronizza da questo browser» se avevi fatture solo in memoria locale.</p>
+            <div class="no-print" style="margin-bottom:12px;">
+              <button type="button" class="btn" id="btn-sync-local">Sincronizza fatture locali da questo PC (cassa)</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Numero</th>
+                    <th>Tavolo</th>
+                    <th>Cliente</th>
+                    <th class="num">Totale</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-cassa-inv"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,cassa,magazzino"></script>
+  <script src="/shared/api.js"></script>
+  <script src="archivio.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="archivio"></script>
+</body>
+</html>

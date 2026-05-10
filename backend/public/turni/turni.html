@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Controllo Totale — Turni</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="turni.css" />
+</head>
+<body>
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">CT</div>
+        <div>
+          <div class="brand-name">CONTROLLO TOTALE</div>
+          <div class="brand-sub">Turni</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-item" href="/dashboard">Dashboard</a>
+        <a class="nav-item" href="/sala/sala.html">Sala</a>
+        <a class="nav-item" href="/cucina/cucina.html">Cucina</a>
+        <a class="nav-item" href="/pizzeria/pizzeria.html">Pizzeria</a>
+        <a class="nav-item" href="/bar/bar.html">Bar</a>
+        <a class="nav-item" href="/cassa/cassa.html">Cassa</a>
+        <a class="nav-item" href="/magazzino/magazzino.html">Magazzino</a>
+        <a class="nav-item" href="/prenotazioni/prenotazioni.html">Prenotazioni</a>
+        <a class="nav-item" href="/supervisor/supervisor.html">Supervisor</a>
+        <a class="nav-item" href="/staff/staff.html">Staff</a>
+        <a class="nav-item active" href="/turni/turni.html">Turni</a>
+        <a class="nav-item" href="/staff-hr/index.html">Staff HR</a>
+        <a class="nav-item" href="/staff/me/index.html">Il mio profilo</a>
+        <a class="nav-item" href="/archivio/archivio.html">Archivio</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="tiny muted" id="user-label">—</div>
+        <a class="btn-logout" href="/login">Logout</a>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Turni</h1>
+          <p class="subtitle">Pianificazione settimanale del personale</p>
+        </div>
+        <div class="topbar-right">
+          <div class="week-nav">
+            <button class="btn ghost" id="btn-prev-week">&#8249;</button>
+            <span class="week-label" id="week-label">—</span>
+            <button class="btn ghost" id="btn-next-week">&#8250;</button>
+            <button class="btn ghost" id="btn-today">Oggi</button>
+          </div>
+          <select class="select-area" id="filter-area">
+            <option value="">Tutte le aree</option>
+            <option value="cucina">Cucina</option>
+            <option value="sala">Sala</option>
+            <option value="bar">Bar</option>
+            <option value="pizzeria">Pizzeria</option>
+            <option value="cassa">Cassa</option>
+            <option value="magazzino">Magazzino</option>
+          </select>
+          <button class="btn primary" id="btn-add-shift">+ Nuovo turno</button>
+          <button class="btn ghost" id="btn-refresh">Aggiorna</button>
+        </div>
+      </header>
+
+      <!-- KPI ROW -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Turni settimana</div>
+          <div class="kpi-value" id="kpi-total">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Ore pianificate</div>
+          <div class="kpi-value accent" id="kpi-hours">0h</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Ferie/Assenze</div>
+          <div class="kpi-value warn" id="kpi-absences">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Operatori</div>
+          <div class="kpi-value" id="kpi-staff">0</div>
+        </div>
+      </div>
+
+      <div id="msg-global" class="msg-bar" style="display:none;"></div>
+
+      <!-- WEEKLY GRID -->
+      <div class="card">
+        <div class="card-body" id="week-grid-wrapper">
+          <table class="week-table" id="week-table">
+            <thead>
+              <tr id="week-header-row">
+                <th class="col-staff">Operatore</th>
+                <!-- Day columns injected by JS -->
+              </tr>
+            </thead>
+            <tbody id="week-tbody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LIST VIEW (mobile fallback / all shifts) -->
+      <div class="card" id="list-section">
+        <div class="card-header">
+          <h2>Tutti i turni della settimana</h2>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn ghost small" id="btn-export">Esporta CSV</button>
+          </div>
+        </div>
+        <div class="card-body" id="shift-list-body">
+          <div class="empty-state">Nessun turno nella settimana selezionata.</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL: Add/Edit Shift -->
+  <div id="modal-shift" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-title">Nuovo turno</h2>
+        <button class="modal-close" id="btn-modal-close">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <label class="field">
+            <span>Data</span>
+            <input type="date" id="f-date" />
+          </label>
+          <label class="field">
+            <span>Area</span>
+            <select id="f-area">
+              <option value="cucina">Cucina</option>
+              <option value="sala">Sala</option>
+              <option value="bar">Bar</option>
+              <option value="pizzeria">Pizzeria</option>
+              <option value="cassa">Cassa</option>
+              <option value="magazzino">Magazzino</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Operatore</span>
+            <select id="f-staff">
+              <option value="">— scegli dallo staff —</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Nome operatore (libero)</span>
+            <input type="text" id="f-staffname" placeholder="Es. Mario Rossi" />
+          </label>
+          <label class="field">
+            <span>Tipo turno</span>
+            <div class="shift-type-picker" id="shift-type-picker">
+              <button type="button" class="type-btn active" data-type="work">Lavoro</button>
+              <button type="button" class="type-btn" data-type="ferie">Ferie</button>
+              <button type="button" class="type-btn" data-type="malattia">Malattia</button>
+              <button type="button" class="type-btn" data-type="permesso">Permesso</button>
+              <button type="button" class="type-btn" data-type="riposo">Riposo</button>
+            </div>
+          </label>
+          <div id="time-fields">
+            <label class="field">
+              <span>Inizio</span>
+              <input type="time" id="f-start" value="08:00" />
+            </label>
+            <label class="field">
+              <span>Fine</span>
+              <input type="time" id="f-end" value="16:00" />
+            </label>
+          </div>
+          <label class="field full">
+            <span>Note</span>
+            <input type="text" id="f-notes" placeholder="Note opzionali…" />
+          </label>
+        </div>
+        <div id="modal-error" class="form-error" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn ghost" id="btn-modal-cancel">Annulla</button>
+        <button class="btn primary" id="btn-modal-save">Salva turno</button>
+        <button class="btn danger" id="btn-modal-delete" style="display:none;">Elimina</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="turni.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="turni"></script>
+</body>
+</html>

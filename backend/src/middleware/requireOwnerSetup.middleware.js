@@ -22,6 +22,7 @@ function shouldSkip(pathname) {
   if (p === "/api/system/health" || p === "/api/system/product" || p === "/api/health") return true;
   if (p.startsWith("/qr") || p.startsWith("/api/qr")) return true;
   if (p === "/api/menu/active") return true;
+  if (p.startsWith("/staff/me")) return true;
   if (p.startsWith("/change-password")) return true;
   if (p.startsWith("/setup")) return true;
   if (p.startsWith("/license")) return true;

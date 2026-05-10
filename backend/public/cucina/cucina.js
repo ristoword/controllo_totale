@@ -906,7 +906,7 @@ function saveShoppingToStorage() {
 
 function buildShoppingEmailBody() {
   const lines = [];
-  lines.push("LISTA SPESA — RistoWord (Cucina)");
+  lines.push("LISTA SPESA — Controllo Totale (Cucina)");
   lines.push("Data: " + new Date().toLocaleString("it-IT"));
   lines.push("");
   const items = Array.isArray(shoppingItems) ? shoppingItems : [];
@@ -1724,6 +1724,10 @@ function initReceiveVoice() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btn-print-haccp")?.addEventListener("click", () => window.print());
+  document.getElementById("btn-print-turni-cucina")?.addEventListener("click", () => window.print());
+  document.getElementById("btn-print-cucina-spesa")?.addEventListener("click", () => window.print());
+
   initViewSwitcher();
   initKds();
   initRecipes();

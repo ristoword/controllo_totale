@@ -1,29 +1,22 @@
 {
   "ok": true,
-  "answer": "Riepilogo vendite: oggi non ci sono incassi né coperti. Nessun warning su scorte o food cost.",
+  "answer": "L'incasso di oggi è 0.",
   "intent": "sales_summary",
   "confidence": "high",
   "data": {
-    "summary": "Oggi non ci sono vendite registrate.",
+    "summary": "Incasso totale di oggi.",
     "items": [],
     "totals": {
-      "revenueToday": 0,
-      "covers": 0,
-      "averageTicket": 0,
-      "paymentCount": 0,
-      "closedOrders": 0
+      "revenueToday": 0
     },
     "warnings": []
   },
   "sources": [
-    "vendite",
-    "incassi",
-    "scorte",
-    "food cost"
+    "sales"
   ],
   "nextActions": [
-    "Monitorare le vendite durante il servizio",
-    "Controllare eventuali ordini in arrivo"
+    "Controlla gli ordini attivi",
+    "Verifica le vendite di piatti top"
   ],
-  "_writtenAt": "2026-03-16T20:02:43.329Z"
+  "_writtenAt": "2026-04-09T23:38:00.405Z"
 }

@@ -607,3 +607,9 @@ textarea{ resize: vertical; }
   .main{ padding:12px; }
   .trow{ grid-template-columns: 80px 1fr 110px; }
 }
+
+@media print {
+  .shell {
+    grid-template-columns: 1fr !important;
+  }
+}

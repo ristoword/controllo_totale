@@ -17,18 +17,25 @@ Prodotto **pronto al deploy**: un solo backend Node in `backend/`, healthcheck `
 
 ## Avvio locale
 
+Dalla **root del repository** (consigliato, workspaces):
+
 ```bash
-cd backend
-cp .env.example .env
-# Imposta almeno SESSION_SECRET (lungo e casuale)
+cp backend/.env.example backend/.env
+# Imposta almeno SESSION_SECRET in backend/.env
 npm install
 npm start
 ```
 
-*(Se cloni solo la cartella `backend` per il deploy, esegui `npm install` lì.)*
+Oppure solo cartella `backend`: `cd backend && npm install && npm start` (funziona se hai già installato dalla root almeno una volta).
 
 Apri il browser su `http://localhost:8080` (o la porta in `.env` / `PORT`).  
 Dashboard: `/dashboard/dashboard.html` · Login: `/login/login.html`
+
+**Check rapido senza avviare il server:** dalla **root del repo**, `USE_MYSQL_DATABASE=false npm test` (usa il workspace `backend`). Oppure `cd backend && npm test`. Con `USE_MYSQL_DATABASE=true` serve un MySQL raggiungibile.
+
+Il progetto usa **npm workspaces** (`backend` è workspace): dalla root esegui `npm install` / `npm ci` una sola volta per installare tutte le dipendenze API.
+
+**Stripe:** i Price ID possono usare `STRIPE_PRICE_CONTROLLO_TOTALE_*`, alias `STRIPE_PRICE_CT_*`, oppure i legacy `STRIPE_PRICE_RISTOWORD_MONTHLY` / `STRIPE_PRICE_RISTOWORD_YEARLY` (stesso account Stripe). Vedi `backend/.env.example`.
 
 ---
 
