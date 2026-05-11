@@ -1,11 +1,10 @@
-const { v4: uuidv4 } = require("uuid");
-
+const crypto = require("crypto");
 function generateId() {
-  return uuidv4();
+  return crypto.randomUUID();
 }
 
 function shortId(length = 8) {
-  return uuidv4()
+  return crypto.randomUUID()
     .replace(/-/g, "")
     .substring(0, length);
 }

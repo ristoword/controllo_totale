@@ -1,9 +1,8 @@
+const crypto = require("crypto");
 // JSON — stesso contratto async del cutover MySQL.
 
 const path = require("path");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
-const { v4: uuidv4 } = require("uuid");
-
 const DATA_FILE = path.join(__dirname, "..", "..", "data", "restaurants.json");
 
 async function readRestaurants() {
@@ -19,7 +18,7 @@ async function writeRestaurants(restaurants) {
 }
 
 function generateId() {
-  return uuidv4().replace(/-/g, "").slice(0, 12);
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 12);
 }
 
 async function findBySlug(slug) {

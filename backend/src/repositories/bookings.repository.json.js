@@ -1,5 +1,5 @@
+const crypto = require("crypto");
 // backend/src/repositories/bookings.repository.js
-const { v4: uuid } = require("uuid");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { loadJsonArray, saveJsonArray } = require("../utils/fileStore");
@@ -20,7 +20,7 @@ function getById(id) {
 function create(data) {
   const list = getAll();
   const booking = {
-    id: uuid(),
+    id: crypto.randomUUID(),
     customerId: data.customerId || null,
     name: data.name || "",
     phone: data.phone || "",

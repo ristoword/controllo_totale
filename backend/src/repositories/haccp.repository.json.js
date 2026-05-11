@@ -1,4 +1,4 @@
-const { v4: uuid } = require("uuid");
+const crypto = require("crypto");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { loadJsonArray, saveJsonArray } = require("../utils/fileStore");
@@ -25,7 +25,7 @@ exports.getById = async (id) => {
 
 exports.create = async (data) => {
   const check = {
-    id: uuid(),
+    id: crypto.randomUUID(),
     type: data.type || "",
     value: data.value ?? data.temp ?? "",
     unit: data.unit || "",

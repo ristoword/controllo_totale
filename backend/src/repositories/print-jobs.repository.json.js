@@ -1,7 +1,6 @@
+const crypto = require("crypto");
 // backend/src/repositories/print-jobs.repository.js
 // Print job queue – tracks what was sent and where.
-
-const { v4: uuid } = require("uuid");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
@@ -24,7 +23,7 @@ function writeAll(jobs) {
 
 function normalizeJob(j) {
   return {
-    id: j.id || uuid(),
+    id: j.id || crypto.randomUUID(),
     restaurantId: j.restaurantId || tenantContext.getRestaurantId(),
     eventType: j.eventType || "",
     department: j.department || "",
@@ -61,7 +60,7 @@ async function getById(id) {
 }
 
 async function create(data) {
-  const job = normalizeJob({ ...data, id: data.id || uuid() });
+  const job = normalizeJob({ ...data, id: data.id || crypto.randomUUID() });
   const list = readAll();
   list.push(job);
   writeAll(list);

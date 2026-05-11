@@ -1,7 +1,6 @@
+const crypto = require("crypto");
 // backend/src/repositories/catering.repository.js
 // Catering events – editable copies when from preset. Supports legacy format migration.
-
-const { v4: uuid } = require("uuid");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
@@ -28,7 +27,7 @@ function isLegacyEvent(e) {
 
 function migrateLegacyToFull(legacy) {
   return {
-    id: legacy.id || uuid(),
+    id: legacy.id || crypto.randomUUID(),
     restaurantId: tenantContext.getRestaurantId(),
     title: String(legacy.customer || "").trim() || "Evento",
     eventName: String(legacy.customer || "").trim() || "Evento",
@@ -55,11 +54,11 @@ function migrateLegacyToFull(legacy) {
 
 function deepCopySections(sections) {
   return (sections || []).map((s) => ({
-    id: uuid(),
+    id: crypto.randomUUID(),
     name: String(s.name || "").trim() || "Sezione",
     type: cateringPresetsRepository.SECTION_TYPES.includes(s.type) ? s.type : "custom",
     items: (s.items || []).map((i) => ({
-      id: uuid(),
+      id: crypto.randomUUID(),
       name: String(i.name || "").trim() || "Voce",
       mode: cateringPresetsRepository.ITEM_MODES.includes(i.mode) ? i.mode : "priced",
       quantityPerPerson: i.mode === "detailed" ? Number(i.quantityPerPerson) || 0 : null,
@@ -76,11 +75,11 @@ function normalizeEvent(e) {
   if (isLegacyEvent(e)) return migrateLegacyToFull(e);
   const sections = Array.isArray(e.sections)
     ? e.sections.map((s) => ({
-        id: s.id || uuid(),
+        id: s.id || crypto.randomUUID(),
         name: String(s.name || "").trim() || "Sezione",
         type: cateringPresetsRepository.SECTION_TYPES.includes(s.type) ? s.type : "custom",
         items: (s.items || []).map((i) => ({
-          id: i.id || uuid(),
+          id: i.id || crypto.randomUUID(),
           name: String(i.name || "").trim() || "Voce",
           mode: cateringPresetsRepository.ITEM_MODES.includes(i.mode) ? i.mode : "priced",
           quantityPerPerson: i.mode === "detailed" ? Number(i.quantityPerPerson) || 0 : null,
@@ -93,7 +92,7 @@ function normalizeEvent(e) {
       }))
     : [];
   return {
-    id: e.id || uuid(),
+    id: e.id || crypto.randomUUID(),
     restaurantId: e.restaurantId || tenantContext.getRestaurantId(),
     title: String(e.title || e.eventName || "").trim() || "Evento",
     eventName: String(e.eventName || e.title || "").trim() || "Evento",
@@ -179,7 +178,7 @@ async function getById(id) {
 }
 
 async function create(data) {
-  const event = normalizeEvent({ ...data, id: data.id || uuid() });
+  const event = normalizeEvent({ ...data, id: data.id || crypto.randomUUID() });
   const sections = event.sections || [];
   if (sections.length > 0) {
     const errs = validateEvent(event);
@@ -242,7 +241,7 @@ async function createFromPreset(presetId, overrides = {}) {
 
   const sections = deepCopySections(preset.sections);
   const event = normalizeEvent({
-    id: uuid(),
+    id: crypto.randomUUID(),
     restaurantId: tenantContext.getRestaurantId(),
     title: overrides.title || preset.name,
     eventName: overrides.eventName || preset.name,

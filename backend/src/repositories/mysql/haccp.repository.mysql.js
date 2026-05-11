@@ -1,4 +1,4 @@
-const { v4: uuid } = require("uuid");
+const crypto = require("crypto");
 const { getJson, setJson } = require("./tenant-module.mysql");
 
 const MODULE_KEY = "haccp-checks";
@@ -16,7 +16,7 @@ async function getAll() { return readAll(); }
 async function getById(id) { const list = await readAll(); return list.find((c) => c.id === id) || null; }
 async function create(data) {
   const check = {
-    id: uuid(), type: data.type || "", value: data.value ?? data.temp ?? "", unit: data.unit || "",
+    id: crypto.randomUUID(), type: data.type || "", value: data.value ?? data.temp ?? "", unit: data.unit || "",
     date: data.date || "", time: data.time || "", operator: data.operator || "",
     note: data.note || data.notes || "", temp: data.temp ?? data.value, notes: data.notes || data.note || "",
     createdAt: data.createdAt || new Date().toISOString(),

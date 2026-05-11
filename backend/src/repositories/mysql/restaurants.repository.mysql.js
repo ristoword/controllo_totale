@@ -1,8 +1,7 @@
+const crypto = require("crypto");
 /**
  * Ristoranti su MySQL — attivo con USE_MYSQL_DATABASE=true.
  */
-
-const { v4: uuidv4 } = require("uuid");
 const { getPool } = require("../../db/mysql-pool");
 
 function rowToRestaurant(row) {
@@ -124,7 +123,7 @@ async function findByAdminEmail(email) {
 
 async function create(restaurant) {
   const pool = getPool();
-  const id = restaurant.id || uuidv4().replace(/-/g, "").slice(0, 12);
+  const id = restaurant.id || crypto.randomUUID().replace(/-/g, "").slice(0, 12);
   const record = {
     id,
     slug: restaurant.slug,

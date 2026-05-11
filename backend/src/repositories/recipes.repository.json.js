@@ -1,4 +1,4 @@
-const { v4: uuid } = require("uuid");
+const crypto = require("crypto");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
@@ -62,7 +62,7 @@ function normalizeRecipeFromFile(r) {
   const packagingCost = Number(r.packagingCost ?? r.packaging_cost) ?? 0;
   const laborCost = Number(r.laborCost ?? r.labor_cost) ?? 0;
   return {
-    id: r.id || uuid(),
+    id: r.id || crypto.randomUUID(),
     name,
     menuItemName: menuItemName || name,
     menu_item_name: menuItemName || name,
@@ -183,7 +183,7 @@ async function create(data) {
   }
   const now = new Date().toISOString();
   const recipe = normalizeRecipeFromFile({
-    id: data.id || uuid(),
+    id: data.id || crypto.randomUUID(),
     name,
     menuItemName: menuItemName || name,
     category: data.category || "",

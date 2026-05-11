@@ -1,8 +1,7 @@
-const { v4: uuid } = require("uuid");
-
+const crypto = require("crypto");
 function normalizeReportForCreate(data = {}) {
   return {
-    id: data.id || uuid(),
+    id: data.id || crypto.randomUUID(),
     date: data.date != null ? String(data.date).trim() : "",
     revenue: Number(data.revenue) || 0,
     covers: Number(data.covers) || 0,

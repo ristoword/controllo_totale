@@ -1,4 +1,4 @@
-const { v4: uuid } = require("uuid");
+const crypto = require("crypto");
 const { getJson, setJson } = require("./tenant-module.mysql");
 
 const MODULE_KEY = "bookings";
@@ -16,7 +16,7 @@ async function getById(id) {
 async function create(data) {
   const list = await getAll();
   const booking = {
-    id: uuid(), customerId: data.customerId || null, name: data.name || "", phone: data.phone || "",
+    id: crypto.randomUUID(), customerId: data.customerId || null, name: data.name || "", phone: data.phone || "",
     people: Number(data.people) || 1, date: data.date || "", time: data.time || "",
     note: data.note || data.notes || "", area: data.area || "", status: data.status || "nuova",
     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),

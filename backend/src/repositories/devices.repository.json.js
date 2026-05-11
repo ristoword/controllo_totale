@@ -1,7 +1,6 @@
+const crypto = require("crypto");
 // backend/src/repositories/devices.repository.js
 // Hardware device management – printers, scanners, cash drawers.
-
-const { v4: uuid } = require("uuid");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
@@ -35,7 +34,7 @@ function writeAll(devices) {
 
 function normalizeDevice(d) {
   return {
-    id: d.id || uuid(),
+    id: d.id || crypto.randomUUID(),
     restaurantId: d.restaurantId || tenantContext.getRestaurantId(),
     name: String(d.name || "").trim() || "Dispositivo",
     type: DEVICE_TYPES.includes(d.type) ? d.type : "thermal_printer",
@@ -73,7 +72,7 @@ async function getDefaultForDepartment(department) {
 }
 
 async function create(data) {
-  const device = normalizeDevice({ ...data, id: data.id || uuid() });
+  const device = normalizeDevice({ ...data, id: data.id || crypto.randomUUID() });
   if (device.isDefault) {
     const list = readAll();
     list.forEach((d) => {

@@ -1,7 +1,6 @@
+const crypto = require("crypto");
 // backend/src/repositories/catering-presets.repository.js
 // Preset catering menus – templates never modified when used for events.
-
-const { v4: uuid } = require("uuid");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
@@ -36,7 +35,7 @@ function writeAll(presets) {
 function normalizeSection(s) {
   const items = Array.isArray(s.items) ? s.items.map(normalizeItem) : [];
   return {
-    id: s.id || uuid(),
+    id: s.id || crypto.randomUUID(),
     name: String(s.name || "").trim() || "Sezione",
     type: SECTION_TYPES.includes(s.type) ? s.type : "custom",
     items,
@@ -46,7 +45,7 @@ function normalizeSection(s) {
 function normalizeItem(i) {
   const mode = ITEM_MODES.includes(i.mode) ? i.mode : "priced";
   return {
-    id: i.id || uuid(),
+    id: i.id || crypto.randomUUID(),
     name: String(i.name || "").trim() || "Voce",
     mode,
     quantityPerPerson: mode === "detailed" ? Number(i.quantityPerPerson) || 0 : null,
@@ -61,7 +60,7 @@ function normalizeItem(i) {
 function normalizePreset(p) {
   const sections = Array.isArray(p.sections) ? p.sections.map(normalizeSection) : [];
   return {
-    id: p.id || uuid(),
+    id: p.id || crypto.randomUUID(),
     restaurantId: p.restaurantId || tenantContext.getRestaurantId(),
     name: String(p.name || "").trim() || "Preset",
     description: String(p.description || "").trim(),
@@ -115,7 +114,7 @@ async function getById(id) {
 async function create(data) {
   const preset = normalizePreset({
     ...data,
-    id: data.id || uuid(),
+    id: data.id || crypto.randomUUID(),
   });
   const errs = validatePreset(preset);
   if (errs.length > 0) {

@@ -1,7 +1,6 @@
+const crypto = require("crypto");
 // backend/src/repositories/print-routes.repository.js
 // Print routing rules – eventType + department -> deviceId.
-
-const { v4: uuid } = require("uuid");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
@@ -38,7 +37,7 @@ function writeAll(routes) {
 
 function normalizeRoute(r) {
   return {
-    id: r.id || uuid(),
+    id: r.id || crypto.randomUUID(),
     restaurantId: r.restaurantId || tenantContext.getRestaurantId(),
     eventType: String(r.eventType || "").trim(),
     department: String(r.department || "").trim(),
@@ -71,7 +70,7 @@ async function findByEventAndDepartment(eventType, department) {
 }
 
 async function create(data) {
-  const route = normalizeRoute({ ...data, id: data.id || uuid() });
+  const route = normalizeRoute({ ...data, id: data.id || crypto.randomUUID() });
   const list = readAll();
   list.push(route);
   writeAll(list);

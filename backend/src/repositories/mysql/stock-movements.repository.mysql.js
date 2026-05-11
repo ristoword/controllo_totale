@@ -1,4 +1,4 @@
-const { v4: uuid } = require("uuid");
+const crypto = require("crypto");
 const { getJson, setJson } = require("./tenant-module.mysql");
 
 const MODULE_KEY = "stock-movements";
@@ -22,7 +22,7 @@ async function findByOrderId(orderId) {
 async function createMovement(data) {
   const movements = await readAll();
   const movement = {
-    id: uuid(),
+    id: crypto.randomUUID(),
     restaurantId: data.restaurantId || null,
     type: data.type || "deduction",
     orderId: data.orderId || null,

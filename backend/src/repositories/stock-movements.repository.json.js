@@ -1,4 +1,4 @@
-const { v4: uuid } = require("uuid");
+const crypto = require("crypto");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
@@ -28,7 +28,7 @@ function findByOrderId(orderId) {
 async function createMovement(data) {
   const movements = readAll();
   const movement = {
-    id: uuid(),
+    id: crypto.randomUUID(),
     restaurantId: data.restaurantId || tenantContext.getRestaurantId(),
     type: data.type || "deduction",
     orderId: data.orderId || null,
