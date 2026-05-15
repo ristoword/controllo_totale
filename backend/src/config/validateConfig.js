@@ -147,13 +147,19 @@ function validateQrOrdering() {
   const secret = String(process.env.QR_ORDER_SECRET || "").trim();
   if (!secret) {
     console.warn(
-      "[SECURITY][QR] QR_ORDER_SECRET non impostato: POST /api/qr/orders risponde 403; le pagine /qr restano pubbliche ma l’invio ordini è disattivato."
+      "[SECURITY][QR] QR_ORDER_SECRET non impostato e auto-generazione fallita: POST /api/qr/orders risponde 403."
     );
     return;
   }
+  if (String(process.env.CT_QR_ORDER_SECRET_EPHEMERAL || "").toLowerCase() === "true") {
+    console.warn(
+      "[CONFIG][QR] QR_ORDER_SECRET effimero (generato all’avvio): l’ordinazione QR funziona ma il segreto " +
+        "cambia a ogni riavvio. Imposta QR_ORDER_SECRET nelle variabili d’ambiente per stabilità tra deploy."
+    );
+  }
   if (secret.length < 16) {
     console.warn(
-      "[SECURITY][QR] QR_ORDER_SECRET è corto: in produzione usa una stringa casuale lunga (es. 24+ caratteri) e lo stesso valore nel meta `rw-qr-order-key` in public/qr/index.html."
+      "[SECURITY][QR] QR_ORDER_SECRET è corto: in produzione usa una stringa casuale lunga (es. 24+ caratteri)."
     );
   }
 }

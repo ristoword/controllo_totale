@@ -204,12 +204,28 @@ app.get("/owner-activate", (req, res) => {
 });
 
 // QR table ordering: /qr/1, /qr/2, etc. (no auth – public QR)
-app.get("/qr", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/qr/index.html"));
-});
-app.get("/qr/:table", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/qr/index.html"));
-});
+// Serve the page with the QR_ORDER_SECRET injected into the meta tag so
+// the browser can include it as X-QR-Order-Key on POST /api/qr/orders.
+const fs = require("fs");
+const _qrHtmlPath = path.join(__dirname, "../public/qr/index.html");
+let _qrHtmlCache = null;
+function serveQrPage(_req, res) {
+  const secret = String(process.env.QR_ORDER_SECRET || "").trim();
+  if (!_qrHtmlCache) {
+    try {
+      _qrHtmlCache = fs.readFileSync(_qrHtmlPath, "utf8");
+    } catch (e) {
+      return res.status(500).send("QR page not found");
+    }
+  }
+  const html = _qrHtmlCache.replace(
+    /<meta\s+name="rw-qr-order-key"\s+content="[^"]*">/,
+    `<meta name="rw-qr-order-key" content="${secret}">`
+  );
+  res.type("html").send(html);
+}
+app.get("/qr", serveQrPage);
+app.get("/qr/:table", serveQrPage);
 
 // Super-admin JS assets (served before requirePageAuth)
 app.use(
