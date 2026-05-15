@@ -31,6 +31,27 @@ function ensureSessionSecret() {
 ensureSessionSecret();
 
 /**
+ * QR ordering: if QR_ORDER_SECRET is not configured, generate an ephemeral
+ * secret so POST /api/qr/orders works out of the box. The same value is
+ * injected into the HTML meta tag at serve-time (see app.js QR routes).
+ */
+function ensureQrOrderSecret() {
+  const raw = process.env.QR_ORDER_SECRET;
+  const s = raw != null ? String(raw).trim() : "";
+  if (s) return;
+  process.env.QR_ORDER_SECRET = crypto.randomBytes(24).toString("hex");
+  process.env.CT_QR_ORDER_SECRET_EPHEMERAL = "true";
+  const msg =
+    "[CONFIG][QR] QR_ORDER_SECRET non impostato: generato segreto temporaneo. " +
+    "POST /api/qr/orders è attivo con il segreto effimero. " +
+    "Per stabilità tra deploy, imposta QR_ORDER_SECRET nelle variabili d'ambiente (≥24 caratteri casuali).";
+  // eslint-disable-next-line no-console
+  console.info(msg);
+}
+
+ensureQrOrderSecret();
+
+/**
  * Hardening minimo (blocco 1): solo warning, nessuna modifica alla logica applicativa.
  * SESSION_SECRET resta obbligatorio per express-session (vedi config/session.js).
  */
