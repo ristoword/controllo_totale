@@ -8,168 +8,86 @@
 </head>
 <body>
   <div class="layout-me">
-    <header class="topbar-me">
-      <div>
-        <h1>Il mio profilo</h1>
-        <p class="sub">Dati personali, turni, presenze e richieste — visibili solo a te. Password: usa «Cambio password»; non mostriamo mai la password in chiaro.</p>
-      </div>
-      <div class="actions-me">
-        <a class="btn" href="/dashboard/dashboard.html">Dashboard</a>
-        <a class="btn" href="/change-password/change-password.html">Cambio password</a>
-      </div>
-    </header>
 
-    <div class="tabs-me">
-      <button type="button" class="tab-me active" data-tab="dati">Dati &amp; contatti</button>
-      <button type="button" class="tab-me" data-tab="turni">Turni</button>
-      <button type="button" class="tab-me" data-tab="ore">Ore</button>
-      <button type="button" class="tab-me" data-tab="presenze">Presenze</button>
-      <button type="button" class="tab-me" data-tab="assenze">Assenze &amp; richieste</button>
+    <!-- PROFILE HEADER -->
+    <div class="profile-header">
+      <div class="avatar" id="avatar">—</div>
+      <div class="profile-info">
+        <h1 class="profile-name" id="profile-name">Caricamento…</h1>
+        <span class="profile-role" id="profile-role">—</span>
+      </div>
+      <div class="profile-actions">
+        <a class="btn ghost" href="/dashboard/dashboard.html">Dashboard</a>
+        <a class="btn ghost" href="/change-password/change-password.html">Cambio password</a>
+      </div>
     </div>
 
-    <div class="grid-me">
-      <section class="panel-me active" data-panel="dati">
-        <div id="msg-dati" class="msg-me" style="display:none;"></div>
-        <article class="card-me">
-          <h2>Scheda (sola lettura)</h2>
-          <div id="readonly-profile"></div>
-        </article>
-        <article class="card-me">
-          <h2>Contatti modificabili</h2>
-          <p class="small-note">Puoi aggiornare email, telefono, indirizzo e nome visualizzato. Il resto è gestito dall’owner dalla scheda staff.</p>
-          <div class="form-grid-me" style="margin-top:12px;">
-            <label>Nome <input type="text" id="field-name" autocomplete="given-name" /></label>
-            <label>Cognome <input type="text" id="field-surname" autocomplete="family-name" /></label>
-            <label>Email <input type="email" id="field-email" autocomplete="email" /></label>
-            <label>Telefono <input type="tel" id="field-phone" autocomplete="tel" /></label>
-            <label class="full">Indirizzo <textarea id="field-address" rows="2" autocomplete="street-address"></textarea></label>
-          </div>
-          <div style="margin-top:14px;">
-            <button type="button" class="btn primary" id="btn-save-dati">Salva modifiche</button>
-          </div>
-        </article>
-      </section>
+    <!-- INFO CARDS -->
+    <div class="info-cards">
+      <div class="info-card">
+        <div class="info-card-label">Email</div>
+        <div class="info-card-value" id="info-email">—</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Data assunzione</div>
+        <div class="info-card-value" id="info-hire">—</div>
+      </div>
+      <div class="info-card">
+        <div class="info-card-label">Ore/settimana</div>
+        <div class="info-card-value" id="info-hours">—</div>
+      </div>
+    </div>
 
-      <section class="panel-me" data-panel="turni">
-        <article class="card-me">
-          <h2>Turni pianificati</h2>
-          <p class="small-note">Periodo: scegli date o un preset. I turni usano lo stesso archivio che vede lo supervisor/owner (stesso ID utente).</p>
-          <div class="toolbar-shifts">
-            <label>Da <input type="date" id="shift-from" /></label>
-            <label>A <input type="date" id="shift-to" /></label>
-            <button type="button" class="btn" id="btn-refresh-shifts">Aggiorna</button>
-          </div>
-          <div class="toolbar-shifts">
-            <button type="button" class="btn" id="preset-week">Settimana corrente</button>
-            <button type="button" class="btn" id="preset-month">Mese corrente</button>
-            <button type="button" class="btn" id="preset-next">Mese prossimo</button>
-            <button type="button" class="btn" id="preset-prev">Mese precedente</button>
-            <button type="button" class="btn" id="preset-hire">Dal primo giorno</button>
-            <button type="button" class="btn" id="preset-future">Prossimi 3 mesi</button>
-          </div>
-          <p id="msg-shifts" class="small-note"></p>
-          <div style="overflow-x:auto;">
-            <table class="table-me">
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Orario</th>
-                  <th>Tipo / ruolo</th>
-                  <th>Stato</th>
-                  <th>Note</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-shifts"></tbody>
-            </table>
-          </div>
-        </article>
-      </section>
-
-      <section class="panel-me" data-panel="ore">
-        <article class="card-me">
-          <h2>Riepilogo ore</h2>
-          <div id="hours-summary">Caricamento…</div>
-        </article>
-      </section>
-
-      <section class="panel-me" data-panel="presenze">
-        <article class="card-me">
-          <h2>Timbratura rapida</h2>
-          <div id="clock-status" class="clock-status-box">
+    <!-- CLOCK IN/OUT -->
+    <article class="card">
+      <header class="card-header">
+        <h2>Timbratura</h2>
+      </header>
+      <div class="card-body">
+        <div class="clock-section">
+          <div class="clock-status-box">
             <div class="clock-status-label">Stato turno corrente</div>
             <div class="clock-status-value" id="clock-status-text">Caricamento…</div>
           </div>
-          <div class="clock-actions" style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-            <button type="button" class="btn primary" id="btn-clock-in" disabled>Timbra entrata</button>
-            <button type="button" class="btn" id="btn-clock-out" disabled style="border-color:var(--ok);color:var(--ok);">Timbra uscita</button>
+          <div class="clock-actions">
+            <button class="btn primary" id="btn-clock-in" disabled>Timbra entrata</button>
+            <button class="btn" id="btn-clock-out" disabled style="border-color:var(--ok);color:var(--ok);">Timbra uscita</button>
           </div>
-          <div id="msg-clock" class="msg-me" style="display:none;margin-top:10px;"></div>
-        </article>
-        <article class="card-me">
-          <h2>Timbrature del mese</h2>
-          <p id="attn-today" class="small-note"></p>
-          <div style="overflow-x:auto;margin-top:10px;">
-            <table class="table-me">
-              <thead>
-                <tr>
-                  <th>Giorno</th>
-                  <th>Entrata</th>
-                  <th>Uscita</th>
-                  <th>Ore</th>
-                  <th>Stato</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-attendance"></tbody>
-            </table>
-          </div>
-        </article>
-      </section>
+          <div id="msg-clock" class="msg-bar"></div>
+        </div>
+      </div>
+    </article>
 
-      <section class="panel-me" data-panel="assenze">
-        <article class="card-me">
-          <h2>Richieste ferie / permessi / malattia</h2>
-          <p id="leave-balances" class="small-note"></p>
-          <div class="form-grid-me" style="margin-top:12px;">
-            <label>Tipo
-              <select id="leave-type">
-                <option value="ferie">Ferie</option>
-                <option value="permesso">Permesso / giornata speciale</option>
-                <option value="malattia">Malattia</option>
-              </select>
-            </label>
-            <label>Da <input type="date" id="leave-start" /></label>
-            <label>A <input type="date" id="leave-end" /></label>
-            <label class="full">Motivo (opzionale) <input type="text" id="leave-reason" placeholder="Es. visita, trasferta, giornata speciale…" /></label>
-            <label style="flex-direction:row;align-items:center;gap:8px;">
-              <input type="checkbox" id="leave-special" /> <span>Segna come richiesta «giornata speciale» (aggiunge nota per l’owner)</span>
-            </label>
-          </div>
-          <div id="msg-leave" class="msg-me" style="display:none;margin-top:10px;"></div>
-          <div style="margin-top:12px;">
-            <button type="button" class="btn primary" id="btn-submit-leave">Invia richiesta</button>
-          </div>
-          <h3 style="margin:20px 0 8px;font-size:1rem;">Le tue richieste</h3>
-          <div style="overflow-x:auto;">
-            <table class="table-me">
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Periodo</th>
-                  <th>Stato</th>
-                  <th>Motivo</th>
-                  <th>Giorni</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-leave"></tbody>
-            </table>
-          </div>
-        </article>
-        <article class="card-me">
-          <h2>Richieste HR (modulo turni)</h2>
-          <div id="staff-requests">Caricamento…</div>
-        </article>
-      </section>
+    <!-- MONTHLY HOURS -->
+    <div class="hours-total-box">
+      <span class="hours-total-label">Ore totali mese corrente</span>
+      <span class="hours-total-value" id="month-hours-total">—</span>
     </div>
+
+    <!-- ATTENDANCE TABLE -->
+    <article class="card">
+      <header class="card-header">
+        <h2>Le mie presenze</h2>
+      </header>
+      <div class="card-body">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Entrata</th>
+                <th>Uscita</th>
+                <th>Ore</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-attendance">
+              <tr><td colspan="4" class="empty-cell">Caricamento…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
   </div>
 
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,cucina,cassa,staff,bar,magazzino,pizzeria,cashier,kitchen"></script>

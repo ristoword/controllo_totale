@@ -13,355 +13,465 @@
     <header class="topbar">
       <div>
         <h1>CONTROLLO TOTALE – Magazzino</h1>
-        <p class="subtitle">
-          Magazzino Centrale + Scorte reparti
-        </p>
+        <p class="subtitle">Magazzino Centrale · Reparti · Movimenti · Lista spesa · Attrezzature</p>
       </div>
       <div class="kpi-row">
-        <a href="/dashboard/dashboard.html" class="btn ghost no-print" title="Torna alla dashboard operativa">← Dashboard</a>
-        <a href="/fornitori/fornitori.html" class="btn ghost no-print" title="Schedario fornitori">Fornitori</a>
-        <div class="kpi">
+        <a href="/dashboard/dashboard.html" class="btn ghost no-print" title="Dashboard">← Dashboard</a>
+        <a href="/fornitori/fornitori.html" class="btn ghost no-print" title="Fornitori">Fornitori</a>
+        <div class="kpi" id="kpi-prodotti">
           <span class="kpi-label">Prodotti</span>
           <span class="kpi-value" id="kpi-count">0</span>
         </div>
-        <div class="kpi">
-          <span class="kpi-label">Centrale</span>
-          <span class="kpi-value" id="kpi-central">0</span>
+        <div class="kpi" id="kpi-sotto-scorta">
+          <span class="kpi-label">Sotto scorta</span>
+          <span class="kpi-value" id="kpi-low">0</span>
         </div>
         <div class="kpi">
-          <span class="kpi-label">Valore</span>
-          <span class="kpi-value" id="kpi-value">€ 0.00</span>
+          <span class="kpi-label">Valore totale</span>
+          <span class="kpi-value" id="kpi-value">€ 0,00</span>
         </div>
-        <button class="btn ghost no-print" id="btn-print-magazzino" type="button" title="Stampa la vista magazzino">Stampa</button>
         <button class="btn ghost no-print" id="btn-refresh" type="button">Aggiorna</button>
-        <button class="btn ghost no-print" id="btn-to-cucina" type="button" title="Apri modulo Cucina">Torna in cucina</button>
       </div>
     </header>
 
-    <!-- TAB NAVIGAZIONE -->
+    <!-- TAB NAV -->
     <nav class="mag-tabs no-print">
-      <button class="mag-tab active" data-tab="centrale">Magazzino Centrale</button>
-      <button class="mag-tab" data-tab="ricezione">Ricezione merce</button>
-      <button class="mag-tab" data-tab="cucina">Scorta Cucina</button>
-      <button class="mag-tab" data-tab="sala">Scorta Sala</button>
-      <button class="mag-tab" data-tab="bar">Scorta Bar</button>
-      <button class="mag-tab" data-tab="proprieta">Scorta Proprietà</button>
-      <button class="mag-tab" data-tab="movimenti">Movimenti interni</button>
-      <!-- Nuovo modulo separato Attrezzature (solo UI, nessun backend) -->
-      <button class="btn ghost" type="button"
-              onclick="window.location.href='/magazzino/attrezzature.html'">
-        Attrezzature
-      </button>
+      <button class="mag-tab active" data-tab="centrale">Centrale</button>
+      <button class="mag-tab" data-tab="reparti">Reparti</button>
+      <button class="mag-tab" data-tab="ricezione">Ricezione</button>
+      <button class="mag-tab" data-tab="movimenti">Movimenti</button>
+      <button class="mag-tab" data-tab="spesa">Lista spesa</button>
+      <button class="mag-tab" data-tab="attrezzature">Attrezzature</button>
     </nav>
 
     <main class="main">
 
-      <!-- NUOVO PRODOTTO (visibile in tab Centrale) -->
-      <section class="card card-form" id="section-new-product">
-        <header class="card-header">
-          <h2>Nuovo prodotto</h2>
-          <button type="button" class="btn-voice" id="btn-voice-product" title="Inserimento vocale">🎤</button>
-        </header>
-        <div class="card-body form-grid">
-          <label>
-            Nome prodotto
-            <input type="text" id="field-name" />
-          </label>
-          <label>
-            Categoria (opz.)
-            <input type="text" id="field-category" placeholder="Es. pasta, pane" />
-          </label>
-          <label>
-            Unità
-            <select id="field-unit">
-              <option value="kg">kg</option>
-              <option value="lt">lt</option>
-              <option value="unità">unità</option>
-              <option value="pezzi">pezzi</option>
-            </select>
-          </label>
-          <label>
-            Quantità iniziale
-            <input type="number" id="field-quantity" step="0.01" />
-          </label>
-          <label>
-            Costo unitario (€)
-            <input type="number" id="field-cost" step="0.01" />
-          </label>
-          <label>
-            Soglia minima
-            <input type="number" id="field-threshold" step="0.01" />
-          </label>
-          <label>
-            Lotto provenienza (opz.)
-            <input type="text" id="field-lot" placeholder="Lotto" />
-          </label>
-          <label>
-            Fornitore (opz.)
-            <input type="text" id="field-supplier" placeholder="Nome fornitore" />
-          </label>
-          <label>
-            Data consegna (opz.)
-            <input type="date" id="field-delivery-date" />
-          </label>
-          <label class="full">
-            Note (opz.)
-            <input type="text" id="field-notes" placeholder="Note" />
-          </label>
-          <div class="form-actions full">
-            <button class="btn primary" id="btn-add-product">Aggiungi prodotto</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- RICEZIONE MERCE (barcode + voce) -->
-      <section class="card card-tab" id="tab-ricezione">
-        <header class="card-header">
-          <h2>Ricezione merce – Barcode</h2>
-          <button type="button" class="btn-voice" id="btn-voice-receive" title="Inserimento vocale">🎤</button>
-        </header>
-        <div class="card-body">
-          <p class="receive-hint">Scansiona il barcode o inseriscilo manualmente. La merce può essere caricata direttamente in centrale o nei reparti.</p>
-          <div class="form-grid receive-form">
-            <label class="receive-barcode-row full">
-              Barcode
-              <div class="barcode-input-wrap">
-                <input type="text" id="receive-barcode" placeholder="Scansiona o digita barcode" class="barcode-input" autocomplete="off" />
-                <button type="button" class="btn small" id="btn-barcode-lookup">Cerca</button>
+      <!-- ============ TAB 1: CENTRALE ============ -->
+      <div class="tab-panel active" id="tab-centrale">
+        <div class="two-col">
+          <!-- Left: nuovo prodotto form -->
+          <div class="card">
+            <header class="card-header"><h2>Nuovo prodotto</h2></header>
+            <div class="card-body">
+              <div class="form-grid">
+                <label>Nome<input type="text" id="f-name" /></label>
+                <label>Categoria<input type="text" id="f-category" placeholder="es. pasta, pane" /></label>
+                <label>Unità
+                  <select id="f-unit">
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="L">L</option>
+                    <option value="mL">mL</option>
+                    <option value="pz" selected>pz</option>
+                    <option value="bt">bt</option>
+                    <option value="ct">ct</option>
+                    <option value="lt">lt</option>
+                    <option value="m">m</option>
+                    <option value="cm">cm</option>
+                  </select>
+                </label>
+                <label>Quantità<input type="number" id="f-qty" step="0.01" min="0" /></label>
+                <label>Soglia minima<input type="number" id="f-threshold" step="0.01" min="0" /></label>
+                <label>Costo/u (€)<input type="number" id="f-cost" step="0.01" min="0" /></label>
+                <label>Fornitore<input type="text" id="f-supplier" /></label>
+                <label>Lotto<input type="text" id="f-lot" /></label>
+                <label>Scadenza<input type="date" id="f-expiry" /></label>
+                <div class="form-actions full">
+                  <button class="btn primary" id="btn-add-product">Aggiungi prodotto</button>
+                </div>
               </div>
-            </label>
-            <label>
-              Prodotto
-              <input type="text" id="receive-product-name" placeholder="Nome prodotto (se barcode sconosciuto)" />
-            </label>
-            <label>
-              Quantità
-              <input type="number" id="receive-quantity" step="0.01" min="0.01" placeholder="Es. 5" />
-            </label>
-            <label>
-              Unità
-              <select id="receive-unit">
-                <option value="kg">kg</option>
-                <option value="lt">lt</option>
-                <option value="g">g</option>
-                <option value="ml">ml</option>
-                <option value="unità">unità</option>
-                <option value="pezzi">pezzi</option>
-                <option value="casse">casse</option>
-                <option value="scatole">scatole</option>
-              </select>
-            </label>
-            <label>
-              Destinazione
-              <select id="receive-destination">
-                <option value="central">Magazzino centrale</option>
-                <option value="cucina">Cucina</option>
-                <option value="bar">Bar</option>
-                <option value="sala">Sala</option>
-                <option value="proprieta">Proprietà</option>
-              </select>
-            </label>
-            <label>
-              Ricevuto da
-              <input type="text" id="receive-operator" placeholder="Operatore" />
-            </label>
-            <label>
-              Lotto (opz.)
-              <input type="text" id="receive-lot" placeholder="Lotto provenienza" />
-            </label>
-            <label>
-              Costo unitario € (opz.)
-              <input type="number" id="receive-cost" step="0.01" min="0" placeholder="0.00" />
-            </label>
-            <label>
-              Fornitore (opz.)
-              <input type="text" id="receive-supplier" placeholder="Fornitore" />
-            </label>
-            <label class="full">
-              Note (opz.)
-              <input type="text" id="receive-notes" placeholder="Note ricevuta" />
-            </label>
-            <label class="receive-create full">
-              <input type="checkbox" id="receive-create-if-unknown" />
-              Crea prodotto se barcode sconosciuto
-            </label>
-            <div class="form-actions full">
-              <button class="btn primary" id="btn-receive">Registra ricevuta</button>
             </div>
           </div>
-          <div id="receive-status" class="receive-status"></div>
+
+          <!-- Right: table -->
+          <div class="card">
+            <header class="card-header">
+              <h2>Inventario Centrale</h2>
+              <input type="text" id="search-centrale" placeholder="Cerca prodotto…" class="search-input" style="max-width:220px" />
+            </header>
+            <div class="card-body tbl-wrap">
+              <table class="tbl" id="tbl-centrale">
+                <thead>
+                  <tr>
+                    <th>Prodotto</th>
+                    <th class="num">Qtà</th>
+                    <th class="num">Costo/u</th>
+                    <th>Lotto</th>
+                    <th>Scadenza</th>
+                    <th class="center">Scorte</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-centrale"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <!-- RICERCA -->
-      <section class="card">
-        <header class="card-header">
-          <h2>Ricerca</h2>
-        </header>
-        <div class="card-body">
-          <input type="text" id="search-input" placeholder="Cerca prodotto..." class="search-input" />
+      <!-- ============ TAB 2: REPARTI ============ -->
+      <div class="tab-panel" id="tab-reparti">
+        <div class="card">
+          <header class="card-header">
+            <h2>Stock per reparto</h2>
+            <button class="btn primary" id="btn-new-transfer">Nuovo trasferimento</button>
+          </header>
+          <div class="card-body tbl-wrap">
+            <table class="tbl" id="tbl-reparti">
+              <thead>
+                <tr>
+                  <th>Prodotto</th>
+                  <th class="num">Centrale</th>
+                  <th class="num">Cucina</th>
+                  <th class="num">Pizzeria</th>
+                  <th class="num">Bar</th>
+                  <th class="num">Sala</th>
+                  <th class="num">Proprietà</th>
+                  <th class="num">Altro</th>
+                  <th class="num">Totale</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-reparti"></tbody>
+            </table>
+          </div>
         </div>
-      </section>
+      </div>
 
-      <!-- MAGAZZINO CENTRALE -->
-      <section class="card card-tab" id="tab-centrale">
-        <header class="card-header">
-          <h2>Prodotti in Magazzino Centrale</h2>
-        </header>
-        <div class="card-body list" id="inventory-central-list"></div>
-      </section>
-
-      <!-- SCORTA CUCINA -->
-      <section class="card card-tab" id="tab-cucina">
-        <header class="card-header">
-          <h2>Scorta Cucina</h2>
-        </header>
-        <div class="card-body list" id="inventory-cucina-list"></div>
-      </section>
-
-      <!-- SCORTA SALA -->
-      <section class="card card-tab" id="tab-sala">
-        <header class="card-header">
-          <h2>Scorta Sala</h2>
-        </header>
-        <div class="card-body list" id="inventory-sala-list"></div>
-      </section>
-
-      <!-- SCORTA BAR -->
-      <section class="card card-tab" id="tab-bar">
-        <header class="card-header">
-          <h2>Scorta Bar</h2>
-        </header>
-        <div class="card-body list" id="inventory-bar-list"></div>
-      </section>
-
-      <!-- SCORTA PROPRIETÀ -->
-      <section class="card card-tab" id="tab-proprieta">
-        <header class="card-header">
-          <h2>Scorta Proprietà</h2>
-        </header>
-        <div class="card-body list" id="inventory-proprieta-list"></div>
-      </section>
-
-      <!-- MOVIMENTI INTERNI -->
-      <section class="card card-tab" id="tab-movimenti">
-        <header class="card-header">
-          <h2>Storico movimenti interni</h2>
-        </header>
-        <div class="card-body list" id="transfers-list"></div>
-      </section>
-
-      <!-- PANNELLO AI -->
-      <section class="card card-ai">
-        <header class="card-header">
-          <h2>Assistente Magazzino</h2>
-        </header>
-        <div class="card-body">
-          <p id="ai-message" class="ai-message">Carica suggerimenti...</p>
-          <button class="btn ghost" id="btn-ai-refresh">Aggiorna suggerimenti</button>
+      <!-- ============ TAB 3: RICEZIONE ============ -->
+      <div class="tab-panel" id="tab-ricezione">
+        <div class="card" style="max-width:600px">
+          <header class="card-header"><h2>Ricezione merce</h2></header>
+          <div class="card-body">
+            <div class="form-grid">
+              <label class="full">Prodotto
+                <select id="recv-product"><option value="">— seleziona —</option></select>
+              </label>
+              <label>Quantità<input type="number" id="recv-qty" step="0.01" min="0.01" /></label>
+              <label>Destinazione
+                <select id="recv-dest">
+                  <option value="central">Magazzino centrale</option>
+                  <option value="cucina">Cucina</option>
+                  <option value="pizzeria">Pizzeria</option>
+                  <option value="bar">Bar</option>
+                  <option value="sala">Sala</option>
+                  <option value="proprieta">Proprietà</option>
+                  <option value="altro">Altro</option>
+                </select>
+              </label>
+              <div class="form-actions full">
+                <button class="btn primary" id="btn-recv">Registra carico</button>
+              </div>
+            </div>
+            <div id="recv-status" class="receive-status"></div>
+          </div>
         </div>
-      </section>
+      </div>
+
+      <!-- ============ TAB 4: MOVIMENTI ============ -->
+      <div class="tab-panel" id="tab-movimenti">
+        <div class="card">
+          <header class="card-header">
+            <h2>Storico movimenti</h2>
+            <button class="btn primary" id="btn-new-movement">Nuovo movimento</button>
+          </header>
+          <div class="card-body tbl-wrap">
+            <table class="tbl" id="tbl-movimenti">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Prodotto</th>
+                  <th>Tipo</th>
+                  <th class="num">Qtà</th>
+                  <th>Da → A</th>
+                  <th>Motivo</th>
+                  <th>Nota</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-movimenti"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 5: LISTA SPESA ============ -->
+      <div class="tab-panel" id="tab-spesa">
+        <div class="shop-two-col">
+          <!-- Left: add + suggestions -->
+          <div>
+            <div class="card mb-8">
+              <header class="card-header"><h2>Aggiungi alla lista</h2></header>
+              <div class="card-body">
+                <div class="form-grid">
+                  <label class="full">Prodotto<input type="text" id="shop-name" placeholder="es. Pomodori" /></label>
+                  <label>Qtà<input type="text" id="shop-qty" placeholder="es. 5 kg" /></label>
+                  <div class="form-actions full">
+                    <button class="btn primary" id="btn-shop-add">Aggiungi</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <header class="card-header"><h2>Suggerimenti (sotto scorta)</h2></header>
+              <div class="card-body" id="shop-suggestions"><p class="muted">Nessun prodotto sotto scorta.</p></div>
+            </div>
+          </div>
+          <!-- Right: shopping list -->
+          <div class="card">
+            <header class="card-header">
+              <h2>Lista spesa</h2>
+              <button class="btn ghost" id="btn-shop-clear">Svuota</button>
+            </header>
+            <div class="card-body" id="shop-list"><p class="muted">Lista vuota.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 6: ATTREZZATURE ============ -->
+      <div class="tab-panel" id="tab-attrezzature">
+        <div class="two-col">
+          <!-- Left: form -->
+          <div class="card">
+            <header class="card-header"><h2 id="equip-form-title">Nuova attrezzatura</h2></header>
+            <div class="card-body">
+              <div class="form-grid">
+                <label>Nome<input type="text" id="eq-name" /></label>
+                <label>Categoria<input type="text" id="eq-category" placeholder="es. Posate" /></label>
+                <label>Quantità<input type="number" id="eq-qty" min="0" step="1" /></label>
+                <label>Stato
+                  <select id="eq-status">
+                    <option value="operativo">Operativo</option>
+                    <option value="manutenzione">Manutenzione</option>
+                    <option value="fuori uso">Fuori uso</option>
+                  </select>
+                </label>
+                <label>Posizione
+                  <select id="eq-location">
+                    <option value="cucina">Cucina</option>
+                    <option value="sala">Sala</option>
+                    <option value="bar">Bar</option>
+                    <option value="pizzeria">Pizzeria</option>
+                    <option value="magazzino">Magazzino</option>
+                    <option value="altro">Altro</option>
+                  </select>
+                </label>
+                <label>Valore (€)<input type="number" id="eq-value" min="0" step="0.01" /></label>
+                <div class="form-actions full">
+                  <button class="btn primary" id="btn-eq-save">Salva</button>
+                  <button class="btn ghost" id="btn-eq-cancel" style="display:none">Annulla</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Right: table -->
+          <div class="card">
+            <header class="card-header"><h2>Elenco attrezzature</h2></header>
+            <div class="card-body tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Categoria</th>
+                    <th class="num">Qtà</th>
+                    <th>Stato</th>
+                    <th>Posizione</th>
+                    <th class="num">Valore</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-equip"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </main>
-
   </div>
 
-  <!-- MODALE RETTIFICA RICEVUTA (CARICO) -->
-  <div class="modal-overlay" id="modal-edit-load">
+  <!-- ===== MODALS ===== -->
+
+  <!-- Edit product modal -->
+  <div class="modal-overlay" id="modal-edit">
     <div class="modal">
       <header class="modal-header">
-        <h3>Modifica ricevuta merce</h3>
-        <button type="button" class="modal-close" id="modal-edit-load-close">&times;</button>
+        <h3>Modifica prodotto</h3>
+        <button type="button" class="modal-close" data-close="modal-edit">&times;</button>
       </header>
       <div class="modal-body">
-        <p class="modal-product" id="edit-load-product">—</p>
-        <p class="modal-hint" id="edit-load-route" style="font-size:12px;color:var(--text-soft);"></p>
-        <label>
-          Quantità registrata
-          <input type="number" id="edit-load-qty" step="0.01" min="0.01" />
-          <span class="modal-unit" id="edit-load-unit">kg</span>
+        <label>Nome<input type="text" id="edit-name" /></label>
+        <label>Categoria<input type="text" id="edit-category" /></label>
+        <label>Unità
+          <select id="edit-unit">
+            <option value="kg">kg</option><option value="g">g</option>
+            <option value="L">L</option><option value="mL">mL</option>
+            <option value="pz">pz</option><option value="bt">bt</option>
+            <option value="ct">ct</option><option value="lt">lt</option>
+            <option value="m">m</option><option value="cm">cm</option>
+          </select>
         </label>
-        <label>
-          Nota ricevuta
-          <input type="text" id="edit-load-note" placeholder="Note" />
-        </label>
+        <label>Quantità<input type="number" id="edit-qty" step="0.01" /></label>
+        <label>Soglia minima<input type="number" id="edit-threshold" step="0.01" /></label>
+        <label>Costo/u (€)<input type="number" id="edit-cost" step="0.01" /></label>
+        <label>Fornitore<input type="text" id="edit-supplier" /></label>
+        <label>Lotto<input type="text" id="edit-lot" /></label>
+        <label>Scadenza<input type="date" id="edit-expiry" /></label>
       </div>
       <footer class="modal-footer">
-        <button type="button" class="btn ghost" id="modal-edit-load-cancel">Annulla</button>
-        <button type="button" class="btn primary" id="modal-edit-load-confirm">Salva modifiche</button>
+        <button class="btn ghost" data-close="modal-edit">Annulla</button>
+        <button class="btn primary" id="btn-edit-confirm">Salva</button>
       </footer>
     </div>
   </div>
 
-  <!-- MODALE RIENTRO AL CENTRALE -->
-  <div class="modal-overlay" id="modal-return">
+  <!-- Stock adjustment modal -->
+  <div class="modal-overlay" id="modal-adjust">
     <div class="modal">
       <header class="modal-header">
-        <h3>Restituisci al Centrale</h3>
-        <button type="button" class="modal-close" id="modal-return-close">&times;</button>
+        <h3>Rettifica scorte</h3>
+        <button type="button" class="modal-close" data-close="modal-adjust">&times;</button>
       </header>
       <div class="modal-body">
-        <p class="modal-product" id="return-product-name">—</p>
-        <p class="modal-dept" id="return-dept-label">Reparto: Cucina</p>
-        <label>
-          Quantità da restituire
-          <input type="number" id="return-qty" step="0.01" min="0.01" />
-          <span class="modal-unit" id="return-unit">kg</span>
-        </label>
-        <label>
-          Operatore (opz.)
-          <input type="text" id="return-operator" placeholder="Chi restituisce" />
-        </label>
-        <label>
-          Nota (opz.)
-          <input type="text" id="return-note" placeholder="Es. rientro eccedenza" />
+        <p id="adjust-product-label" style="font-weight:600;margin:0"></p>
+        <label>Delta (+/-)
+          <input type="number" id="adjust-delta" step="0.01" placeholder="es. -3 o +5" />
         </label>
       </div>
       <footer class="modal-footer">
-        <button class="btn ghost" id="modal-return-cancel">Annulla</button>
-        <button class="btn primary" id="modal-return-confirm">Conferma rientro</button>
+        <button class="btn ghost" data-close="modal-adjust">Annulla</button>
+        <button class="btn primary" id="btn-adjust-confirm">Applica</button>
       </footer>
     </div>
   </div>
 
-  <!-- MODALE TRASFERIMENTO -->
+  <!-- Delete confirmation modal -->
+  <div class="modal-overlay" id="modal-delete">
+    <div class="modal">
+      <header class="modal-header">
+        <h3>Conferma eliminazione</h3>
+        <button type="button" class="modal-close" data-close="modal-delete">&times;</button>
+      </header>
+      <div class="modal-body">
+        <p id="delete-label">Eliminare questo prodotto?</p>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn ghost" data-close="modal-delete">Annulla</button>
+        <button class="btn btn-danger" id="btn-delete-confirm">Elimina</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Transfer modal (for Reparti tab) -->
   <div class="modal-overlay" id="modal-transfer">
     <div class="modal">
       <header class="modal-header">
-        <h3>Trasferisci a reparto</h3>
-        <button type="button" class="modal-close" id="modal-transfer-close">&times;</button>
+        <h3>Nuovo trasferimento</h3>
+        <button type="button" class="modal-close" data-close="modal-transfer">&times;</button>
       </header>
       <div class="modal-body">
-        <p class="modal-product" id="transfer-product-name">—</p>
-        <p class="modal-hint" style="font-size:12px;color:var(--text-soft);margin-bottom:8px;">
-          Da: <strong>Magazzino Centrale</strong> → A: <strong id="transfer-to-label">Cucina (kitchen)</strong>
-        </p>
-        <label>
-          Reparto destinazione
-          <select id="transfer-dept">
-            <option value="cucina">Cucina (kitchen)</option>
-            <option value="sala">Sala</option>
+        <label>Prodotto
+          <select id="xfer-product"></select>
+        </label>
+        <label>Da
+          <select id="xfer-from">
+            <option value="central">Magazzino Centrale</option>
+            <option value="cucina">Cucina</option>
+            <option value="pizzeria">Pizzeria</option>
             <option value="bar">Bar</option>
+            <option value="sala">Sala</option>
             <option value="proprieta">Proprietà</option>
+            <option value="altro">Altro</option>
           </select>
         </label>
-        <label>
-          Quantità
-          <input type="number" id="transfer-qty" step="0.01" min="0.01" />
-          <span class="modal-unit" id="transfer-unit">kg</span>
+        <label>A
+          <select id="xfer-to">
+            <option value="cucina">Cucina</option>
+            <option value="pizzeria">Pizzeria</option>
+            <option value="bar">Bar</option>
+            <option value="sala">Sala</option>
+            <option value="proprieta">Proprietà</option>
+            <option value="altro">Altro</option>
+          </select>
         </label>
-        <label>
-          Operatore / Reparto richiedente (opz.)
-          <input type="text" id="transfer-operator" placeholder="Chi prende" />
-        </label>
-        <label>
-          Nota (opz.)
-          <input type="text" id="transfer-note" placeholder="Nota" />
-        </label>
+        <label>Quantità<input type="number" id="xfer-qty" step="0.01" min="0.01" /></label>
+        <label>Nota<input type="text" id="xfer-note" /></label>
       </div>
       <footer class="modal-footer">
-        <button class="btn ghost" id="modal-transfer-cancel">Annulla</button>
-        <button class="btn primary" id="modal-transfer-confirm">Conferma trasferimento</button>
+        <button class="btn ghost" data-close="modal-transfer">Annulla</button>
+        <button class="btn primary" id="btn-xfer-confirm">Trasferisci</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- New movement modal -->
+  <div class="modal-overlay" id="modal-movement">
+    <div class="modal">
+      <header class="modal-header">
+        <h3>Nuovo movimento</h3>
+        <button type="button" class="modal-close" data-close="modal-movement">&times;</button>
+      </header>
+      <div class="modal-body">
+        <label>Prodotto
+          <select id="mov-product"></select>
+        </label>
+        <label>Tipo
+          <select id="mov-type">
+            <option value="carico">Carico</option>
+            <option value="scarico">Scarico</option>
+            <option value="trasferimento">Trasferimento</option>
+            <option value="rettifica">Rettifica</option>
+          </select>
+        </label>
+        <label id="mov-qty-label">Quantità<input type="number" id="mov-qty" step="0.01" /></label>
+        <label id="mov-from-label">Da
+          <select id="mov-from">
+            <option value="">—</option>
+            <option value="central">Magazzino Centrale</option>
+            <option value="cucina">Cucina</option>
+            <option value="pizzeria">Pizzeria</option>
+            <option value="bar">Bar</option>
+            <option value="sala">Sala</option>
+            <option value="proprieta">Proprietà</option>
+            <option value="altro">Altro</option>
+          </select>
+        </label>
+        <label id="mov-to-label">A
+          <select id="mov-to">
+            <option value="">—</option>
+            <option value="central">Magazzino Centrale</option>
+            <option value="cucina">Cucina</option>
+            <option value="pizzeria">Pizzeria</option>
+            <option value="bar">Bar</option>
+            <option value="sala">Sala</option>
+            <option value="proprieta">Proprietà</option>
+            <option value="altro">Altro</option>
+          </select>
+        </label>
+        <label>Motivo<input type="text" id="mov-reason" /></label>
+        <label>Nota<input type="text" id="mov-note" /></label>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn ghost" data-close="modal-movement">Annulla</button>
+        <button class="btn primary" id="btn-mov-confirm">Registra</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Edit movement modal -->
+  <div class="modal-overlay" id="modal-edit-mov">
+    <div class="modal">
+      <header class="modal-header">
+        <h3>Modifica movimento</h3>
+        <button type="button" class="modal-close" data-close="modal-edit-mov">&times;</button>
+      </header>
+      <div class="modal-body">
+        <p id="editmov-label" style="font-weight:600;margin:0"></p>
+        <label>Quantità<input type="number" id="editmov-qty" step="0.01" /></label>
+        <label>Nota<input type="text" id="editmov-note" /></label>
+      </div>
+      <footer class="modal-footer">
+        <button class="btn ghost" data-close="modal-edit-mov">Annulla</button>
+        <button class="btn primary" id="btn-editmov-confirm">Salva</button>
       </footer>
     </div>
   </div>

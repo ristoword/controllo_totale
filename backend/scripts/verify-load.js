@@ -4,5 +4,13 @@
  * Uso: npm test
  */
 process.env.NODE_ENV = process.env.NODE_ENV || "test";
+
+require("../src/config/loadEnv").loadEnv();
+
+const crypto = require("crypto");
+if (!process.env.SESSION_SECRET || !String(process.env.SESSION_SECRET).trim()) {
+  process.env.SESSION_SECRET = crypto.randomBytes(32).toString("hex");
+}
+
 require("../src/app");
 console.log("[verify-load] OK");

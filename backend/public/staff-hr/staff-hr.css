@@ -1,4 +1,4 @@
-/* Staff HR — Controllo Totale */
+/* Staff HR — Controllo Totale (RISTOSAAS design) */
 :root {
   --bg: #050712;
   --bg-alt: #121425;
@@ -148,17 +148,13 @@ body {
 .card-body { padding:16px 18px; }
 
 /* INPUTS */
-.input-date {
+.input-date, .select-sm {
   background:var(--bg-soft); border:1px solid var(--border);
   color:var(--text); border-radius:var(--radius-sm);
   padding:6px 10px; font-size:13px;
 }
-.input-date:focus { outline:none; border-color:var(--accent); }
-.select-sm {
-  background:var(--bg-soft); border:1px solid var(--border);
-  color:var(--text); border-radius:var(--radius-sm);
-  padding:6px 10px; font-size:12px; cursor:pointer;
-}
+.input-date:focus, .select-sm:focus { outline:none; border-color:var(--accent); }
+.select-sm { cursor:pointer; font-size:12px; }
 
 /* TABLE */
 .table-wrap { overflow-x:auto; }
@@ -199,15 +195,12 @@ body {
 .leg-item.permesso { background:rgba(249,115,22,.15); color:var(--warn); }
 .leg-item.riposo { background:rgba(100,116,139,.15); color:#94a3b8; }
 
-.calendar { }
 .cal-grid-header {
-  display:grid; grid-template-columns:repeat(7,1fr); gap:2px;
-  margin-bottom:4px;
+  display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:4px;
 }
 .cal-grid-header .day-name {
   text-align:center; font-size:11px; font-weight:700;
-  text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted);
-  padding:6px 0;
+  text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); padding:6px 0;
 }
 .cal-grid {
   display:grid; grid-template-columns:repeat(7,1fr); gap:2px;
@@ -238,6 +231,27 @@ body {
   margin-bottom:8px; gap:12px; flex-wrap:wrap;
 }
 .pending-row:last-child { margin-bottom:0; }
+
+/* CLOCK CARDS */
+.clock-cards {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-top:14px;
+}
+.clock-card {
+  background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-md);
+  padding:12px; display:flex; flex-direction:column; gap:6px;
+}
+.clock-card-name { font-weight:600; font-size:13px; }
+.clock-card-role { font-size:11px; color:var(--text-muted); }
+.clock-card-actions { display:flex; gap:6px; margin-top:4px; }
+.clock-card-actions .btn { padding:4px 10px; font-size:11px; }
+
+/* INFO NOTE */
+.info-note {
+  background:var(--bg-soft); border:1px solid var(--border);
+  border-radius:var(--radius-md); padding:14px 16px; font-size:13px;
+  color:var(--text-soft); margin-top:14px;
+}
+.info-note strong { color:var(--accent); }
 
 @media (max-width:800px) {
   .layout { grid-template-columns:1fr; }

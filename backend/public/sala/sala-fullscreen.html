@@ -19,6 +19,12 @@
       <a href="/cassa/cassa.html">Cassa</a>
       <a href="/sala/sala.html" title="Vista classica due colonne">Sala classica</a>
     </nav>
+    <div class="ct-fs-status-badges" id="ct-fs-status-badges">
+      <span class="ct-fs-badge badge-libero">Libero <strong id="cnt-libero">0</strong></span>
+      <span class="ct-fs-badge badge-aperto">Occupato <strong id="cnt-aperto">0</strong></span>
+      <span class="ct-fs-badge badge-conto">Conto <strong id="cnt-conto">0</strong></span>
+      <span class="ct-fs-badge badge-sporco">Pulizia <strong id="cnt-sporco">0</strong></span>
+    </div>
     <div class="ct-fs-right">
       <div id="ct-fs-clock" class="ct-fs-clock" aria-live="polite">—:—:—</div>
     </div>
@@ -44,6 +50,26 @@
       }
       tick();
       setInterval(tick, 1000);
+    })();
+
+    (function statusCounters() {
+      async function refresh() {
+        try {
+          const res = await fetch("/api/sala/tables", { credentials: "same-origin" });
+          if (!res.ok) return;
+          const tables = await res.json();
+          const counts = { libero: 0, aperto: 0, conto: 0, sporco: 0 };
+          (Array.isArray(tables) ? tables : []).forEach(t => {
+            if (counts[t.stato] !== undefined) counts[t.stato]++;
+          });
+          document.getElementById("cnt-libero").textContent = counts.libero;
+          document.getElementById("cnt-aperto").textContent = counts.aperto;
+          document.getElementById("cnt-conto").textContent = counts.conto;
+          document.getElementById("cnt-sporco").textContent = counts.sporco;
+        } catch (_) {}
+      }
+      refresh();
+      setInterval(refresh, 10000);
     })();
   </script>
 </body>

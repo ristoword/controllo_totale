@@ -48,79 +48,99 @@
       <header class="topbar">
         <div class="topbar-left">
           <h1>Turni</h1>
-          <p class="subtitle">Pianificazione settimanale del personale</p>
+          <p class="subtitle">Pianificazione settimanale e mensile del personale</p>
         </div>
         <div class="topbar-right">
-          <div class="week-nav">
-            <button class="btn ghost" id="btn-prev-week">&#8249;</button>
-            <span class="week-label" id="week-label">—</span>
-            <button class="btn ghost" id="btn-next-week">&#8250;</button>
-            <button class="btn ghost" id="btn-today">Oggi</button>
-          </div>
-          <select class="select-area" id="filter-area">
-            <option value="">Tutte le aree</option>
-            <option value="cucina">Cucina</option>
-            <option value="sala">Sala</option>
-            <option value="bar">Bar</option>
-            <option value="pizzeria">Pizzeria</option>
-            <option value="cassa">Cassa</option>
-            <option value="magazzino">Magazzino</option>
-          </select>
           <button class="btn primary" id="btn-add-shift">+ Nuovo turno</button>
+          <button class="btn ghost" id="btn-sync-staff">Sync staff</button>
+          <button class="btn ghost" id="btn-export">Esporta CSV</button>
           <button class="btn ghost" id="btn-refresh">Aggiorna</button>
         </div>
       </header>
 
-      <!-- KPI ROW -->
-      <div class="kpi-row">
-        <div class="kpi-card">
-          <div class="kpi-label">Turni settimana</div>
-          <div class="kpi-value" id="kpi-total">0</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Ore pianificate</div>
-          <div class="kpi-value accent" id="kpi-hours">0h</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Ferie/Assenze</div>
-          <div class="kpi-value warn" id="kpi-absences">0</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Operatori</div>
-          <div class="kpi-value" id="kpi-staff">0</div>
-        </div>
+      <!-- TABS: Settimana, Mese, Riepilogo -->
+      <div class="tabs">
+        <button class="tab active" data-tab="settimana">Settimana</button>
+        <button class="tab" data-tab="mese">Mese</button>
+        <button class="tab" data-tab="riepilogo">Riepilogo</button>
+      </div>
+
+      <!-- AREA FILTER -->
+      <div class="area-filters" id="area-filters">
+        <button class="area-btn active" data-area="">Tutte</button>
+        <button class="area-btn" data-area="sala">Sala</button>
+        <button class="area-btn" data-area="cucina">Cucina</button>
+        <button class="area-btn" data-area="bar">Bar</button>
+        <button class="area-btn" data-area="pizzeria">Pizzeria</button>
       </div>
 
       <div id="msg-global" class="msg-bar" style="display:none;"></div>
 
-      <!-- WEEKLY GRID -->
-      <div class="card">
-        <div class="card-body" id="week-grid-wrapper">
-          <table class="week-table" id="week-table">
-            <thead>
-              <tr id="week-header-row">
-                <th class="col-staff">Operatore</th>
-                <!-- Day columns injected by JS -->
-              </tr>
-            </thead>
-            <tbody id="week-tbody">
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- LIST VIEW (mobile fallback / all shifts) -->
-      <div class="card" id="list-section">
-        <div class="card-header">
-          <h2>Tutti i turni della settimana</h2>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <button class="btn ghost small" id="btn-export">Esporta CSV</button>
+      <!-- TAB: SETTIMANA -->
+      <section class="tab-panel active" id="panel-settimana">
+        <div class="topbar" style="margin-bottom:10px;padding:0">
+          <div class="week-nav">
+            <button class="btn ghost small" id="btn-prev-week">&#8249;</button>
+            <span class="week-label" id="week-label">—</span>
+            <button class="btn ghost small" id="btn-next-week">&#8250;</button>
+            <button class="btn ghost small" id="btn-today">Oggi</button>
           </div>
         </div>
-        <div class="card-body" id="shift-list-body">
-          <div class="empty-state">Nessun turno nella settimana selezionata.</div>
+        <div class="card">
+          <div class="card-body" id="week-grid-wrapper">
+            <table class="week-table" id="week-table">
+              <thead>
+                <tr id="week-header-row">
+                  <th class="col-staff">Operatore</th>
+                </tr>
+              </thead>
+              <tbody id="week-tbody"></tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- TAB: MESE -->
+      <section class="tab-panel" id="panel-mese">
+        <div class="month-nav">
+          <button class="btn ghost small" id="btn-prev-month">&#8249;</button>
+          <span class="month-label" id="month-label">—</span>
+          <button class="btn ghost small" id="btn-next-month">&#8250;</button>
+        </div>
+        <div class="card">
+          <div class="card-body" id="month-calendar"></div>
+        </div>
+      </section>
+
+      <!-- TAB: RIEPILOGO -->
+      <section class="tab-panel" id="panel-riepilogo">
+        <div class="card">
+          <div class="card-header">
+            <h2>Riepilogo turni</h2>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Operatore</th>
+                    <th>Ruolo</th>
+                    <th>Ore lavorate</th>
+                    <th>Giorni lavoro</th>
+                    <th>Ferie</th>
+                    <th>Malattia</th>
+                    <th>Permesso</th>
+                    <th>Riposo</th>
+                  </tr>
+                </thead>
+                <tbody id="summary-tbody">
+                  <tr><td colspan="8" class="empty-cell">Nessun dato.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
 
     </main>
   </div>
@@ -159,10 +179,10 @@
             <span>Nome operatore (libero)</span>
             <input type="text" id="f-staffname" placeholder="Es. Mario Rossi" />
           </label>
-          <label class="field">
+          <label class="field full">
             <span>Tipo turno</span>
             <div class="shift-type-picker" id="shift-type-picker">
-              <button type="button" class="type-btn active" data-type="work">Lavoro</button>
+              <button type="button" class="type-btn active work" data-type="work">Lavoro</button>
               <button type="button" class="type-btn" data-type="ferie">Ferie</button>
               <button type="button" class="type-btn" data-type="malattia">Malattia</button>
               <button type="button" class="type-btn" data-type="permesso">Permesso</button>

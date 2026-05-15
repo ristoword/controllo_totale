@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>CONTROLLO TOTALE – Gestione utenti staff</title>
+  <title>CONTROLLO TOTALE – Gestione Staff</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="staff.css" />
 </head>
@@ -11,116 +11,158 @@
 
     <header class="topbar">
       <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Gestione utenti staff</h1>
-        <p class="subtitle">Dipendenti e accessi collegati al ristorante</p>
+        <h1>CONTROLLO TOTALE – Gestione Staff</h1>
+        <p class="subtitle">Dipendenti, accessi, badge, timbrature e richieste assenze</p>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
-        <div class="kpi">
-          <span class="kpi-label">Totale</span>
-          <span class="kpi-value" id="kpi-total">0</span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Attivi</span>
-          <span class="kpi-value" id="kpi-active">0</span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Presenti ora</span>
-          <span class="kpi-value" id="kpi-present">0</span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Turni aperti</span>
-          <span class="kpi-value" id="kpi-open">0</span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Anomalie</span>
-          <span class="kpi-value" id="kpi-anomaly">0</span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Ore oggi</span>
-          <span class="kpi-value" id="kpi-hours">0</span>
-        </div>
+        <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
         <button class="btn ghost" id="btn-refresh">Aggiorna</button>
       </div>
     </header>
 
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Totale</div>
+        <div class="kpi-value" id="kpi-total">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Attivi</div>
+        <div class="kpi-value accent" id="kpi-active">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">In ferie</div>
+        <div class="kpi-value" id="kpi-ferie" style="color:var(--blue)">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Malattia</div>
+        <div class="kpi-value danger" id="kpi-malattia">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Anomalie</div>
+        <div class="kpi-value warn" id="kpi-anomaly">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Ore/sett.</div>
+        <div class="kpi-value" id="kpi-hours">0</div>
+      </div>
+    </div>
+
     <main class="main">
 
+      <!-- LEFT COLUMN -->
       <section class="left-column">
-        <article class="card">
-          <header class="card-header">
-            <h2>Aggiungi dipendente</h2>
-            <p>Nuovo utente con accesso al sistema</p>
-          </header>
-          <div class="card-body form-grid">
-            <label>Nome <input type="text" id="field-name" placeholder="Es. Mario" /></label>
-            <label>Cognome <input type="text" id="field-surname" placeholder="Es. Rossi" /></label>
-            <label>Reparto
-              <select id="field-role">
-                <option value="sala">Sala</option>
-                <option value="cucina">Cucina</option>
-                <option value="bar">Bar</option>
-                <option value="magazzino">Magazzino</option>
-                <option value="pizzeria">Pizzeria</option>
-                <option value="cassa">Cassa</option>
-                <option value="supervisor">Supervisor</option>
-                <option value="staff">Staff</option>
-              </select>
-            </label>
-            <label>Username <input type="text" id="field-username" placeholder="Es. mario.rossi" autocomplete="off" /></label>
-            <label>Password iniziale <input type="password" id="field-password" placeholder="Min. 6 caratteri" autocomplete="new-password" /></label>
-            <div class="form-actions full">
-              <button class="btn primary" id="btn-add-staff">Aggiungi dipendente</button>
-            </div>
-          </div>
-          <div id="form-message" class="login-message" style="margin-top:10px;"></div>
-        </article>
 
-        <article class="card">
+        <!-- Add/Edit Employee Form -->
+        <article class="card" id="card-employee-form">
           <header class="card-header">
-            <h2>Nuova richiesta assenza</h2>
-            <p>Ferie, permesso o malattia (per te o riusabile in area staff)</p>
-          </header>
-          <div class="card-body form-grid">
-            <label>Tipo
-              <select id="leave-type">
-                <option value="ferie">Ferie</option>
-                <option value="permesso">Permesso</option>
-                <option value="malattia">Malattia</option>
-              </select>
-            </label>
-            <label>Data inizio <input type="date" id="leave-start" /></label>
-            <label>Data fine <input type="date" id="leave-end" /></label>
-            <label class="full">Motivo (opzionale) <input type="text" id="leave-reason" placeholder="Es. visita medica" /></label>
-            <div class="form-actions full">
-              <button class="btn primary" id="btn-leave-submit">Invia richiesta</button>
+            <div>
+              <h2 id="form-title">Aggiungi dipendente</h2>
+              <p id="form-subtitle">Nuovo membro dello staff</p>
             </div>
-          </div>
-          <div id="leave-form-message" class="login-message" style="margin-top:8px;"></div>
-        </article>
-      </section>
-
-      <section class="right-column">
-        <article class="card">
-          <header class="card-header">
-            <h2>Utenti staff</h2>
-            <p>Elenco con azioni</p>
+            <button class="btn ghost small" id="btn-form-reset" style="display:none">Annulla modifica</button>
           </header>
           <div class="card-body">
-            <div id="staff-message" class="login-message"></div>
+            <div class="form-grid">
+              <label>Nome <input type="text" id="field-name" placeholder="Es. Mario" /></label>
+              <label>Cognome <input type="text" id="field-surname" placeholder="Es. Rossi" /></label>
+              <label class="full">Ruolo
+                <select id="field-role">
+                  <optgroup label="Cucina">
+                    <option value="chef">Chef</option>
+                    <option value="sous_chef">Sous Chef</option>
+                    <option value="capopartita">Capopartita</option>
+                    <option value="demi_chef">Demi Chef</option>
+                    <option value="comis_cucina">Comis Cucina</option>
+                    <option value="lavapiatti">Lavapiatti</option>
+                    <option value="inserviente">Inserviente</option>
+                  </optgroup>
+                  <optgroup label="Sala">
+                    <option value="maitre">Maître</option>
+                    <option value="chef_de_rang">Chef de Rang</option>
+                    <option value="demi_chef_sala">Demi Chef Sala</option>
+                    <option value="comis_sala">Comis Sala</option>
+                    <option value="cameriere">Cameriere</option>
+                  </optgroup>
+                  <optgroup label="Bar">
+                    <option value="barman">Barman</option>
+                    <option value="bartender">Bartender</option>
+                    <option value="comis_bar">Comis Bar</option>
+                  </optgroup>
+                  <optgroup label="Pizzeria">
+                    <option value="capo_pizzaiolo">Capo Pizzaiolo</option>
+                    <option value="pizzaiolo">Pizzaiolo</option>
+                    <option value="comis_pizzeria">Comis Pizzeria</option>
+                  </optgroup>
+                  <optgroup label="Cassa">
+                    <option value="cassiere">Cassiere</option>
+                  </optgroup>
+                  <optgroup label="Gestione">
+                    <option value="supervisor">Supervisor</option>
+                    <option value="responsabile">Responsabile</option>
+                  </optgroup>
+                  <optgroup label="Magazzino">
+                    <option value="magazziniere">Magazziniere</option>
+                  </optgroup>
+                  <optgroup label="Altro">
+                    <option value="staff" selected>Staff</option>
+                  </optgroup>
+                </select>
+              </label>
+              <label>Telefono <input type="tel" id="field-phone" placeholder="+39 ..." /></label>
+              <label>Email <input type="email" id="field-email" placeholder="mario@email.it" /></label>
+              <label>Data assunzione <input type="date" id="field-hiredate" /></label>
+              <label>Stipendio (€/mese) <input type="number" id="field-salary" step="0.01" min="0" placeholder="0.00" /></label>
+              <label>Ore/settimana <input type="number" id="field-hours" step="0.5" min="0" placeholder="40" /></label>
+              <label class="full">Note <textarea id="field-notes" rows="2" placeholder="Note interne…"></textarea></label>
+              <div class="form-actions full">
+                <button class="btn primary" id="btn-save-staff">Aggiungi dipendente</button>
+              </div>
+            </div>
+            <div id="form-message" class="msg-bar" style="margin-top:10px"></div>
+
+            <!-- Link user account (edit mode only) -->
+            <div class="link-account-section" id="link-account-section" style="display:none">
+              <h3>Collega account utente</h3>
+              <div class="form-grid">
+                <label>Username <input type="text" id="link-username" placeholder="mario.rossi" autocomplete="off" /></label>
+                <label>Password <input type="password" id="link-password" placeholder="Min. 6 caratteri" autocomplete="new-password" /></label>
+                <div class="form-actions full">
+                  <button class="btn small" id="btn-link-account">Collega account</button>
+                </div>
+              </div>
+              <div id="link-message" class="msg-bar" style="margin-top:8px"></div>
+            </div>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- RIGHT COLUMN -->
+      <section class="right-column">
+
+        <!-- Staff List Table -->
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h2>Elenco dipendenti</h2>
+              <p>Staff attivo con stato e azioni</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <div id="staff-message" class="msg-bar"></div>
             <div class="table-wrap">
-              <table class="staff-table">
+              <table class="data-table">
                 <thead>
                   <tr>
                     <th>Nome</th>
-                    <th>Reparto</th>
-                    <th>Username</th>
+                    <th>Ruolo</th>
                     <th>Stato</th>
+                    <th>Ore/sett</th>
                     <th>Azioni</th>
                   </tr>
                 </thead>
-                <tbody id="staff-tbody">
-                </tbody>
+                <tbody id="staff-tbody"></tbody>
               </table>
             </div>
             <div id="saldi-panel" class="saldi-panel hidden">
@@ -131,91 +173,154 @@
           </div>
         </article>
 
+        <!-- QR Badges -->
         <article class="card">
           <header class="card-header">
-            <h2>Richieste assenze</h2>
-            <p>Ferie, permessi, malattia – approva o rifiuta</p>
+            <div>
+              <h2>QR Badge</h2>
+              <p>Genera badge QR per il personale</p>
+            </div>
           </header>
           <div class="card-body">
-            <div class="leave-filters">
-              <label>Stato
-                <select id="leave-filter-status">
-                  <option value="">Tutti</option>
-                  <option value="pending">In attesa</option>
-                  <option value="approved">Approvate</option>
-                  <option value="rejected">Rifiutate</option>
-                  <option value="cancelled">Annullate</option>
-                </select>
-              </label>
-              <label>Tipo
-                <select id="leave-filter-type">
-                  <option value="">Tutti</option>
-                  <option value="ferie">Ferie</option>
-                  <option value="permesso">Permesso</option>
-                  <option value="malattia">Malattia</option>
-                </select>
-              </label>
-              <label>Dipendente
-                <select id="leave-filter-user">
-                  <option value="">Tutti</option>
-                </select>
-              </label>
-              <button class="btn ghost" id="btn-leave-refresh">Aggiorna</button>
-            </div>
-            <div id="leave-message" class="login-message"></div>
-            <div class="table-wrap">
-              <table class="staff-table leave-table">
-                <thead>
-                  <tr>
-                    <th>Dipendente</th>
-                    <th>Tipo</th>
-                    <th>Periodo</th>
-                    <th>Giorni</th>
-                    <th>Stato</th>
-                    <th>Motivo</th>
-                    <th>Azioni</th>
-                  </tr>
-                </thead>
-                <tbody id="leave-tbody">
-                </tbody>
-              </table>
+            <p style="font-size:13px;color:var(--text-soft)">Genera badge QR individuali o stampa tutti i badge. Funzionalità NFC tag disponibile per ingresso.</p>
+            <div class="qr-actions">
+              <button class="btn small" id="btn-gen-qr">Genera badge QR</button>
+              <button class="btn small" id="btn-nfc-tag">NFC ingresso</button>
+              <button class="btn small" id="btn-print-badges">Stampa tutti i badge</button>
             </div>
           </div>
         </article>
 
+        <!-- Timbrature (Clock in/out) -->
         <article class="card">
           <header class="card-header">
-            <h2>Presenze oggi</h2>
-            <p>Timbrature e turni – entrata/uscita reali da login/logout</p>
+            <div>
+              <h2>Timbrature</h2>
+              <p>Clock in/out del personale</p>
+            </div>
+            <div class="presenze-toolbar" style="margin:0">
+              <label>Data <input type="date" id="presenze-date" /></label>
+              <button class="btn ghost small" id="btn-presenze-refresh">Aggiorna</button>
+            </div>
           </header>
           <div class="card-body">
-            <div class="presenze-toolbar">
-              <label>Data
-                <input type="date" id="presenze-date" />
-              </label>
-              <button class="btn ghost" id="btn-presenze-refresh">Aggiorna presenze</button>
-            </div>
-            <div id="presenze-message" class="login-message"></div>
+            <div id="presenze-message" class="msg-bar"></div>
             <div class="table-wrap">
-              <table class="staff-table presenze-table">
+              <table class="data-table">
                 <thead>
                   <tr>
                     <th>Dipendente</th>
                     <th>Stato turno</th>
-                    <th>Entrata</th>
-                    <th>Uscita</th>
-                    <th>Ore</th>
-                    <th>Anomalie</th>
+                    <th>Ore oggi</th>
                     <th>Azioni</th>
                   </tr>
                 </thead>
-                <tbody id="presenze-tbody">
-                </tbody>
+                <tbody id="presenze-tbody"></tbody>
               </table>
             </div>
             <div class="presenze-summary" id="presenze-summary"></div>
           </div>
         </article>
+
+        <!-- Richieste assenze -->
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h2>Richieste assenze</h2>
+              <p>Ferie, permessi, malattia</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <div class="filter-tabs" id="leave-tabs">
+              <button class="filter-tab active" data-status="">Tutti</button>
+              <button class="filter-tab" data-status="pending">In attesa</button>
+              <button class="filter-tab" data-status="approved">Approvata</button>
+              <button class="filter-tab" data-status="rejected">Rifiutata</button>
+            </div>
+            <div id="leave-message" class="msg-bar"></div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Dipendente</th>
+                    <th>Tipo</th>
+                    <th>Dal</th>
+                    <th>Al</th>
+                    <th>Stato</th>
+                    <th>Note</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="leave-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <!-- Staff per ruolo -->
+        <article class="card">
+          <header class="card-header">
+            <h2>Staff per ruolo</h2>
+          </header>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table class="data-table role-table" id="role-table">
+                <thead>
+                  <tr><th>Ruolo</th><th style="text-align:right">N. dipendenti</th></tr>
+                </thead>
+                <tbody id="role-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <!-- Accessi Staff -->
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h2>Accessi Staff</h2>
+              <p>Crea login per il personale</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <div class="access-form" id="access-form">
+              <label>Nome <input type="text" id="acc-name" placeholder="Nome completo" /></label>
+              <label>Username <input type="text" id="acc-username" placeholder="mario.rossi" autocomplete="off" /></label>
+              <label>Password <input type="password" id="acc-password" placeholder="Min. 6 caratteri" autocomplete="new-password" /></label>
+              <label>Ruolo
+                <select id="acc-role">
+                  <option value="staff">Staff</option>
+                  <option value="sala">Sala</option>
+                  <option value="cucina">Cucina</option>
+                  <option value="bar">Bar</option>
+                  <option value="pizzeria">Pizzeria</option>
+                  <option value="cassa">Cassa</option>
+                  <option value="magazzino">Magazzino</option>
+                  <option value="supervisor">Supervisor</option>
+                </select>
+              </label>
+              <label class="full">Email <input type="email" id="acc-email" placeholder="email@esempio.it" /></label>
+              <div class="full" style="display:flex;gap:8px;justify-content:flex-end">
+                <button class="btn primary small" id="btn-create-access">Crea account</button>
+              </div>
+            </div>
+            <div id="access-message" class="msg-bar" style="margin-top:10px"></div>
+            <div class="table-wrap" style="margin-top:14px">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Username</th>
+                    <th>Ruolo</th>
+                    <th>Azioni</th>
+                  </tr>
+                </thead>
+                <tbody id="access-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
       </section>
 
     </main>

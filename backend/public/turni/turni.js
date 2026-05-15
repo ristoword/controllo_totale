@@ -1,23 +1,28 @@
-// Turni — Controllo Totale
+// Turni — Controllo Totale (RISTOSAAS design)
 (function () {
   "use strict";
 
-  /* ─── State ─────────────────────────────────── */
+  /* ─── State ─────────────────────────────── */
   let weekStart = getWeekStart(new Date());
+  let monthYear = new Date().getFullYear();
+  let monthMonth = new Date().getMonth();
   let staffList = [];
   let shiftsData = [];
+  let monthShifts = [];
   let editingShiftId = null;
   let selectedType = "work";
   let filterArea = "";
+  let activeTab = "settimana";
 
-  /* ─── Helpers ────────────────────────────────── */
+  const MONTHS_IT = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+  const DAYS_IT = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
+
+  /* ─── Helpers ───────────────────────────── */
   function $(id) { return document.getElementById(id); }
-  function qs(sel, ctx) { return (ctx || document).querySelector(sel); }
-  function qsa(sel, ctx) { return Array.from((ctx || document).querySelectorAll(sel)); }
+  function qsa(sel) { return Array.from(document.querySelectorAll(sel)); }
 
-  function toIso(d) {
-    return d.toISOString().slice(0, 10);
-  }
+  function toIso(d) { return d.toISOString().slice(0, 10); }
+  function pad2(n) { return String(n).padStart(2, "0"); }
 
   function getWeekStart(date) {
     const d = new Date(date);
@@ -28,15 +33,8 @@
     return d;
   }
 
-  function addDays(d, n) {
-    const r = new Date(d);
-    r.setDate(r.getDate() + n);
-    return r;
-  }
-
-  function isoToDate(iso) {
-    return new Date(iso + "T12:00:00");
-  }
+  function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+  function todayIso() { return toIso(new Date()); }
 
   function formatWeekLabel(start, end) {
     const opts = { day: "numeric", month: "short" };
@@ -49,10 +47,6 @@
     return days[date.getDay()] + " " + date.getDate() + " " + months[date.getMonth()];
   }
 
-  function todayIso() {
-    return toIso(new Date());
-  }
-
   function computeHours(shift) {
     if (!shift.start || !shift.end) return 0;
     const [sh, sm] = shift.start.split(":").map(Number);
@@ -62,8 +56,8 @@
   }
 
   function chipClass(type) {
-    const map = { work: "type-work", ferie: "type-ferie", malattia: "type-malattia", permesso: "type-permesso", riposo: "type-riposo" };
-    return "shift-chip " + (map[type] || "type-work");
+    const t = type || "work";
+    return "shift-chip type-" + t;
   }
 
   function chipLabel(shift) {
@@ -76,19 +70,29 @@
 
   function staffName(staffId) {
     const s = staffList.find((m) => m.id === staffId);
-    if (s) return (s.name || "") + " " + (s.surname || "");
-    return "—";
+    return s ? ((s.name || "") + " " + (s.surname || "")).trim() : "—";
   }
 
-  /* ─── API ────────────────────────────────────── */
+  function esc(s) {
+    if (s == null) return "";
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  /* ─── API ───────────────────────────────── */
   async function api(path, opts) {
     const res = await fetch(path, {
       credentials: "same-origin",
       headers: { "Content-Type": "application/json", ...(opts && opts.headers) },
       ...opts,
     });
+    if (res.status === 401) {
+      window.location.replace("/login/login.html");
+      throw new Error("Unauthorized");
+    }
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || data.message || "Errore richiesta");
+    if (!res.ok) throw new Error(data.error || data.message || "Errore");
     return data;
   }
 
@@ -96,11 +100,8 @@
     try {
       const data = await api("/api/staff");
       staffList = Array.isArray(data) ? data : (data.staff || []);
-    } catch (_) {
-      staffList = [];
-    }
+    } catch (_) { staffList = []; }
     fillStaffSelect();
-    updateKpiStaff();
   }
 
   async function loadShifts() {
@@ -114,36 +115,70 @@
       showMsg(e.message, false);
     }
     renderWeekGrid();
-    renderShiftList();
-    updateKpis();
+    renderSummary();
   }
 
-  /* ─── Render ─────────────────────────────────── */
+  async function loadMonthShifts() {
+    const from = `${monthYear}-${pad2(monthMonth + 1)}-01`;
+    const lastDay = new Date(monthYear, monthMonth + 1, 0).getDate();
+    const to = `${monthYear}-${pad2(monthMonth + 1)}-${pad2(lastDay)}`;
+    try {
+      const data = await api(`/api/staff/shifts/by-range?dateFrom=${from}&dateTo=${to}`);
+      monthShifts = Array.isArray(data) ? data : (data.shifts || []);
+    } catch (_) { monthShifts = []; }
+    renderMonthCalendar();
+    renderSummary();
+  }
+
+  /* ─── Tab Switching ─────────────────────── */
+  function initTabs() {
+    qsa(".tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        qsa(".tab").forEach((t) => t.classList.remove("active"));
+        qsa(".tab-panel").forEach((p) => p.classList.remove("active"));
+        btn.classList.add("active");
+        activeTab = btn.dataset.tab;
+        const panel = $("panel-" + activeTab);
+        if (panel) panel.classList.add("active");
+        if (activeTab === "mese") loadMonthShifts();
+        if (activeTab === "riepilogo") renderSummary();
+      });
+    });
+  }
+
+  /* ─── Area Filter ───────────────────────── */
+  function initAreaFilters() {
+    qsa("#area-filters .area-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        qsa("#area-filters .area-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        filterArea = btn.dataset.area;
+        if (activeTab === "settimana") renderWeekGrid();
+        if (activeTab === "mese") renderMonthCalendar();
+        renderSummary();
+      });
+    });
+  }
+
+  /* ─── WEEK VIEW ─────────────────────────── */
   function renderWeekGrid() {
     const today = todayIso();
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     const weekDayIsos = weekDays.map(toIso);
 
-    // Update header
     const headerRow = $("week-header-row");
     headerRow.innerHTML = '<th class="col-staff">Operatore</th>';
     weekDays.forEach((d, i) => {
       const iso = weekDayIsos[i];
       const th = document.createElement("th");
       if (iso === today) th.className = "today-col";
-      th.innerHTML = formatDayHeader(d);
+      th.textContent = formatDayHeader(d);
       headerRow.appendChild(th);
     });
 
-    // Filter shifts
     let filtered = shiftsData;
     if (filterArea) filtered = filtered.filter((s) => (s.area || s.department || "") === filterArea);
 
-    // Group by staffId
-    const staffInShifts = new Set();
-    filtered.forEach((s) => { if (s.staffId) staffInShifts.add(s.staffId); });
-
-    // Rows: one per staff member who has shifts + "unknown" row
     const rows = {};
     filtered.forEach((s) => {
       const key = s.staffId || "__free__";
@@ -160,32 +195,24 @@
     if (keys.length === 0) {
       const tr = document.createElement("tr");
       const td = document.createElement("td");
-      td.colSpan = 8;
-      td.className = "empty-state";
-      td.style.textAlign = "center";
-      td.style.padding = "30px";
-      td.style.color = "var(--text-muted)";
+      td.colSpan = 8; td.className = "empty-state";
+      td.style.cssText = "text-align:center;padding:30px;color:var(--text-muted)";
       td.textContent = "Nessun turno pianificato per questa settimana.";
-      tr.appendChild(td);
-      tbody.appendChild(tr);
+      tr.appendChild(td); tbody.appendChild(tr);
       return;
     }
 
     keys.forEach((key) => {
       const tr = document.createElement("tr");
-
-      // Staff name cell
       const tdName = document.createElement("td");
       tdName.className = "staff-name-cell";
       if (key === "__free__") {
-        tdName.textContent = "— Libero —";
-        tdName.style.color = "var(--text-muted)";
+        tdName.textContent = "— Libero —"; tdName.style.color = "var(--text-muted)";
       } else {
         tdName.textContent = staffName(key);
       }
       tr.appendChild(tdName);
 
-      // Day cells
       weekDayIsos.forEach((dayIso) => {
         const td = document.createElement("td");
         if (dayIso === today) td.className = "today-col";
@@ -195,117 +222,143 @@
           const chip = document.createElement("button");
           chip.className = chipClass(s.type || "work");
           chip.textContent = chipLabel(s);
-          chip.dataset.id = s.id;
           chip.addEventListener("click", () => openEditModal(s));
           td.appendChild(chip);
         });
 
-        // Add button
         const addBtn = document.createElement("button");
-        addBtn.className = "add-shift-btn";
-        addBtn.title = "Aggiungi turno";
-        addBtn.textContent = "+";
-        addBtn.dataset.date = dayIso;
-        addBtn.dataset.staffId = key !== "__free__" ? key : "";
-        addBtn.addEventListener("click", (e) => {
-          openAddModal(e.currentTarget.dataset.date, e.currentTarget.dataset.staffId);
-        });
+        addBtn.className = "add-shift-btn"; addBtn.title = "Aggiungi turno"; addBtn.textContent = "+";
+        addBtn.addEventListener("click", () => openAddModal(dayIso, key !== "__free__" ? key : ""));
         td.appendChild(addBtn);
-
         tr.appendChild(td);
       });
-
       tbody.appendChild(tr);
     });
 
-    // Add a "new staff" row at the bottom for adding shifts
+    // "Add operator" row
     const trNew = document.createElement("tr");
     const tdNewName = document.createElement("td");
     tdNewName.className = "staff-name-cell";
-    tdNewName.style.color = "var(--text-muted)";
-    tdNewName.style.fontStyle = "italic";
+    tdNewName.style.cssText = "color:var(--text-muted);font-style:italic";
     tdNewName.textContent = "Aggiungi operatore…";
     trNew.appendChild(tdNewName);
     weekDayIsos.forEach((dayIso) => {
       const td = document.createElement("td");
       if (dayIso === today) td.className = "today-col";
       const addBtn = document.createElement("button");
-      addBtn.className = "add-shift-btn";
-      addBtn.title = "Aggiungi turno";
-      addBtn.textContent = "+";
-      addBtn.dataset.date = dayIso;
-      addBtn.addEventListener("click", (e) => openAddModal(e.currentTarget.dataset.date, ""));
-      td.appendChild(addBtn);
-      trNew.appendChild(td);
+      addBtn.className = "add-shift-btn"; addBtn.title = "Aggiungi turno"; addBtn.textContent = "+";
+      addBtn.addEventListener("click", () => openAddModal(dayIso, ""));
+      td.appendChild(addBtn); trNew.appendChild(td);
     });
     tbody.appendChild(trNew);
   }
 
-  function renderShiftList() {
-    const body = $("shift-list-body");
-    let filtered = shiftsData;
-    if (filterArea) filtered = filtered.filter((s) => (s.area || s.department || "") === filterArea);
-    filtered = filtered.slice().sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.start || "").localeCompare(b.start || ""));
+  /* ─── MONTH VIEW ────────────────────────── */
+  function renderMonthCalendar() {
+    const container = $("month-calendar");
+    container.innerHTML = "";
 
-    if (filtered.length === 0) {
-      body.innerHTML = '<div class="empty-state">Nessun turno nella settimana selezionata.</div>';
+    let filtered = monthShifts;
+    if (filterArea) filtered = filtered.filter((s) => (s.area || s.department || "") === filterArea);
+
+    const byDay = {};
+    filtered.forEach((s) => {
+      if (!byDay[s.date]) byDay[s.date] = [];
+      byDay[s.date].push(s);
+    });
+
+    const firstDay = new Date(monthYear, monthMonth, 1);
+    const lastDay = new Date(monthYear, monthMonth + 1, 0);
+    const startOffset = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+    const totalCells = Math.ceil((startOffset + lastDay.getDate()) / 7) * 7;
+    const todayStr = todayIso();
+
+    const hdr = document.createElement("div");
+    hdr.className = "cal-grid-header";
+    DAYS_IT.forEach((d) => {
+      const div = document.createElement("div");
+      div.className = "day-name"; div.textContent = d;
+      hdr.appendChild(div);
+    });
+    container.appendChild(hdr);
+
+    const grid = document.createElement("div");
+    grid.className = "cal-grid";
+    for (let i = 0; i < totalCells; i++) {
+      const cell = document.createElement("div");
+      const dayNum = i - startOffset + 1;
+      if (dayNum < 1 || dayNum > lastDay.getDate()) {
+        cell.className = "cal-cell empty";
+      } else {
+        const iso = `${monthYear}-${pad2(monthMonth + 1)}-${pad2(dayNum)}`;
+        cell.className = "cal-cell" + (iso === todayStr ? " today" : "");
+        const dayLabel = document.createElement("div");
+        dayLabel.className = "cal-day-num"; dayLabel.textContent = dayNum;
+        cell.appendChild(dayLabel);
+
+        (byDay[iso] || []).forEach((s) => {
+          const chip = document.createElement("span");
+          chip.className = chipClass(s.type || "work");
+          chip.style.cssText = "font-size:9px;padding:2px 4px;margin-bottom:1px;cursor:pointer";
+          const name = s.staffId ? staffName(s.staffId) : (s.staffName || "");
+          chip.textContent = (name.split(" ")[0] || "?") + (s.start && s.type === "work" ? " " + s.start : "");
+          chip.title = name + " · " + chipLabel(s);
+          chip.addEventListener("click", () => openEditModal(s));
+          cell.appendChild(chip);
+        });
+      }
+      grid.appendChild(cell);
+    }
+    container.appendChild(grid);
+  }
+
+  /* ─── RIEPILOGO ─────────────────────────── */
+  function renderSummary() {
+    const allShifts = activeTab === "mese" ? monthShifts : shiftsData;
+    let filtered = allShifts;
+    if (filterArea) filtered = filtered.filter((s) => (s.area || s.department || "") === filterArea);
+
+    const byStaff = {};
+    filtered.forEach((s) => {
+      const key = s.staffId || s.staffName || "__free__";
+      if (!byStaff[key]) byStaff[key] = { hours: 0, workDays: 0, ferie: 0, malattia: 0, permesso: 0, riposo: 0 };
+      const t = s.type || "work";
+      if (t === "work") {
+        byStaff[key].hours += computeHours(s);
+        byStaff[key].workDays++;
+      } else {
+        byStaff[key][t] = (byStaff[key][t] || 0) + 1;
+      }
+    });
+
+    const tbody = $("summary-tbody");
+    const entries = Object.entries(byStaff);
+    if (!entries.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Nessun dato.</td></tr>';
       return;
     }
 
-    const typeLabel = { work: "Lavoro", ferie: "Ferie", malattia: "Malattia", permesso: "Permesso", riposo: "Riposo" };
-
-    body.innerHTML = "";
-    filtered.forEach((s) => {
-      const row = document.createElement("div");
-      row.className = "shift-row";
-      const name = s.staffId ? staffName(s.staffId) : (s.staffName || "—");
-      const area = s.area || s.department || "—";
-      const type = s.type || "work";
-      const t = typeLabel[type] || type;
-      const time = (s.start && s.end && type === "work") ? s.start + " – " + s.end : t;
-
-      row.innerHTML = `
-        <span class="date-cell">${formatDayShort(s.date)}</span>
-        <span class="name-cell">${esc(name)}</span>
-        <span><span class="area-badge">${esc(area)}</span></span>
-        <span class="time-cell">${esc(time)}</span>
-        <span class="time-cell">${computeHours(s).toFixed(1)}h</span>
-        <span class="muted" style="font-size:12px;">${esc(s.notes || "")}</span>
-        <button class="btn ghost small" data-id="${s.id}" onclick="window._editShift('${s.id}')">Modifica</button>
+    tbody.innerHTML = "";
+    entries.forEach(([key, data]) => {
+      const member = staffList.find((s) => s.id === key);
+      const name = member ? ((member.name || "") + " " + (member.surname || "")).trim() : key;
+      const role = member ? member.role : "—";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${esc(name)}</strong></td>
+        <td><span class="badge badge-muted">${esc(role)}</span></td>
+        <td><strong style="color:var(--accent)">${data.hours.toFixed(1)}h</strong></td>
+        <td>${data.workDays}</td>
+        <td>${data.ferie > 0 ? `<span class="badge badge-blue">${data.ferie}</span>` : "—"}</td>
+        <td>${data.malattia > 0 ? `<span class="badge badge-danger">${data.malattia}</span>` : "—"}</td>
+        <td>${data.permesso > 0 ? `<span class="badge badge-warn">${data.permesso}</span>` : "—"}</td>
+        <td>${data.riposo > 0 ? `<span class="badge badge-muted">${data.riposo}</span>` : "—"}</td>
       `;
-      body.appendChild(row);
+      tbody.appendChild(tr);
     });
   }
 
-  function formatDayShort(iso) {
-    if (!iso) return "—";
-    try {
-      const d = isoToDate(iso);
-      return d.toLocaleDateString("it-IT", { weekday: "short", day: "numeric", month: "short" });
-    } catch (_) { return iso; }
-  }
-
-  function esc(s) {
-    if (s == null) return "";
-    const d = document.createElement("div");
-    d.textContent = s;
-    return d.innerHTML;
-  }
-
-  function updateKpis() {
-    const filtered = filterArea ? shiftsData.filter((s) => (s.area || s.department || "") === filterArea) : shiftsData;
-    $("kpi-total").textContent = filtered.length;
-    const hours = filtered.filter((s) => (s.type || "work") === "work").reduce((acc, s) => acc + computeHours(s), 0);
-    $("kpi-hours").textContent = hours.toFixed(1) + "h";
-    const absences = filtered.filter((s) => ["ferie", "malattia", "permesso", "riposo"].includes(s.type || "")).length;
-    $("kpi-absences").textContent = absences;
-  }
-
-  function updateKpiStaff() {
-    $("kpi-staff").textContent = staffList.length;
-  }
-
-  /* ─── Week navigation ─────────────────────────── */
+  /* ─── Week / Month navigation ──────────── */
   function setWeek(date) {
     weekStart = getWeekStart(date);
     const weekEnd = addDays(weekStart, 6);
@@ -313,14 +366,20 @@
     loadShifts();
   }
 
-  /* ─── Modal ──────────────────────────────────── */
+  function setMonth(year, month) {
+    monthYear = year; monthMonth = month;
+    $("month-label").textContent = MONTHS_IT[month] + " " + year;
+    loadMonthShifts();
+  }
+
+  /* ─── Modal ─────────────────────────────── */
   function fillStaffSelect() {
     const sel = $("f-staff");
     sel.innerHTML = '<option value="">— scegli dallo staff —</option>';
     staffList.forEach((s) => {
       const opt = document.createElement("option");
       opt.value = s.id;
-      opt.textContent = (s.name || "") + " " + (s.surname || "") + " (" + (s.role || s.department || "") + ")";
+      opt.textContent = ((s.name || "") + " " + (s.surname || "")).trim() + " (" + (s.role || "") + ")";
       sel.appendChild(opt);
     });
   }
@@ -329,12 +388,9 @@
     selectedType = type;
     qsa(".type-btn").forEach((btn) => {
       btn.className = "type-btn";
-      if (btn.dataset.type === type) {
-        btn.classList.add("active", type === "work" ? "work" : type);
-      }
+      if (btn.dataset.type === type) btn.classList.add("active", type === "work" ? "work" : type);
     });
-    const timeFields = $("time-fields");
-    timeFields.style.display = (type === "work") ? "grid" : "none";
+    $("time-fields").style.display = (type === "work") ? "grid" : "none";
   }
 
   function openAddModal(date, staffId) {
@@ -346,10 +402,9 @@
     $("f-staffname").value = "";
     if (staffId) {
       const s = staffList.find((m) => m.id === staffId);
-      if (s) $("f-staffname").value = (s.name || "") + " " + (s.surname || "");
+      if (s) $("f-staffname").value = ((s.name || "") + " " + (s.surname || "")).trim();
     }
-    $("f-start").value = "08:00";
-    $("f-end").value = "16:00";
+    $("f-start").value = "08:00"; $("f-end").value = "16:00";
     $("f-notes").value = "";
     setActiveType("work");
     $("btn-modal-delete").style.display = "none";
@@ -373,11 +428,6 @@
     $("modal-shift").style.display = "flex";
   }
 
-  window._editShift = function (id) {
-    const s = shiftsData.find((x) => x.id === id);
-    if (s) openEditModal(s);
-  };
-
   function closeModal() {
     $("modal-shift").style.display = "none";
     editingShiftId = null;
@@ -399,10 +449,7 @@
     const payload = {
       staffId: staffId || null,
       staffName: staffNameVal || (staffId ? staffName(staffId) : ""),
-      date,
-      area,
-      department: area,
-      type,
+      date, area, department: area, type,
       status: type === "work" ? "scheduled" : type,
       start: type === "work" ? start : "",
       end: type === "work" ? end : "",
@@ -410,8 +457,7 @@
     };
 
     const saveBtn = $("btn-modal-save");
-    saveBtn.disabled = true;
-    saveBtn.textContent = "Salvataggio…";
+    saveBtn.disabled = true; saveBtn.textContent = "Salvataggio…";
 
     try {
       if (editingShiftId) {
@@ -422,32 +468,26 @@
         showMsg("Turno creato.", true);
       }
       closeModal();
-      await loadShifts();
+      if (activeTab === "mese") loadMonthShifts(); else loadShifts();
     } catch (e) {
       showModalError(e.message);
     } finally {
-      saveBtn.disabled = false;
-      saveBtn.textContent = "Salva turno";
+      saveBtn.disabled = false; saveBtn.textContent = "Salva turno";
     }
   }
 
   async function deleteShift() {
-    if (!editingShiftId) return;
-    if (!confirm("Eliminare questo turno?")) return;
+    if (!editingShiftId || !confirm("Eliminare questo turno?")) return;
     try {
       await api(`/api/staff/shifts/${editingShiftId}`, { method: "DELETE" });
       showMsg("Turno eliminato.", true);
       closeModal();
-      await loadShifts();
-    } catch (e) {
-      showModalError(e.message);
-    }
+      if (activeTab === "mese") loadMonthShifts(); else loadShifts();
+    } catch (e) { showModalError(e.message); }
   }
 
   function showModalError(msg) {
-    const el = $("modal-error");
-    el.textContent = msg;
-    el.style.display = "block";
+    const el = $("modal-error"); el.textContent = msg; el.style.display = "block";
   }
 
   function showMsg(msg, ok) {
@@ -458,77 +498,78 @@
     setTimeout(() => { el.style.display = "none"; }, 4000);
   }
 
-  /* ─── Export CSV ─────────────────────────────── */
+  /* ─── Export CSV ─────────────────────────── */
   function exportCsv() {
+    const allShifts = activeTab === "mese" ? monthShifts : shiftsData;
     const rows = [["Data", "Operatore", "Area", "Tipo", "Inizio", "Fine", "Ore", "Note"]];
     const typeLabel = { work: "Lavoro", ferie: "Ferie", malattia: "Malattia", permesso: "Permesso", riposo: "Riposo" };
-    shiftsData.forEach((s) => {
+    allShifts.forEach((s) => {
       const name = s.staffId ? staffName(s.staffId) : (s.staffName || "");
       rows.push([
-        s.date || "",
-        name,
-        s.area || s.department || "",
+        s.date || "", name, s.area || s.department || "",
         typeLabel[s.type || "work"] || s.type || "",
-        s.start || "",
-        s.end || "",
-        computeHours(s).toFixed(1),
-        s.notes || "",
+        s.start || "", s.end || "", computeHours(s).toFixed(1), s.notes || "",
       ]);
     });
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const from = toIso(weekStart);
-    const to = toIso(addDays(weekStart, 6));
-    a.download = `turni_${from}_${to}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const a = document.createElement("a"); a.href = url;
+    a.download = `turni_${activeTab}.csv`;
+    a.click(); URL.revokeObjectURL(url);
   }
 
-  /* ─── Init ───────────────────────────────────── */
+  /* ─── Init ──────────────────────────────── */
   function init() {
+    initTabs();
+    initAreaFilters();
+
     setWeek(new Date());
+    setMonth(monthYear, monthMonth);
 
     $("btn-prev-week").addEventListener("click", () => setWeek(addDays(weekStart, -7)));
     $("btn-next-week").addEventListener("click", () => setWeek(addDays(weekStart, 7)));
     $("btn-today").addEventListener("click", () => setWeek(new Date()));
-    $("btn-refresh").addEventListener("click", () => loadShifts());
+    $("btn-prev-month").addEventListener("click", () => {
+      if (monthMonth === 0) { monthMonth = 11; monthYear--; } else monthMonth--;
+      setMonth(monthYear, monthMonth);
+    });
+    $("btn-next-month").addEventListener("click", () => {
+      if (monthMonth === 11) { monthMonth = 0; monthYear++; } else monthMonth++;
+      setMonth(monthYear, monthMonth);
+    });
+
+    $("btn-refresh").addEventListener("click", () => {
+      if (activeTab === "mese") loadMonthShifts(); else loadShifts();
+    });
     $("btn-add-shift").addEventListener("click", () => openAddModal(todayIso(), ""));
+    $("btn-sync-staff").addEventListener("click", async () => {
+      await loadStaff();
+      showMsg("Staff sincronizzato.", true);
+    });
+    $("btn-export").addEventListener("click", exportCsv);
+
     $("btn-modal-close").addEventListener("click", closeModal);
     $("btn-modal-cancel").addEventListener("click", closeModal);
     $("btn-modal-save").addEventListener("click", saveShift);
     $("btn-modal-delete").addEventListener("click", deleteShift);
-    $("btn-export").addEventListener("click", exportCsv);
 
-    $("filter-area").addEventListener("change", (e) => {
-      filterArea = e.target.value;
-      renderWeekGrid();
-      renderShiftList();
-      updateKpis();
-    });
-
-    // Shift type picker
     qsa(".type-btn").forEach((btn) => {
       btn.addEventListener("click", () => setActiveType(btn.dataset.type));
     });
 
-    // When staff select changes, fill name field
     $("f-staff").addEventListener("change", (e) => {
       const id = e.target.value;
       if (id) {
         const s = staffList.find((m) => m.id === id);
-        if (s) $("f-staffname").value = (s.name || "") + " " + (s.surname || "");
+        if (s) $("f-staffname").value = ((s.name || "") + " " + (s.surname || "")).trim();
       }
     });
 
-    // Close modal on overlay click
     $("modal-shift").addEventListener("click", (e) => {
       if (e.target === $("modal-shift")) closeModal();
     });
 
-    // Load user info
     fetch("/api/auth/me", { credentials: "same-origin" })
       .then((r) => r.json())
       .then((u) => {

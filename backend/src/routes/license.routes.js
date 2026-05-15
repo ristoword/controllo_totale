@@ -2,25 +2,25 @@ const router = require("express").Router();
 const asyncHandler = require("../utils/asyncHandler");
 const licenseController = require("../controllers/license.controller");
 
-// GET /api/licenses (globale)
+// GET /api/licenses
 router.get("/", asyncHandler(licenseController.getLicense));
 
-// GET /api/licenses/validate?code=... – alias GET di verify-code (GS / curl)
+// GET /api/licenses/validate?code=...
 router.get("/validate", asyncHandler(licenseController.validateCodeQuery));
 
-// POST /api/licenses/verify-code – verifica codice senza attivare
+// POST /api/licenses/verify-code
 router.post("/verify-code", asyncHandler(licenseController.verifyCode));
 
-// POST /api/licenses/complete-activation – crea owner, marca licenza, auto-login
+// POST /api/licenses/complete-activation
 router.post("/complete-activation", asyncHandler(licenseController.completeActivation));
 
-// POST /api/license/activate
+// POST /api/licenses/activate
 router.post("/activate", asyncHandler(licenseController.activateLicense));
 
-// POST /api/license/deactivate
+// POST /api/licenses/deactivate
 router.post("/deactivate", asyncHandler(licenseController.deactivateLicense));
 
-// GET /api/license/status
+// GET /api/licenses/status
 router.get("/status", asyncHandler(licenseController.getStatus));
 
 module.exports = router;
