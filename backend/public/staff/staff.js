@@ -1,569 +1,551 @@
-// Gestione utenti staff – API /api/staff (owner only) + /api/attendance (presenze) + /api/leave (assenze)
+// Staff management — Controllo Totale (RISTOSAAS design)
+(function () {
+  "use strict";
 
-let staffList = [];
-let dailySummary = null;
-let attendanceList = [];
-let leaveList = [];
+  let staffList = [];
+  let dailySummary = null;
+  let attendanceList = [];
+  let leaveList = [];
+  let editingStaffId = null;
+  let leaveFilterStatus = "";
 
-function api(path, opts = {}) {
-  const url = path.startsWith("/") ? path : "/api/staff" + (path ? "/" + path : "");
-  return fetch(url, {
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
-    ...opts,
-  });
-}
+  function $(id) { return document.getElementById(id); }
 
-function attendanceApi(path, opts = {}) {
-  const base = "/api/attendance";
-  const suffix = path.startsWith("/") ? path : (path ? "/" + path : "");
-  const url = base + suffix;
-  return fetch(url, {
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
-    ...opts,
-  });
-}
-
-function leaveApi(path, opts = {}) {
-  const base = "/api/leave";
-  const suffix = path.startsWith("/") ? path : (path ? "/" + path : "");
-  const url = base + suffix;
-  return fetch(url, {
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
-    ...opts,
-  });
-}
-
-function showFormMessage(text, type = "") {
-  const el = document.getElementById("form-message");
-  if (!el) return;
-  el.textContent = text || "";
-  el.className = "login-message" + (type ? " " + type : "");
-}
-
-function showListMessage(text, type = "") {
-  const el = document.getElementById("staff-message");
-  if (!el) return;
-  el.textContent = text || "";
-  el.className = "login-message" + (type ? " " + type : "");
-}
-
-function renderKpi() {
-  document.getElementById("kpi-total").textContent = staffList.length;
-  document.getElementById("kpi-active").textContent = staffList.filter((u) => u.active).length;
-  const present = dailySummary ? (dailySummary.openShiftsCount || 0) : 0;
-  document.getElementById("kpi-present").textContent = present;
-  document.getElementById("kpi-open").textContent = dailySummary ? (dailySummary.openShiftsCount || 0) : 0;
-  document.getElementById("kpi-anomaly").textContent = dailySummary ? (dailySummary.anomaliesCount || 0) : 0;
-  const hours = dailySummary ? (dailySummary.totalWorkedHours != null ? dailySummary.totalWorkedHours : 0) : 0;
-  document.getElementById("kpi-hours").textContent = typeof hours === "number" ? hours.toFixed(1) : hours;
-}
-
-function roleLabel(role) {
-  const r = (role || "").toLowerCase();
-  const map = { sala: "Sala", cucina: "Cucina", bar: "Bar", magazzino: "Magazzino", pizzeria: "Pizzeria", cassa: "Cassa", supervisor: "Supervisor", staff: "Staff", owner: "Owner" };
-  return map[r] || role || "—";
-}
-
-function renderTable() {
-  const tbody = document.getElementById("staff-tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-
-  staffList.forEach((u) => {
-    const tr = document.createElement("tr");
-    const name = [u.name, u.surname].filter(Boolean).join(" ") || "—";
-    tr.innerHTML = `
-      <td>${escapeHtml(name)}</td>
-      <td>${escapeHtml(roleLabel(u.role))}</td>
-      <td>${escapeHtml(u.username || "—")}</td>
-      <td><span class="tag ${u.active ? "active" : "inactive"}">${u.active ? "Attivo" : "Sospeso"}</span></td>
-      <td class="actions">
-        <button class="btn-xs" data-action="toggle" data-id="${escapeHtml(u.id)}">${u.active ? "Disattiva" : "Attiva"}</button>
-        <button class="btn-xs" data-action="reset" data-id="${escapeHtml(u.id)}">Reset password</button>
-      </td>
-    `;
-    tr.querySelectorAll("[data-action]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
-        const action = btn.getAttribute("data-action");
-        if (action === "toggle") toggleActive(id);
-        else if (action === "reset") resetPassword(id);
-        else if (action === "saldi") showSaldi(id);
-      });
-    });
-    tbody.appendChild(tr);
-  });
-}
-
-function escapeHtml(s) {
-  if (s == null) return "";
-  const div = document.createElement("div");
-  div.textContent = s;
-  return div.innerHTML;
-}
-
-async function loadStaff() {
-  showListMessage("Caricamento...");
-  try {
-    const res = await api("");
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      showListMessage(err.error || "Errore caricamento", "error");
-      staffList = [];
-    } else {
-      staffList = await res.json();
-      showListMessage("");
-    }
-  } catch (e) {
-    showListMessage("Errore di connessione.", "error");
-    staffList = [];
+  function esc(s) {
+    if (s == null) return "";
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
   }
-  await loadPresenze();
-  await loadLeaveRequests();
-  fillLeaveFilterUser();
-  renderKpi();
-  renderTable();
-}
 
-function userNameById(id) {
-  const u = staffList.find((x) => String(x.id) === String(id));
-  if (!u) return "—";
-  return [u.name, u.surname].filter(Boolean).join(" ") || u.username || "—";
-}
+  /* ─── API helpers ──────────────────────── */
+  async function fetchJSON(path, opts = {}) {
+    const res = await fetch(path, {
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
+      ...opts,
+    });
+    if (res.status === 401) {
+      window.location.replace("/login/login.html");
+      throw new Error("Unauthorized");
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || data.message || "Errore");
+    return data;
+  }
 
-function anomalyLabel(type) {
-  const t = (type || "").toLowerCase();
-  const map = {
-    missing_logout: "Uscita mancante",
-    missing_login: "Entrata mancante",
-    double_clockin: "Doppia entrata",
-    double_clockout: "Doppia uscita",
-    shift_too_long: "Turno troppo lungo",
+  function showMsg(elId, text, ok) {
+    const el = $(elId);
+    if (!el) return;
+    el.textContent = text || "";
+    el.className = "msg-bar" + (text ? (ok ? " ok" : " err") : "");
+  }
+
+  /* ─── Role labels ──────────────────────── */
+  const ROLE_MAP = {
+    chef: "Chef", sous_chef: "Sous Chef", capopartita: "Capopartita",
+    demi_chef: "Demi Chef", comis_cucina: "Comis Cucina", lavapiatti: "Lavapiatti",
+    inserviente: "Inserviente", maitre: "Maître", chef_de_rang: "Chef de Rang",
+    demi_chef_sala: "Demi Chef Sala", comis_sala: "Comis Sala", cameriere: "Cameriere",
+    barman: "Barman", bartender: "Bartender", comis_bar: "Comis Bar",
+    capo_pizzaiolo: "Capo Pizzaiolo", pizzaiolo: "Pizzaiolo", comis_pizzeria: "Comis Pizzeria",
+    cassiere: "Cassiere", supervisor: "Supervisor", responsabile: "Responsabile",
+    magazziniere: "Magazziniere", staff: "Staff", owner: "Owner",
+    sala: "Sala", cucina: "Cucina", bar: "Bar", magazzino: "Magazzino",
+    pizzeria: "Pizzeria", cassa: "Cassa",
   };
-  return map[t] || type || "—";
-}
 
-function formatTime(iso) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
-  } catch (_) {
-    return iso;
+  function roleLabel(r) { return ROLE_MAP[(r || "").toLowerCase()] || r || "—"; }
+
+  function userName(u) {
+    return [u.name, u.surname].filter(Boolean).join(" ") || u.username || "—";
   }
-}
 
-function formatMinutes(mins) {
-  if (mins == null) return "—";
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h > 0) return h + "h " + (m > 0 ? m + "m" : "");
-  return m + "m";
-}
+  function userNameById(id) {
+    const u = staffList.find((x) => String(x.id) === String(id));
+    return u ? userName(u) : "—";
+  }
 
-async function loadPresenze() {
-  const dateEl = document.getElementById("presenze-date");
-  const date = (dateEl && dateEl.value) || new Date().toISOString().slice(0, 10);
-  const msgEl = document.getElementById("presenze-message");
-  if (msgEl) msgEl.textContent = "Caricamento presenze...";
-  try {
-    const [sumRes, listRes] = await Promise.all([
-      attendanceApi("/daily-summary?date=" + encodeURIComponent(date)),
-      attendanceApi("/?dateFrom=" + date + "&dateTo=" + date),
-    ]);
-    if (!sumRes.ok) {
+  /* ─── Time helpers ─────────────────────── */
+  function formatTime(iso) {
+    if (!iso) return "—";
+    try { return new Date(iso).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" }); }
+    catch (_) { return iso; }
+  }
+
+  function formatMinutes(mins) {
+    if (mins == null) return "—";
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h > 0 ? h + "h " + (m > 0 ? m + "m" : "") : m + "m";
+  }
+
+  /* ─── Load staff ───────────────────────── */
+  async function loadStaff() {
+    showMsg("staff-message", "Caricamento...", true);
+    try {
+      const data = await fetchJSON("/api/staff");
+      staffList = Array.isArray(data) ? data : (data.staff || []);
+      showMsg("staff-message", "");
+    } catch (e) {
+      showMsg("staff-message", e.message, false);
+      staffList = [];
+    }
+    await loadPresenze();
+    await loadLeaveRequests();
+    renderKpi();
+    renderTable();
+    renderRoleTable();
+    renderAccessTable();
+  }
+
+  /* ─── KPIs ─────────────────────────────── */
+  function renderKpi() {
+    $("kpi-total").textContent = staffList.length;
+    $("kpi-active").textContent = staffList.filter((u) => u.active !== false).length;
+
+    const ferieCount = leaveList.filter((l) => l.status === "approved" && l.type === "ferie").length;
+    const malattiaCount = leaveList.filter((l) => l.status === "approved" && l.type === "malattia").length;
+    $("kpi-ferie").textContent = ferieCount;
+    $("kpi-malattia").textContent = malattiaCount;
+
+    $("kpi-anomaly").textContent = dailySummary ? (dailySummary.anomaliesCount || 0) : 0;
+
+    const totalHours = staffList.reduce((sum, u) => sum + (u.hoursWeek || u.weeklyHours || 0), 0);
+    $("kpi-hours").textContent = totalHours > 0 ? totalHours : "—";
+  }
+
+  /* ─── Staff Table ──────────────────────── */
+  function renderTable() {
+    const tbody = $("staff-tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    if (!staffList.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">Nessun dipendente.</td></tr>';
+      return;
+    }
+
+    staffList.forEach((u) => {
+      const tr = document.createElement("tr");
+      const name = userName(u);
+      const hasAccount = u.username ? true : false;
+      const linkedBadge = hasAccount ? '<span class="badge-linked">LINKED</span>' : '';
+
+      const statusMap = {
+        true: { label: "Attivo", cls: "badge-ok" },
+        false: { label: "Sospeso", cls: "badge-danger" },
+      };
+      const active = u.active !== false;
+      const status = statusMap[active] || statusMap[true];
+
+      const hoursWeek = u.hoursWeek || u.weeklyHours || "—";
+
+      tr.innerHTML = `
+        <td><strong>${esc(name)}</strong>${linkedBadge}</td>
+        <td><span class="badge badge-muted">${esc(roleLabel(u.role))}</span></td>
+        <td><span class="badge ${status.cls}">${esc(status.label)}</span></td>
+        <td>${esc(String(hoursWeek))}</td>
+        <td class="actions">
+          <button class="btn-xs" data-action="edit" data-id="${esc(u.id)}">✎</button>
+          <button class="btn-xs" data-action="toggle" data-id="${esc(u.id)}">${active ? "Disattiva" : "Attiva"}</button>
+        </td>
+      `;
+      tr.querySelectorAll("[data-action]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          if (btn.dataset.action === "edit") startEdit(id);
+          else if (btn.dataset.action === "toggle") toggleActive(id);
+        });
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ─── Role Table ───────────────────────── */
+  function renderRoleTable() {
+    const tbody = $("role-tbody");
+    if (!tbody) return;
+    const counts = {};
+    staffList.forEach((u) => {
+      const r = roleLabel(u.role);
+      counts[r] = (counts[r] || 0) + 1;
+    });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    tbody.innerHTML = "";
+    if (!sorted.length) {
+      tbody.innerHTML = '<tr><td colspan="2" class="empty-cell">Nessun dato.</td></tr>';
+      return;
+    }
+    sorted.forEach(([role, count]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${esc(role)}</td><td style="text-align:right;font-weight:700;color:var(--accent)">${count}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ─── Access Table ─────────────────────── */
+  function renderAccessTable() {
+    const tbody = $("access-tbody");
+    if (!tbody) return;
+    const withAccounts = staffList.filter((u) => u.username);
+    tbody.innerHTML = "";
+    if (!withAccounts.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Nessun account creato.</td></tr>';
+      return;
+    }
+    withAccounts.forEach((u) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(userName(u))}</td>
+        <td><code>${esc(u.username)}</code></td>
+        <td><span class="badge badge-muted">${esc(roleLabel(u.role))}</span></td>
+        <td class="actions">
+          <button class="btn-xs" data-action="reset-pw" data-id="${esc(u.id)}">Reset password</button>
+          <button class="btn-xs danger" data-action="delete-access" data-id="${esc(u.id)}">Elimina</button>
+        </td>
+      `;
+      tr.querySelectorAll("[data-action]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          if (btn.dataset.action === "reset-pw") resetPassword(id);
+          else if (btn.dataset.action === "delete-access") deleteStaff(id);
+        });
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ─── Add/Edit Staff ───────────────────── */
+  function clearForm() {
+    editingStaffId = null;
+    $("form-title").textContent = "Aggiungi dipendente";
+    $("form-subtitle").textContent = "Nuovo membro dello staff";
+    $("btn-save-staff").textContent = "Aggiungi dipendente";
+    $("btn-form-reset").style.display = "none";
+    $("link-account-section").style.display = "none";
+    ["field-name", "field-surname", "field-phone", "field-email",
+     "field-hiredate", "field-salary", "field-hours", "field-notes"].forEach((id) => {
+      const el = $(id);
+      if (el) el.value = "";
+    });
+    $("field-role").value = "staff";
+    showMsg("form-message", "");
+  }
+
+  function startEdit(id) {
+    const u = staffList.find((x) => String(x.id) === String(id));
+    if (!u) return;
+    editingStaffId = id;
+    $("form-title").textContent = "Modifica dipendente";
+    $("form-subtitle").textContent = userName(u);
+    $("btn-save-staff").textContent = "Salva modifiche";
+    $("btn-form-reset").style.display = "inline-flex";
+    $("link-account-section").style.display = "block";
+
+    $("field-name").value = u.name || "";
+    $("field-surname").value = u.surname || "";
+    $("field-role").value = u.role || "staff";
+    $("field-phone").value = u.phone || (u.personal && u.personal.phone) || "";
+    $("field-email").value = u.email || (u.personal && u.personal.email) || "";
+    $("field-hiredate").value = u.hireDate || (u.personal && u.personal.hireDate) || "";
+    $("field-salary").value = u.salary || (u.salary && u.salary.monthlySalary) || "";
+    $("field-hours").value = u.hoursWeek || u.weeklyHours || "";
+    $("field-notes").value = u.notes || "";
+
+    showMsg("form-message", "");
+    $("card-employee-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  async function saveStaff() {
+    const name = $("field-name").value.trim();
+    const surname = $("field-surname").value.trim();
+    const role = $("field-role").value;
+    const phone = $("field-phone").value.trim();
+    const email = $("field-email").value.trim();
+    const hireDate = $("field-hiredate").value;
+    const salary = $("field-salary").value ? parseFloat($("field-salary").value) : undefined;
+    const hoursWeek = $("field-hours").value ? parseFloat($("field-hours").value) : undefined;
+    const notes = $("field-notes").value.trim();
+
+    if (!name) {
+      showMsg("form-message", "Inserisci il nome.", false);
+      return;
+    }
+
+    const body = { name, surname, role, phone, email, hireDate, salary, hoursWeek, weeklyHours: hoursWeek, notes };
+
+    showMsg("form-message", "Salvataggio...", true);
+    try {
+      if (editingStaffId) {
+        await fetchJSON("/api/staff/" + editingStaffId, { method: "PATCH", body: JSON.stringify(body) });
+        showMsg("form-message", "Dipendente aggiornato.", true);
+      } else {
+        await fetchJSON("/api/staff", { method: "POST", body: JSON.stringify(body) });
+        showMsg("form-message", "Dipendente creato.", true);
+        clearForm();
+      }
+      await loadStaff();
+    } catch (e) {
+      showMsg("form-message", e.message, false);
+    }
+  }
+
+  async function toggleActive(id) {
+    const u = staffList.find((x) => String(x.id) === String(id));
+    if (!u) return;
+    try {
+      await fetchJSON("/api/staff/" + id, { method: "PATCH", body: JSON.stringify({ active: !u.active }) });
+      await loadStaff();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function resetPassword(id) {
+    try {
+      const data = await fetchJSON("/api/staff/" + id + "/reset-password", { method: "POST" });
+      const pwd = data.temporaryPassword || "";
+      alert("Nuova password temporanea: " + pwd + "\n\nL'utente dovrà cambiarla al primo accesso.");
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  async function deleteStaff(id) {
+    if (!confirm("Eliminare questo account staff?")) return;
+    try {
+      await fetchJSON("/api/staff/" + id, { method: "DELETE" });
+      await loadStaff();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  /* ─── Create access account ────────────── */
+  async function createAccess() {
+    const name = $("acc-name").value.trim();
+    const username = $("acc-username").value.trim();
+    const password = $("acc-password").value;
+    const role = $("acc-role").value;
+    const email = $("acc-email").value.trim();
+
+    if (!username) { showMsg("access-message", "Inserisci username.", false); return; }
+    if (!password || password.length < 6) { showMsg("access-message", "Password: minimo 6 caratteri.", false); return; }
+
+    showMsg("access-message", "Creazione...", true);
+    try {
+      await fetchJSON("/api/staff", { method: "POST", body: JSON.stringify({ name, username, password, role, email }) });
+      showMsg("access-message", "Account creato.", true);
+      $("acc-name").value = "";
+      $("acc-username").value = "";
+      $("acc-password").value = "";
+      $("acc-email").value = "";
+      await loadStaff();
+    } catch (e) {
+      showMsg("access-message", e.message, false);
+    }
+  }
+
+  /* ─── Link account to existing employee ── */
+  async function linkAccount() {
+    if (!editingStaffId) return;
+    const username = $("link-username").value.trim();
+    const password = $("link-password").value;
+    if (!username) { showMsg("link-message", "Inserisci username.", false); return; }
+    if (!password || password.length < 6) { showMsg("link-message", "Password: minimo 6 caratteri.", false); return; }
+
+    showMsg("link-message", "Collegamento...", true);
+    try {
+      await fetchJSON("/api/staff/" + editingStaffId, {
+        method: "PATCH",
+        body: JSON.stringify({ username, password }),
+      });
+      showMsg("link-message", "Account collegato.", true);
+      $("link-username").value = "";
+      $("link-password").value = "";
+      await loadStaff();
+    } catch (e) {
+      showMsg("link-message", e.message, false);
+    }
+  }
+
+  /* ─── Presenze (Clock in/out) ──────────── */
+  async function loadPresenze() {
+    const dateEl = $("presenze-date");
+    const date = (dateEl && dateEl.value) || new Date().toISOString().slice(0, 10);
+    try {
+      const [sumRes, listData] = await Promise.all([
+        fetchJSON("/api/attendance/daily-summary?date=" + encodeURIComponent(date)).catch(() => null),
+        fetchJSON("/api/attendance?dateFrom=" + date + "&dateTo=" + date).catch(() => []),
+      ]);
+      dailySummary = sumRes;
+      attendanceList = Array.isArray(listData) ? listData : [];
+    } catch (_) {
       dailySummary = null;
-      if (msgEl) msgEl.textContent = "Errore riepilogo presenze.";
+      attendanceList = [];
+    }
+    renderPresenzeTable();
+    renderPresenzeSummary();
+  }
+
+  function renderPresenzeTable() {
+    const tbody = $("presenze-tbody");
+    if (!tbody) return;
+    const records = dailySummary && Array.isArray(dailySummary.records) ? dailySummary.records : attendanceList;
+    tbody.innerHTML = "";
+
+    if (!records || records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Nessuna presenza.</td></tr>';
       return;
     }
-    dailySummary = await sumRes.json();
-    attendanceList = listRes.ok ? await listRes.json() : [];
-    if (msgEl) msgEl.textContent = "";
-  } catch (e) {
-    dailySummary = null;
-    attendanceList = [];
-    if (msgEl) msgEl.textContent = "Errore di connessione presenze.";
-  }
-  renderPresenzeTable();
-  renderPresenzeSummary();
-  renderKpi();
-}
 
-function renderPresenzeTable() {
-  const tbody = document.getElementById("presenze-tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  const records = dailySummary && Array.isArray(dailySummary.records) ? dailySummary.records : attendanceList;
-  if (!records || records.length === 0) {
-    tbody.innerHTML = "<tr><td colspan=\"7\">Nessuna presenza per la data selezionata.</td></tr>";
-    return;
-  }
-  records.forEach((r) => {
-    const tr = document.createElement("tr");
-    const name = userNameById(r.userId);
-    const status = r.status === "open" ? "Aperto" : r.status === "closed" ? "Chiuso" : "Anomalia";
-    const statusClass = r.status === "open" ? "open" : r.status === "anomaly" ? "anomaly" : "";
-    const entrata = formatTime(r.clockInAt);
-    const uscita = formatTime(r.clockOutAt);
-    const ore = formatMinutes(r.workedMinutes);
-    const anom = r.anomalyType ? anomalyLabel(r.anomalyType) : "—";
-    tr.innerHTML = `
-      <td>${escapeHtml(name)}</td>
-      <td><span class="tag status ${statusClass}">${escapeHtml(status)}</span></td>
-      <td>${entrata}</td>
-      <td>${uscita}</td>
-      <td>${ore}</td>
-      <td>${escapeHtml(anom)}</td>
-      <td class="actions">
-        ${r.status === "open" ? `<button class="btn-xs" data-action="close" data-id="${escapeHtml(r.id)}">Chiudi turno</button>` : ""}
-        ${(r.anomalyType || r.status === "anomaly") ? `<button class="btn-xs" data-action="reset-anomaly" data-id="${escapeHtml(r.id)}">Reset anomalia</button>` : ""}
-      </td>
-    `;
-    tr.querySelectorAll("[data-action]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
-        if (btn.getAttribute("data-action") === "close") closeShift(id);
-        else resetAnomaly(id);
+    records.forEach((r) => {
+      const tr = document.createElement("tr");
+      const name = userNameById(r.userId);
+      const isOpen = r.status === "open";
+      const statusLabel = isOpen ? "In servizio" : r.status === "anomaly" ? "Anomalia" : "Chiuso";
+      const badgeCls = isOpen ? "badge-ok" : r.status === "anomaly" ? "badge-danger" : "badge-muted";
+      const ore = r.workedMinutes != null ? formatMinutes(r.workedMinutes) : "—";
+
+      tr.innerHTML = `
+        <td><strong>${esc(name)}</strong></td>
+        <td><span class="badge ${badgeCls}">${esc(statusLabel)}</span></td>
+        <td><strong style="color:var(--accent)">${ore}</strong></td>
+        <td class="actions">
+          ${isOpen ? `<button class="btn-xs" data-action="close" data-id="${esc(r.id)}">Chiudi</button>` : ""}
+          ${r.anomalyType ? `<button class="btn-xs" data-action="reset-anom" data-id="${esc(r.id)}">Reset</button>` : ""}
+        </td>
+      `;
+      tr.querySelectorAll("[data-action]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.id;
+          try {
+            if (btn.dataset.action === "close") {
+              await fetchJSON("/api/attendance/" + id + "/close", { method: "PATCH", body: JSON.stringify({}) });
+            } else {
+              await fetchJSON("/api/attendance/" + id + "/anomaly", { method: "PATCH", body: JSON.stringify({ clear: true }) });
+            }
+            await loadPresenze();
+            renderKpi();
+          } catch (e) { alert(e.message); }
+        });
       });
+      tbody.appendChild(tr);
     });
-    tbody.appendChild(tr);
-  });
-}
-
-function renderPresenzeSummary() {
-  const el = document.getElementById("presenze-summary");
-  if (!el) return;
-  if (!dailySummary) {
-    el.innerHTML = "";
-    return;
-  }
-  const cost = dailySummary.estimatedLaborCost != null ? dailySummary.estimatedLaborCost.toFixed(2) : "—";
-  el.innerHTML = `
-    <p class="summary-line">
-      Ore lavorate oggi: <strong>${(dailySummary.totalWorkedHours != null ? dailySummary.totalWorkedHours : 0).toFixed(1)}</strong> h
-      · Costo stimato: <strong>€ ${cost}</strong>
-    </p>
-  `;
-}
-
-async function closeShift(id) {
-  try {
-    const res = await attendanceApi("/" + id + "/close", {
-      method: "PATCH",
-      body: JSON.stringify({}),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Errore chiusura turno.");
-      return;
-    }
-    await loadPresenze();
-    renderKpi();
-  } catch (e) {
-    alert("Errore di connessione.");
-  }
-}
-
-async function resetAnomaly(id) {
-  try {
-    const res = await attendanceApi("/" + id + "/anomaly", {
-      method: "PATCH",
-      body: JSON.stringify({ clear: true }),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Errore reset anomalia.");
-      return;
-    }
-    await loadPresenze();
-    renderKpi();
-  } catch (e) {
-    alert("Errore di connessione.");
-  }
-}
-
-async function addStaff() {
-  const name = document.getElementById("field-name").value.trim();
-  const surname = document.getElementById("field-surname").value.trim();
-  const role = document.getElementById("field-role").value;
-  const username = document.getElementById("field-username").value.trim();
-  const password = document.getElementById("field-password").value;
-
-  if (!username) {
-    showFormMessage("Inserisci username.", "error");
-    return;
-  }
-  if (!password || password.length < 6) {
-    showFormMessage("Password almeno 6 caratteri.", "error");
-    return;
   }
 
-  showFormMessage("Creazione in corso...");
-  try {
-    const res = await api("", {
-      method: "POST",
-      body: JSON.stringify({ name, surname, role, username, password }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      showFormMessage(data.error || "Errore creazione.", "error");
-      return;
-    }
-    showFormMessage("Dipendente creato. Può accedere con username e password iniziale.", "success");
-    document.getElementById("field-name").value = "";
-    document.getElementById("field-surname").value = "";
-    document.getElementById("field-username").value = "";
-    document.getElementById("field-password").value = "";
-    await loadStaff();
-  } catch (e) {
-    showFormMessage("Errore di connessione.", "error");
+  function renderPresenzeSummary() {
+    const el = $("presenze-summary");
+    if (!el || !dailySummary) { if (el) el.innerHTML = ""; return; }
+    const cost = dailySummary.estimatedLaborCost != null ? dailySummary.estimatedLaborCost.toFixed(2) : "—";
+    const hours = dailySummary.totalWorkedHours != null ? dailySummary.totalWorkedHours.toFixed(1) : "0";
+    el.innerHTML = `<p style="margin:0">Ore lavorate: <strong>${hours}</strong> h · Costo stimato: <strong>€ ${cost}</strong></p>`;
   }
-}
 
-async function toggleActive(id) {
-  const u = staffList.find((x) => String(x.id) === String(id));
-  if (!u) return;
-  const newActive = !u.active;
-  try {
-    const res = await api(id, {
-      method: "PATCH",
-      body: JSON.stringify({ active: newActive }),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Errore aggiornamento.");
-      return;
-    }
-    await loadStaff();
-  } catch (e) {
-    alert("Errore di connessione.");
-  }
-}
-
-async function resetPassword(id) {
-  try {
-    const res = await api(id + "/reset-password", { method: "POST" });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      alert(data.error || "Errore reset password.");
-      return;
-    }
-    const pwd = data.temporaryPassword || "";
-    alert("Nuova password temporanea: " + pwd + "\n\nL'utente dovrà cambiarla al primo accesso.");
-    await loadStaff();
-  } catch (e) {
-    alert("Errore di connessione.");
-  }
-}
-
-// ——— Leave / Assenze ———
-
-function leaveTypeLabel(t) {
-  const map = { ferie: "Ferie", permesso: "Permesso", malattia: "Malattia" };
-  return map[t] || t || "—";
-}
-
-function leaveStatusLabel(s) {
-  const map = { pending: "In attesa", approved: "Approvata", rejected: "Rifiutata", cancelled: "Annullata" };
-  return map[s] || s || "—";
-}
-
-function fillLeaveFilterUser() {
-  const sel = document.getElementById("leave-filter-user");
-  if (!sel) return;
-  const prev = sel.value;
-  sel.innerHTML = "<option value=\"\">Tutti</option>";
-  staffList.forEach((u) => {
-    const name = [u.name, u.surname].filter(Boolean).join(" ") || u.username || u.id;
-    const opt = document.createElement("option");
-    opt.value = u.id;
-    opt.textContent = name;
-    sel.appendChild(opt);
-  });
-  if (prev) sel.value = prev;
-}
-
-async function loadLeaveRequests() {
-  const msgEl = document.getElementById("leave-message");
-  if (msgEl) msgEl.textContent = "Caricamento richieste...";
-  try {
-    const q = new URLSearchParams();
-    const status = document.getElementById("leave-filter-status")?.value;
-    const type = document.getElementById("leave-filter-type")?.value;
-    const userId = document.getElementById("leave-filter-user")?.value;
-    if (status) q.set("status", status);
-    if (type) q.set("type", type);
-    if (userId) q.set("userId", userId);
-    const res = await leaveApi("/?" + q.toString());
-    if (!res.ok) {
+  /* ─── Leave Requests ───────────────────── */
+  async function loadLeaveRequests() {
+    try {
+      const q = new URLSearchParams();
+      if (leaveFilterStatus) q.set("status", leaveFilterStatus);
+      const data = await fetchJSON("/api/leave?" + q.toString());
+      leaveList = Array.isArray(data) ? data : [];
+    } catch (_) {
       leaveList = [];
-      if (msgEl) msgEl.textContent = "Errore caricamento richieste.";
+    }
+    renderLeaveTable();
+  }
+
+  function renderLeaveTable() {
+    const tbody = $("leave-tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const filtered = leaveFilterStatus
+      ? leaveList.filter((l) => l.status === leaveFilterStatus)
+      : leaveList;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Nessuna richiesta.</td></tr>';
       return;
     }
-    leaveList = await res.json();
-    if (msgEl) msgEl.textContent = "";
-  } catch (e) {
-    leaveList = [];
-    const msgEl = document.getElementById("leave-message");
-    if (msgEl) msgEl.textContent = "Errore di connessione.";
-  }
-  renderLeaveTable();
-}
 
-function renderLeaveTable() {
-  const tbody = document.getElementById("leave-tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  if (!leaveList.length) {
-    tbody.innerHTML = "<tr><td colspan=\"7\">Nessuna richiesta.</td></tr>";
-    return;
+    const typeMap = { ferie: "Ferie", permesso: "Permesso", malattia: "Malattia" };
+    const statusMap = {
+      pending: { label: "In attesa", cls: "badge-accent" },
+      approved: { label: "Approvata", cls: "badge-ok" },
+      rejected: { label: "Rifiutata", cls: "badge-danger" },
+      cancelled: { label: "Annullata", cls: "badge-muted" },
+    };
+
+    filtered.forEach((r) => {
+      const tr = document.createElement("tr");
+      const name = [r.name, r.surname].filter(Boolean).join(" ") || r.username || r.userId;
+      const st = statusMap[r.status] || statusMap.pending;
+
+      tr.innerHTML = `
+        <td>${esc(name)}</td>
+        <td>${esc(typeMap[r.type] || r.type || "—")}</td>
+        <td>${esc(r.startDate || "—")}</td>
+        <td>${esc(r.endDate || "—")}</td>
+        <td><span class="badge ${st.cls}">${esc(st.label)}</span></td>
+        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.reason || "")}">${esc((r.reason || "—").slice(0, 30))}</td>
+        <td class="actions">
+          ${r.status === "pending" ? `
+            <button class="btn-xs" data-action="approve" data-id="${esc(r.id)}" style="border-color:rgba(61,214,140,.4);color:var(--ok)">Approva</button>
+            <button class="btn-xs danger" data-action="reject" data-id="${esc(r.id)}">Rifiuta</button>
+          ` : ""}
+        </td>
+      `;
+      tr.querySelectorAll("[data-action]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          try {
+            const endpoint = btn.dataset.action === "approve" ? "approve" : "reject";
+            await fetchJSON("/api/leave/" + btn.dataset.id + "/" + endpoint, { method: "POST", body: JSON.stringify({}) });
+            await loadLeaveRequests();
+            renderKpi();
+          } catch (e) { alert(e.message); }
+        });
+      });
+      tbody.appendChild(tr);
+    });
   }
-  leaveList.forEach((r) => {
-    const tr = document.createElement("tr");
-    const name = [r.name, r.surname].filter(Boolean).join(" ") || r.username || r.userId;
-    const periodo = (r.startDate && r.endDate) ? r.startDate + " → " + r.endDate : "—";
-    const stato = leaveStatusLabel(r.status);
-    const statoClass = r.status === "pending" ? "pending" : r.status === "approved" ? "approved" : r.status === "rejected" ? "rejected" : "";
-    tr.innerHTML = `
-      <td>${escapeHtml(name)}</td>
-      <td>${escapeHtml(leaveTypeLabel(r.type))}</td>
-      <td>${escapeHtml(periodo)}</td>
-      <td>${r.days != null ? r.days : "—"}</td>
-      <td><span class="tag leave-status ${statoClass}">${escapeHtml(stato)}</span></td>
-      <td>${escapeHtml((r.reason || "—").slice(0, 40))}${(r.reason && r.reason.length > 40) ? "…" : ""}</td>
-      <td class="actions">
-        ${r.status === "pending" ? `
-          <button class="btn-xs" data-action="approve" data-id="${escapeHtml(r.id)}">Approva</button>
-          <button class="btn-xs danger" data-action="reject" data-id="${escapeHtml(r.id)}">Rifiuta</button>
-        ` : ""}
-      </td>
-    `;
-    tr.querySelectorAll("[data-action]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-id");
-        if (btn.getAttribute("data-action") === "approve") approveLeave(id);
-        else rejectLeave(id);
+
+  /* ─── QR / Badges (placeholder) ────────── */
+  function initQrBadges() {
+    $("btn-gen-qr")?.addEventListener("click", () => alert("Funzionalità QR badge in sviluppo."));
+    $("btn-nfc-tag")?.addEventListener("click", () => alert("Funzionalità NFC tag in sviluppo."));
+    $("btn-print-badges")?.addEventListener("click", () => {
+      if (!staffList.length) { alert("Nessun dipendente."); return; }
+      alert("Stampa badge per " + staffList.length + " dipendenti — funzionalità in sviluppo.");
+    });
+  }
+
+  /* ─── Init ─────────────────────────────── */
+  document.addEventListener("DOMContentLoaded", () => {
+    const dateInput = $("presenze-date");
+    if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
+
+    loadStaff();
+
+    $("btn-refresh")?.addEventListener("click", loadStaff);
+    $("btn-save-staff")?.addEventListener("click", saveStaff);
+    $("btn-form-reset")?.addEventListener("click", clearForm);
+    $("btn-create-access")?.addEventListener("click", createAccess);
+    $("btn-link-account")?.addEventListener("click", linkAccount);
+    $("btn-presenze-refresh")?.addEventListener("click", loadPresenze);
+    if (dateInput) dateInput.addEventListener("change", loadPresenze);
+
+    // Leave filter tabs
+    document.querySelectorAll("#leave-tabs .filter-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll("#leave-tabs .filter-tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        leaveFilterStatus = tab.dataset.status;
+        renderLeaveTable();
       });
     });
-    tbody.appendChild(tr);
+
+    initQrBadges();
   });
-}
-
-async function approveLeave(id) {
-  try {
-    const res = await leaveApi("/" + id + "/approve", { method: "POST", body: JSON.stringify({}) });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Errore approvazione.");
-      return;
-    }
-    await loadLeaveRequests();
-  } catch (e) {
-    alert("Errore di connessione.");
-  }
-}
-
-async function rejectLeave(id) {
-  try {
-    const res = await leaveApi("/" + id + "/reject", { method: "POST", body: JSON.stringify({}) });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Errore rifiuto.");
-      return;
-    }
-    await loadLeaveRequests();
-  } catch (e) {
-    alert("Errore di connessione.");
-  }
-}
-
-async function showSaldi(userId) {
-  const panel = document.getElementById("saldi-panel");
-  const nameEl = document.getElementById("saldi-user-name");
-  const listEl = document.getElementById("saldi-list");
-  if (!panel || !listEl) return;
-  const u = staffList.find((x) => String(x.id) === String(userId));
-  nameEl.textContent = u ? ([u.name, u.surname].filter(Boolean).join(" ") || u.username) : "—";
-  listEl.innerHTML = "<li>Caricamento...</li>";
-  panel.classList.remove("hidden");
-  try {
-    const res = await leaveApi("/balances/" + userId);
-    if (!res.ok) {
-      listEl.innerHTML = "<li>Errore caricamento saldi.</li>";
-      return;
-    }
-    const b = await res.json();
-    listEl.innerHTML = `
-      <li>Ferie maturate: <strong>${b.ferieMaturate != null ? b.ferieMaturate : 0}</strong></li>
-      <li>Ferie usate: <strong>${b.ferieUsate != null ? b.ferieUsate : 0}</strong></li>
-      <li>Permessi usati: <strong>${b.permessiUsati != null ? b.permessiUsati : 0}</strong></li>
-      <li>Malattia (giorni): <strong>${b.malattiaGiorni != null ? b.malattiaGiorni : 0}</strong></li>
-    `;
-  } catch (e) {
-    listEl.innerHTML = "<li>Errore di connessione.</li>";
-  }
-}
-
-function showLeaveFormMessage(text, type) {
-  const el = document.getElementById("leave-form-message");
-  if (!el) return;
-  el.textContent = text || "";
-  el.className = "login-message" + (type ? " " + type : "");
-}
-
-async function submitLeaveRequest() {
-  const start = document.getElementById("leave-start")?.value;
-  const end = document.getElementById("leave-end")?.value;
-  if (!start || !end) {
-    showLeaveFormMessage("Inserisci data inizio e fine.", "error");
-    return;
-  }
-  if (new Date(start) > new Date(end)) {
-    showLeaveFormMessage("Date non valide: la data di inizio deve essere prima della fine.", "error");
-    return;
-  }
-  const type = document.getElementById("leave-type")?.value || "ferie";
-  const reason = document.getElementById("leave-reason")?.value?.trim() || "";
-  showLeaveFormMessage("Invio in corso...");
-  try {
-    const res = await leaveApi("/me", {
-      method: "POST",
-      body: JSON.stringify({ type, startDate: start, endDate: end, reason }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      showLeaveFormMessage(data.error || "Errore invio richiesta.", "error");
-      return;
-    }
-    showLeaveFormMessage("Richiesta inviata.", "success");
-    document.getElementById("leave-start").value = "";
-    document.getElementById("leave-end").value = "";
-    document.getElementById("leave-reason").value = "";
-    await loadLeaveRequests();
-    renderLeaveTable();
-  } catch (e) {
-    showLeaveFormMessage("Errore di connessione.", "error");
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const dateInput = document.getElementById("presenze-date");
-  if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
-  loadStaff();
-  document.getElementById("btn-refresh").addEventListener("click", loadStaff);
-  document.getElementById("btn-add-staff").addEventListener("click", addStaff);
-  const btnPresenze = document.getElementById("btn-presenze-refresh");
-  if (btnPresenze) btnPresenze.addEventListener("click", loadPresenze);
-  if (dateInput) dateInput.addEventListener("change", loadPresenze);
-  const btnLeaveRefresh = document.getElementById("btn-leave-refresh");
-  if (btnLeaveRefresh) btnLeaveRefresh.addEventListener("click", loadLeaveRequests);
-  const btnLeaveSubmit = document.getElementById("btn-leave-submit");
-  if (btnLeaveSubmit) btnLeaveSubmit.addEventListener("click", submitLeaveRequest);
-  ["leave-filter-status", "leave-filter-type", "leave-filter-user"].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener("change", loadLeaveRequests);
-  });
-});
+})();

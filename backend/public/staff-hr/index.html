@@ -55,7 +55,7 @@
         </div>
       </header>
 
-      <!-- TAB BAR -->
+      <!-- TABS -->
       <div class="tabs">
         <button class="tab active" data-tab="presenze">Presenze oggi</button>
         <button class="tab" data-tab="ore">Riepilogo ore</button>
@@ -65,31 +65,26 @@
 
       <div id="msg-global" class="msg-bar" style="display:none;"></div>
 
-      <!-- ─── TAB: PRESENZE ─── -->
+      <!-- TAB: PRESENZE -->
       <section class="tab-panel active" id="panel-presenze">
-        <!-- KPI row -->
         <div class="kpi-row">
           <div class="kpi-card">
-            <div class="kpi-label">Presenti ora</div>
-            <div class="kpi-value accent" id="kpi-present">—</div>
+            <div class="kpi-label">Dipendenti attivi</div>
+            <div class="kpi-value accent" id="kpi-active-staff">—</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Turni chiusi oggi</div>
-            <div class="kpi-value" id="kpi-closed">—</div>
+            <div class="kpi-label">Timbrature oggi</div>
+            <div class="kpi-value" id="kpi-clock-count">—</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Ore lavorate oggi</div>
-            <div class="kpi-value" id="kpi-hours-today">—</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Anomalie</div>
-            <div class="kpi-value warn" id="kpi-anomalies">—</div>
+            <div class="kpi-label">Ore cumulate</div>
+            <div class="kpi-value accent" id="kpi-hours-today">—</div>
           </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <h2>Presenze di oggi</h2>
+            <h2>Timbrature</h2>
             <div style="display:flex;gap:8px;align-items:center;">
               <input type="date" id="attendance-date" class="input-date" />
               <button class="btn ghost small" id="btn-load-attendance">Carica</button>
@@ -105,21 +100,38 @@
                     <th>Entrata</th>
                     <th>Uscita</th>
                     <th>Ore</th>
-                    <th>Stato</th>
                     <th>Azioni</th>
                   </tr>
                 </thead>
                 <tbody id="attendance-tbody">
-                  <tr><td colspan="7" class="empty-cell">Caricamento…</td></tr>
+                  <tr><td colspan="6" class="empty-cell">Caricamento…</td></tr>
                 </tbody>
               </table>
             </div>
+
+            <!-- Manual clock in/out per staff -->
+            <div class="clock-cards" id="clock-cards"></div>
           </div>
         </div>
       </section>
 
-      <!-- ─── TAB: ORE ─── -->
+      <!-- TAB: ORE -->
       <section class="tab-panel" id="panel-ore">
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-label">Ore mese</div>
+            <div class="kpi-value accent" id="kpi-month-hours">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Media/dipendente</div>
+            <div class="kpi-value" id="kpi-avg-hours">—</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Turni registrati</div>
+            <div class="kpi-value" id="kpi-shift-count">—</div>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header">
             <h2>Riepilogo ore mensile</h2>
@@ -131,20 +143,17 @@
           </div>
           <div class="card-body">
             <div class="table-wrap">
-              <table class="data-table" id="hours-table">
+              <table class="data-table">
                 <thead>
                   <tr>
                     <th>Dipendente</th>
                     <th>Ruolo</th>
-                    <th>Turni</th>
-                    <th>Ore lavorate</th>
-                    <th>Ore contrattuali</th>
-                    <th>Straordinari</th>
-                    <th>Assenze</th>
+                    <th>Ore</th>
+                    <th>Retribuzione</th>
                   </tr>
                 </thead>
                 <tbody id="hours-tbody">
-                  <tr><td colspan="7" class="empty-cell">Seleziona un mese e premi Carica.</td></tr>
+                  <tr><td colspan="4" class="empty-cell">Seleziona un mese e premi Carica.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -153,7 +162,7 @@
         </div>
       </section>
 
-      <!-- ─── TAB: FERIE ─── -->
+      <!-- TAB: FERIE -->
       <section class="tab-panel" id="panel-ferie">
         <div class="card">
           <div class="card-header">
@@ -186,11 +195,11 @@
           <div class="card-body" id="pending-list"></div>
         </div>
 
-        <!-- Summary table -->
+        <!-- Monthly absence summary -->
         <div class="card">
           <div class="card-header"><h2>Riepilogo assenze del mese</h2></div>
           <div class="card-body">
-            <table class="data-table" id="ferie-summary-table">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>Dipendente</th>
@@ -208,55 +217,22 @@
         </div>
       </section>
 
-      <!-- ─── TAB: COSTI ─── -->
+      <!-- TAB: COSTI -->
       <section class="tab-panel" id="panel-costi">
         <div class="kpi-row">
           <div class="kpi-card">
-            <div class="kpi-label">Costo personale (mese)</div>
+            <div class="kpi-label">Costo stipendi (mese)</div>
             <div class="kpi-value accent" id="kpi-cost-total">—</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Ore totali</div>
             <div class="kpi-value" id="kpi-cost-hours">—</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-label">N. dipendenti attivi</div>
-            <div class="kpi-value" id="kpi-cost-staff">—</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Costo medio/dipendente</div>
-            <div class="kpi-value" id="kpi-cost-avg">—</div>
-          </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2>Costo personale per dipendente</h2>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input type="month" id="cost-month-picker" class="input-date" />
-              <button class="btn ghost small" id="btn-load-costs">Carica</button>
-              <button class="btn ghost small" id="btn-export-costs">Esporta CSV</button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table class="data-table" id="costs-table">
-                <thead>
-                  <tr>
-                    <th>Dipendente</th>
-                    <th>Ruolo</th>
-                    <th>Ore lavorate</th>
-                    <th>Tariffa/h</th>
-                    <th>Costo stimato</th>
-                    <th>Note</th>
-                  </tr>
-                </thead>
-                <tbody id="costs-tbody">
-                  <tr><td colspan="6" class="empty-cell">Seleziona un mese e premi Carica.</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <div class="info-note">
+          <strong>Nota:</strong> Il calcolo dettagliato del costo personale (contributi, TFR, straordinari)
+          è disponibile nel modulo Payroll. Qui viene mostrato il riepilogo basato sulle tariffe orarie configurate.
         </div>
       </section>
 
