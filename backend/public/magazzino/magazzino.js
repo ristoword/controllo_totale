@@ -1,883 +1,835 @@
-// backend/public/magazzino/magazzino.js
-// Magazzino a doppio livello: Centrale + Scorte reparti
+// magazzino.js – RISTOSAAS-style warehouse module (6 tabs)
+// Backend field names: name, category, unit, quantity, cost, threshold, lot, supplier, deliveryDate, stocks, central
 
-async function fetchJSON(url, options = {}) {
-  const res = await fetch(url, {
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-  if (!res.ok) {
-    if (res.status === 401) {
-      try {
-        localStorage.removeItem("rw_auth");
-      } catch (_) {}
-      const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-      window.location.href = "/login/login.html" + (returnTo ? "?return=" + returnTo : "");
+(function () {
+  "use strict";
+
+  // ─── helpers ───────────────────────────────────────────────────────
+  async function fetchJSON(url, options) {
+    const res = await fetch(url, {
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
+    if (!res.ok) {
+      if (res.status === 401) {
+        try { localStorage.removeItem("rw_auth"); } catch (_) {}
+        const ret = encodeURIComponent(location.pathname + location.search);
+        location.href = "/login/login.html?return=" + ret;
+        return;
+      }
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || err.message || "HTTP " + res.status);
+    }
+    return res.json();
+  }
+
+  function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d)) return esc(iso);
+    return d.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" });
+  }
+
+  function fmtDateTime(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (isNaN(d)) return esc(iso);
+    return d.toLocaleString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+
+  function fmtMoney(n) {
+    return "€ " + (Number(n) || 0).toFixed(2).replace(".", ",");
+  }
+
+  function $(id) { return document.getElementById(id); }
+
+  function openModal(id) { $(id)?.classList.add("open"); }
+  function closeModal(id) { $(id)?.classList.remove("open"); }
+
+  // ─── state ─────────────────────────────────────────────────────────
+  let inventory = [];
+  let transfers = [];
+  let movements = [];
+  let equipment = [];
+  let shoppingList = [];
+  let currentTab = "centrale";
+
+  const SHOP_LS_KEY = "ct_shopping_list";
+
+  const DEPT_KEYS = ["cucina", "pizzeria", "bar", "sala", "proprieta", "altro"];
+  const DEPT_LABELS = {
+    central: "Centrale",
+    cucina: "Cucina",
+    pizzeria: "Pizzeria",
+    bar: "Bar",
+    sala: "Sala",
+    proprieta: "Proprietà",
+    altro: "Altro",
+  };
+
+  const MOV_TYPE_BADGE = {
+    load: '<span class="badge warning">carico</span>',
+    carico: '<span class="badge warning">carico</span>',
+    deduction: '<span class="badge danger">scarico</span>',
+    scarico: '<span class="badge danger">scarico</span>',
+    transfer_to_department: '<span class="badge info">trasferimento</span>',
+    trasferimento: '<span class="badge info">trasferimento</span>',
+    return_to_central: '<span class="badge success">rientro</span>',
+    rettifica: '<span class="badge neutral">rettifica</span>',
+    adjustment: '<span class="badge neutral">rettifica</span>',
+  };
+
+  // ─── tab switching ─────────────────────────────────────────────────
+  function showTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll(".mag-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "tab-" + tab));
+    renderTab();
+  }
+
+  function renderTab() {
+    switch (currentTab) {
+      case "centrale": renderCentrale(); break;
+      case "reparti": renderReparti(); break;
+      case "ricezione": populateRecvProducts(); break;
+      case "movimenti": renderMovimenti(); break;
+      case "spesa": renderSpesa(); break;
+      case "attrezzature": renderEquipment(); break;
+    }
+  }
+
+  // ─── KPI ───────────────────────────────────────────────────────────
+  function updateKPI() {
+    const count = inventory.length;
+    const low = inventory.filter(i => {
+      const qty = Number(i.central ?? i.quantity) || 0;
+      return Number(i.threshold) > 0 && qty <= Number(i.threshold);
+    }).length;
+    const totalValue = inventory.reduce((s, i) => {
+      const qty = Number(i.central ?? i.quantity) || 0;
+      return s + qty * (Number(i.cost) || 0);
+    }, 0);
+
+    $("kpi-count").textContent = count;
+    $("kpi-low").textContent = low;
+    $("kpi-value").textContent = fmtMoney(totalValue);
+
+    const chip = $("kpi-sotto-scorta");
+    if (chip) chip.classList.toggle("alert", low > 0);
+  }
+
+  // ─── data loading ──────────────────────────────────────────────────
+  async function loadAll() {
+    try {
+      const [inv, xfer, mov] = await Promise.all([
+        fetchJSON("/api/inventory"),
+        fetchJSON("/api/inventory/transfers?limit=200"),
+        fetchJSON("/api/stock-movements"),
+      ]);
+      inventory = Array.isArray(inv) ? inv : [];
+      transfers = Array.isArray(xfer) ? xfer : [];
+      movements = Array.isArray(mov) ? mov : [];
+    } catch (e) {
+      console.error("loadAll error:", e);
+    }
+    updateKPI();
+    renderTab();
+  }
+
+  async function loadEquipment() {
+    try {
+      equipment = await fetchJSON("/api/devices");
+      if (!Array.isArray(equipment)) equipment = [];
+    } catch (_) {
+      equipment = [];
+    }
+  }
+
+  // ─── TAB 1: CENTRALE ──────────────────────────────────────────────
+  function renderCentrale() {
+    const tbody = $("tbody-centrale");
+    if (!tbody) return;
+    const search = ($("search-centrale")?.value || "").toLowerCase();
+    const items = inventory.filter(i => {
+      if (search) {
+        const hay = ((i.name || "") + " " + (i.category || "") + " " + (i.supplier || "")).toLowerCase();
+        if (!hay.includes(search)) return false;
+      }
+      return true;
+    });
+
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center">Nessun prodotto.</td></tr>';
       return;
     }
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || err.message || `HTTP ${res.status}`);
-  }
-  return res.json();
-}
 
-let inventoryCache = [];
-let transfersCache = [];
-let currentTab = "centrale";
-
-const UNITS = ["kg", "lt", "unità", "pezzi"];
-
-const DEPT_LABELS = {
-  central: "Centrale",
-  cucina: "Cucina",
-  sala: "Sala",
-  bar: "Bar",
-  proprieta: "Proprietà",
-};
-
-function getSearchFilter() {
-  return document.getElementById("search-input").value.toLowerCase().trim();
-}
-
-function filterBySearch(items, qtyField) {
-  const search = getSearchFilter();
-  if (!search) return items;
-  return items.filter((item) => {
-    const name = String(item.name || "").toLowerCase();
-    const supplier = String(item.supplier || "").toLowerCase();
-    return name.includes(search) || supplier.includes(search);
-  });
-}
-
-function formatDeliveryDate(iso) {
-  if (!iso || typeof iso !== "string") return "";
-  const d = iso.slice(0, 10);
-  const parts = d.split("-");
-  if (parts.length !== 3) return escapeHtml(iso);
-  const [y, m, day] = parts;
-  if (!y || !m || !day) return escapeHtml(iso);
-  return `${day}/${m}/${y}`;
-}
-
-function showTab(tabName) {
-  currentTab = tabName;
-  document.querySelectorAll(".mag-tab").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.tab === tabName);
-  });
-  document.querySelectorAll(".card-tab").forEach((el) => {
-    el.classList.toggle("active", el.id === "tab-" + tabName);
-  });
-  document.getElementById("section-new-product").style.display =
-    tabName === "centrale" ? "block" : "none";
-  renderCurrentTab();
-}
-
-function renderCurrentTab() {
-  if (currentTab === "centrale") renderCentralList();
-  else if (currentTab === "ricezione") { /* form only */ }
-  else if (currentTab === "cucina") renderDepartmentList("cucina");
-  else if (currentTab === "sala") renderDepartmentList("sala");
-  else if (currentTab === "bar") renderDepartmentList("bar");
-  else if (currentTab === "proprieta") renderDepartmentList("proprieta");
-  else if (currentTab === "movimenti") renderTransfersList();
-}
-
-function updateKPI(items) {
-  const all = items || inventoryCache;
-  const central = all.filter((i) => (Number(i.central ?? i.quantity) || 0) > 0);
-  const totalQty = central.reduce((s, i) => s + (Number(i.central ?? i.quantity) || 0), 0);
-  const totalValue = central.reduce(
-    (s, i) => s + (Number(i.central ?? i.quantity) || 0) * (Number(i.cost) || 0),
-    0
-  );
-  document.getElementById("kpi-count").textContent = all.length;
-  document.getElementById("kpi-central").textContent = totalQty.toFixed(1);
-  document.getElementById("kpi-value").textContent = `€ ${totalValue.toFixed(2)}`;
-}
-
-function renderCentralList() {
-  const listEl = document.getElementById("inventory-central-list");
-  const items = filterBySearch(
-    inventoryCache.filter((i) => (Number(i.central ?? i.quantity) || 0) > 0)
-  );
-  updateKPI(inventoryCache);
-  if (!items.length) {
-    listEl.innerHTML = "<p class='muted'>Nessun prodotto in Magazzino Centrale.</p>";
-    return;
-  }
-  listEl.innerHTML = items
-    .map((item) => {
-      const qty = Number(item.central ?? item.quantity) || 0;
-      const lowStock =
-        Number(item.threshold) > 0 && qty <= Number(item.threshold);
-      const lineValue = qty * (Number(item.cost) || 0);
-      return `
-        <div class="inventory-row" data-id="${item.id}">
-          <div class="inv-main">
-            <div class="inv-name">
-              <strong>${escapeHtml(item.name)}</strong>
-              <span class="inv-unit">(${escapeHtml(item.unit || "un")})</span>
-            </div>
-            <div class="inv-qty ${lowStock ? "low" : ""}">
-              Q.tà: <strong>${qty}</strong>
-              ${lowStock ? '<span class="badge danger">Sotto soglia</span>' : ""}
-            </div>
-            <div class="inv-meta">
-              ${item.category ? `<span class="inv-cat">${escapeHtml(item.category)}</span>` : ""}
-              ${item.lot ? `<span class="inv-lot">Lotto: ${escapeHtml(item.lot)}</span>` : ""}
-              ${item.supplier ? `<span class="inv-supplier">Fornitore: ${escapeHtml(item.supplier)}</span>` : ""}
-              ${item.deliveryDate ? `<span class="inv-delivery">Consegna: ${formatDeliveryDate(item.deliveryDate)}</span>` : ""}
-            </div>
-            <div class="inv-cost">Costo: € ${Number(item.cost || 0).toFixed(2)} · Valore riga: € ${lineValue.toFixed(2)}</div>
+    tbody.innerHTML = items.map(i => {
+      const qty = Number(i.central ?? i.quantity) || 0;
+      const lowStock = Number(i.threshold) > 0 && qty <= Number(i.threshold);
+      const lowBadge = lowStock ? ' <span class="badge danger">sotto scorta</span>' : "";
+      const catLine = [i.category, i.supplier].filter(Boolean).map(esc).join(" · ");
+      return `<tr data-id="${i.id}">
+        <td>
+          <div class="prod-name">${esc(i.name)}${lowBadge}</div>
+          ${catLine ? '<div class="prod-meta">' + catLine + '</div>' : ""}
+        </td>
+        <td class="num">${qty} ${esc(i.unit || "")}</td>
+        <td class="num">${fmtMoney(i.cost)}</td>
+        <td>${esc(i.lot || "—")}</td>
+        <td>${fmtDate(i.deliveryDate) || "—"}</td>
+        <td class="center">
+          <span class="stock-btns">
+            <button data-act="minus" data-id="${i.id}" title="-1">−</button>
+            <button data-act="plus" data-id="${i.id}" title="+1">+</button>
+          </span>
+        </td>
+        <td>
+          <div class="actions">
+            <button class="btn small" data-act="edit" data-id="${i.id}">Modifica</button>
+            <button class="btn small btn-danger" data-act="delete" data-id="${i.id}">Elimina</button>
           </div>
-          <div class="inv-actions">
-            <button class="btn small btn-transfer" data-id="${item.id}" data-name="${escapeHtml(item.name)}" data-unit="${escapeHtml(item.unit || "un")}" data-max="${qty}">Trasferisci</button>
-            <button class="btn small" data-delta="-1" data-id="${item.id}">−1</button>
-            <button class="btn small" data-delta="1" data-id="${item.id}">+1</button>
-            <button class="btn small btn-delete" data-id="${item.id}">Elimina</button>
-          </div>
-        </div>`;
-    })
-    .join("");
-  attachCentralListeners(listEl);
-}
+        </td>
+      </tr>`;
+    }).join("");
 
-function renderDepartmentList(dept) {
-  const listEl = document.getElementById("inventory-" + dept + "-list");
-  const items = filterBySearch(
-    inventoryCache
-      .map((i) => ({
-        ...i,
-        qtyDept: Number(i.stocks && i.stocks[dept]) || 0,
-      }))
-      .filter((i) => i.qtyDept > 0)
-  );
-  const deptLabel = DEPT_LABELS[dept] || dept;
-  if (!items.length) {
-    listEl.innerHTML = `<p class='muted'>Nessun prodotto nella Scorta ${deptLabel}.</p>`;
-    return;
+    tbody.onclick = handleCentraleClick;
   }
-  listEl.innerHTML = items
-    .map((item) => {
-      const qty = item.qtyDept;
-      const lowStock =
-        Number(item.threshold) > 0 && qty <= Number(item.threshold);
-      return `
-        <div class="inventory-row dept-row">
-          <div class="inv-main">
-            <div class="inv-name">
-              <strong>${escapeHtml(item.name)}</strong>
-              <span class="inv-unit">(${escapeHtml(item.unit || "un")})</span>
-            </div>
-            <div class="inv-qty ${lowStock ? "low" : ""}">
-              Q.tà: <strong>${qty}</strong>
-              ${lowStock ? '<span class="badge danger">Sotto soglia</span>' : ""}
-            </div>
-            <div class="inv-cost">Costo: € ${Number(item.cost || 0).toFixed(2)}</div>
-          </div>
-          <div class="inv-actions">
-            <button class="btn small btn-return" data-id="${item.id}" data-name="${escapeHtml(item.name)}" data-unit="${escapeHtml(item.unit || "un")}" data-max="${qty}" data-dept="${dept}">Rientra</button>
-          </div>
-        </div>`;
-    })
-    .join("");
-  attachDepartmentListeners(listEl, dept);
-}
 
-let editLoadTransferId = null;
+  async function handleCentraleClick(e) {
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
 
-function renderTransfersList() {
-  const listEl = document.getElementById("transfers-list");
-  if (!transfersCache.length) {
-    listEl.innerHTML = "<p class='muted'>Nessun movimento interno registrato.</p>";
-    return;
-  }
-  const deptLabel = (d) => DEPT_LABELS[d] || d || "?";
-  listEl.innerHTML = transfersCache
-    .map((t) => {
-      const dt = t.createdAt || t.date || "";
-      const timeStr = dt
-        ? new Date(dt).toLocaleString("it-IT", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "—";
-      const op = t.operator ? ` · ${escapeHtml(t.operator)}` : "";
-      const note = t.note ? ` · ${escapeHtml(t.note)}` : "";
-      const isReturn = t.type === "return_to_central";
-      const isLoad = t.type === "load";
-      const badge = isReturn
-        ? '<span class="badge return">RIENTRO</span>'
-        : isLoad
-        ? '<span class="badge load">RICEVUTA</span>'
-        : '<span class="badge transfer">TRASFERIMENTO</span>';
-      const routeText = isReturn
-        ? `da ${deptLabel(t.from)} → Centrale`
-        : isLoad
-        ? `→ ${deptLabel(t.to)}`
-        : `da Centrale → ${deptLabel(t.to)}`;
-      const editBtn = isLoad
-        ? ` <button type="button" class="btn small btn-edit-load" data-tid="${escapeHtml(String(t.id))}">Modifica</button>`
-        : "";
-      return `
-        <div class="transfer-row ${isReturn ? "transfer-row-return" : ""}">
-          <div class="transfer-main">
-            ${badge}
-            <strong>${escapeHtml(t.productName || "?")}</strong>
-            <span class="transfer-qty">${t.quantity} ${escapeHtml(t.unit || "un")}</span>
-            <span class="transfer-route">${routeText}</span>${editBtn}
-          </div>
-          <div class="transfer-meta">${timeStr}${op}${note}</div>
-        </div>`;
-    })
-    .join("");
-
-  listEl.querySelectorAll(".btn-edit-load").forEach((btn) => {
-    btn.addEventListener("click", () => openEditLoadModal(btn.getAttribute("data-tid")));
-  });
-}
-
-function findTransferById(id) {
-  return transfersCache.find((t) => String(t.id) === String(id)) || null;
-}
-
-function openEditLoadModal(transferId) {
-  const t = findTransferById(transferId);
-  if (!t || t.type !== "load") return;
-  editLoadTransferId = transferId;
-  document.getElementById("edit-load-product").textContent = t.productName || "—";
-  const deptLabel = DEPT_LABELS[t.to] || t.to || "?";
-  document.getElementById("edit-load-route").textContent = `Destinazione: ${deptLabel}`;
-  document.getElementById("edit-load-unit").textContent = t.unit || "un";
-  document.getElementById("edit-load-qty").value = String(t.quantity ?? "");
-  document.getElementById("edit-load-note").value = t.note ? String(t.note) : "";
-  document.getElementById("modal-edit-load").classList.add("open");
-}
-
-function closeEditLoadModal() {
-  document.getElementById("modal-edit-load")?.classList.remove("open");
-  editLoadTransferId = null;
-}
-
-async function confirmEditLoad() {
-  if (!editLoadTransferId) return;
-  const qty = parseFloat(document.getElementById("edit-load-qty").value);
-  const note = document.getElementById("edit-load-note").value.trim();
-  if (!qty || qty <= 0) {
-    alert("Inserisci una quantità valida.");
-    return;
-  }
-  try {
-    await fetchJSON(`/api/inventory/transfers/${encodeURIComponent(editLoadTransferId)}`, {
-      method: "PATCH",
-      body: JSON.stringify({ quantity: qty, note }),
-    });
-    closeEditLoadModal();
-    await loadAll();
-  } catch (err) {
-    alert(err.message || "Errore salvataggio");
-  }
-}
-
-function escapeHtml(s) {
-  const div = document.createElement("div");
-  div.textContent = s;
-  return div.innerHTML;
-}
-
-function attachDepartmentListeners(container, dept) {
-  if (!container) return;
-  container.querySelectorAll(".btn-return").forEach((btn) => {
-    btn.addEventListener("click", () => openReturnModal(btn.dataset));
-  });
-}
-
-function attachCentralListeners(container) {
-  if (!container) return;
-  container.querySelectorAll("button[data-delta]").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.getAttribute("data-id");
-      const delta = btn.getAttribute("data-delta") === "1" ? 1 : -1;
+    if (act === "minus" || act === "plus") {
+      const delta = act === "plus" ? 1 : -1;
       try {
-        await fetchJSON(`/api/inventory/${id}/adjust`, {
+        await fetchJSON("/api/inventory/" + id + "/adjust", {
           method: "PATCH",
           body: JSON.stringify({ delta }),
         });
         await loadAll();
-      } catch (err) {
-        alert(err.message || "Errore aggiornamento quantità");
+      } catch (err) { alert(err.message); }
+    } else if (act === "edit") {
+      openEditModal(id);
+    } else if (act === "delete") {
+      openDeleteModal(id);
+    }
+  }
+
+  // add product
+  async function addProduct() {
+    const name = $("f-name")?.value.trim();
+    if (!name) { alert("Nome obbligatorio."); return; }
+    const body = {
+      name,
+      category: $("f-category")?.value.trim() || "",
+      unit: $("f-unit")?.value || "pz",
+      quantity: parseFloat($("f-qty")?.value) || 0,
+      threshold: parseFloat($("f-threshold")?.value) || 0,
+      cost: parseFloat($("f-cost")?.value) || 0,
+      supplier: $("f-supplier")?.value.trim() || "",
+      lot: $("f-lot")?.value.trim() || "",
+      deliveryDate: $("f-expiry")?.value || "",
+    };
+    try {
+      await fetchJSON("/api/inventory", { method: "POST", body: JSON.stringify(body) });
+      ["f-name","f-category","f-qty","f-threshold","f-cost","f-supplier","f-lot","f-expiry"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+      $("f-unit").value = "pz";
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  // edit modal
+  let editingProductId = null;
+
+  function openEditModal(id) {
+    const item = inventory.find(i => String(i.id) === String(id));
+    if (!item) return;
+    editingProductId = id;
+    $("edit-name").value = item.name || "";
+    $("edit-category").value = item.category || "";
+    $("edit-unit").value = item.unit || "pz";
+    $("edit-qty").value = item.quantity ?? item.central ?? "";
+    $("edit-threshold").value = item.threshold ?? "";
+    $("edit-cost").value = item.cost ?? "";
+    $("edit-supplier").value = item.supplier || "";
+    $("edit-lot").value = item.lot || "";
+    $("edit-expiry").value = item.deliveryDate ? item.deliveryDate.slice(0, 10) : "";
+    openModal("modal-edit");
+  }
+
+  async function confirmEdit() {
+    if (!editingProductId) return;
+    const body = {
+      name: $("edit-name").value.trim(),
+      category: $("edit-category").value.trim(),
+      unit: $("edit-unit").value,
+      quantity: parseFloat($("edit-qty").value) || 0,
+      threshold: parseFloat($("edit-threshold").value) || 0,
+      cost: parseFloat($("edit-cost").value) || 0,
+      supplier: $("edit-supplier").value.trim(),
+      lot: $("edit-lot").value.trim(),
+      deliveryDate: $("edit-expiry").value || "",
+    };
+    if (!body.name) { alert("Nome obbligatorio."); return; }
+    try {
+      await fetchJSON("/api/inventory/" + editingProductId, { method: "PATCH", body: JSON.stringify(body) });
+      closeModal("modal-edit");
+      editingProductId = null;
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  // stock adjust modal
+  let adjustProductId = null;
+
+  function openAdjustModal(id) {
+    const item = inventory.find(i => String(i.id) === String(id));
+    if (!item) return;
+    adjustProductId = id;
+    $("adjust-product-label").textContent = item.name || "—";
+    $("adjust-delta").value = "";
+    openModal("modal-adjust");
+  }
+
+  async function confirmAdjust() {
+    if (!adjustProductId) return;
+    const delta = parseFloat($("adjust-delta").value);
+    if (!Number.isFinite(delta) || delta === 0) { alert("Inserisci un valore."); return; }
+    try {
+      await fetchJSON("/api/inventory/" + adjustProductId + "/adjust", {
+        method: "PATCH",
+        body: JSON.stringify({ delta }),
+      });
+      closeModal("modal-adjust");
+      adjustProductId = null;
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  // delete modal
+  let deleteProductId = null;
+
+  function openDeleteModal(id) {
+    const item = inventory.find(i => String(i.id) === String(id));
+    if (!item) return;
+    deleteProductId = id;
+    $("delete-label").textContent = 'Eliminare "' + (item.name || "?") + '" dal magazzino?';
+    openModal("modal-delete");
+  }
+
+  async function confirmDelete() {
+    if (!deleteProductId) return;
+    try {
+      await fetchJSON("/api/inventory/" + deleteProductId, { method: "DELETE" });
+      closeModal("modal-delete");
+      deleteProductId = null;
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  // ─── TAB 2: REPARTI ───────────────────────────────────────────────
+  function renderReparti() {
+    const tbody = $("tbody-reparti");
+    if (!tbody) return;
+    if (!inventory.length) {
+      tbody.innerHTML = '<tr><td colspan="9" class="muted" style="text-align:center">Nessun prodotto.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = inventory.map(i => {
+      const central = Number(i.central ?? i.quantity) || 0;
+      const stocks = i.stocks || {};
+      const vals = DEPT_KEYS.map(k => Number(stocks[k]) || 0);
+      const total = central + vals.reduce((a, b) => a + b, 0);
+      return `<tr>
+        <td class="prod-name">${esc(i.name)}</td>
+        <td class="num">${central}</td>
+        ${vals.map(v => '<td class="num">' + (v || "—") + '</td>').join("")}
+        <td class="num" style="font-weight:600">${total}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  // transfer modal
+  function openTransferModal() {
+    const sel = $("xfer-product");
+    sel.innerHTML = inventory.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join("");
+    $("xfer-qty").value = "";
+    $("xfer-note").value = "";
+    $("xfer-from").value = "central";
+    $("xfer-to").value = "cucina";
+    openModal("modal-transfer");
+  }
+
+  async function confirmTransfer() {
+    const productId = $("xfer-product").value;
+    const from = $("xfer-from").value;
+    const to = $("xfer-to").value;
+    const qty = parseFloat($("xfer-qty").value);
+    const note = $("xfer-note").value.trim();
+
+    if (!productId) { alert("Seleziona un prodotto."); return; }
+    if (!qty || qty <= 0) { alert("Quantità non valida."); return; }
+    if (from === to) { alert("Origine e destinazione devono essere diverse."); return; }
+
+    try {
+      if (from === "central") {
+        await fetchJSON("/api/inventory/transfer", {
+          method: "POST",
+          body: JSON.stringify({ productId, toDepartment: to, quantity: qty, note }),
+        });
+      } else if (to === "central") {
+        await fetchJSON("/api/inventory/return", {
+          method: "POST",
+          body: JSON.stringify({ productId, fromDepartment: from, quantity: qty, note }),
+        });
+      } else {
+        await fetchJSON("/api/inventory/return", {
+          method: "POST",
+          body: JSON.stringify({ productId, fromDepartment: from, quantity: qty, note }),
+        });
+        await fetchJSON("/api/inventory/transfer", {
+          method: "POST",
+          body: JSON.stringify({ productId, toDepartment: to, quantity: qty, note }),
+        });
       }
+      closeModal("modal-transfer");
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  // ─── TAB 3: RICEZIONE ─────────────────────────────────────────────
+  function populateRecvProducts() {
+    const sel = $("recv-product");
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— seleziona —</option>' +
+      inventory.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join("");
+    if (current) sel.value = current;
+  }
+
+  async function doReceive() {
+    const productId = $("recv-product").value;
+    const qty = parseFloat($("recv-qty").value);
+    const dest = $("recv-dest").value;
+    const status = $("recv-status");
+
+    if (!productId) { showStatus(status, "Seleziona un prodotto.", "error"); return; }
+    if (!qty || qty <= 0) { showStatus(status, "Quantità non valida.", "error"); return; }
+
+    try {
+      showStatus(status, "Registrazione…", "info");
+      await fetchJSON("/api/inventory/receive", {
+        method: "POST",
+        body: JSON.stringify({ productId, quantity: qty, destinationWarehouse: dest, unit: "pz" }),
+      });
+      showStatus(status, "Carico registrato.", "success");
+      $("recv-qty").value = "";
+      await loadAll();
+      setTimeout(() => showStatus(status, "", ""), 3000);
+    } catch (err) { showStatus(status, err.message, "error"); }
+  }
+
+  function showStatus(el, msg, type) {
+    if (!el) return;
+    el.textContent = msg;
+    el.className = "receive-status " + (type || "");
+  }
+
+  // ─── TAB 4: MOVIMENTI ─────────────────────────────────────────────
+  function renderMovimenti() {
+    const tbody = $("tbody-movimenti");
+    if (!tbody) return;
+
+    const all = mergeMovements();
+    if (!all.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center">Nessun movimento.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = all.map(m => {
+      const badge = MOV_TYPE_BADGE[m.type] || '<span class="badge neutral">' + esc(m.type || "?") + '</span>';
+      const from = m.fromWarehouse || m.from || "";
+      const to = m.toWarehouse || m.to || "";
+      const route = [from ? DEPT_LABELS[from] || from : "", to ? DEPT_LABELS[to] || to : ""].filter(Boolean).join(" → ") || "—";
+      const canEdit = m.source === "transfer" && m.type === "load";
+      return `<tr>
+        <td>${fmtDateTime(m.createdAt || m.date)}</td>
+        <td>${esc(m.productName || m.itemName || "—")}</td>
+        <td>${badge}</td>
+        <td class="num">${m.quantity ?? "—"}</td>
+        <td>${route}</td>
+        <td>${esc(m.reason || "—")}</td>
+        <td>${esc(m.note || "—")}</td>
+        <td>${canEdit ? '<button class="btn small" data-act="edit-mov" data-tid="' + m.id + '">Modifica</button>' : ""}</td>
+      </tr>`;
+    }).join("");
+
+    tbody.onclick = e => {
+      const btn = e.target.closest("[data-act='edit-mov']");
+      if (btn) openEditMovModal(btn.dataset.tid);
+    };
+  }
+
+  function mergeMovements() {
+    const fromTransfers = transfers.map(t => ({ ...t, source: "transfer" }));
+    const fromMovements = movements.map(m => ({ ...m, source: "movement" }));
+    const all = [...fromTransfers, ...fromMovements];
+    const seen = new Set();
+    const deduped = all.filter(m => {
+      const key = (m.productName || m.itemName || "") + "|" + m.quantity + "|" + (m.createdAt || m.date || "");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
     });
-  });
-  container.querySelectorAll(".btn-transfer").forEach((btn) => {
-    btn.addEventListener("click", () => openTransferModal(btn.dataset));
-  });
-  container.querySelectorAll(".btn-delete").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      if (!confirm("Eliminare questo prodotto dal magazzino?")) return;
-      const id = btn.getAttribute("data-id");
-      try {
-        await fetchJSON(`/api/inventory/${id}`, { method: "DELETE" });
-        await loadAll();
-      } catch (err) {
-        alert(err.message || "Errore eliminazione");
+    deduped.sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0));
+    return deduped;
+  }
+
+  // new movement modal
+  function openMovementModal() {
+    const sel = $("mov-product");
+    sel.innerHTML = inventory.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join("");
+    $("mov-type").value = "carico";
+    $("mov-qty").value = "";
+    $("mov-from").value = "";
+    $("mov-to").value = "";
+    $("mov-reason").value = "";
+    $("mov-note").value = "";
+    openModal("modal-movement");
+  }
+
+  async function confirmMovement() {
+    const productId = $("mov-product").value;
+    const type = $("mov-type").value;
+    const qty = parseFloat($("mov-qty").value);
+    const from = $("mov-from").value;
+    const to = $("mov-to").value;
+    const reason = $("mov-reason").value.trim();
+    const note = $("mov-note").value.trim();
+
+    if (!productId) { alert("Seleziona un prodotto."); return; }
+    if (!qty || qty <= 0) { alert("Quantità non valida."); return; }
+
+    try {
+      if (type === "carico") {
+        const dest = to || "central";
+        await fetchJSON("/api/inventory/receive", {
+          method: "POST",
+          body: JSON.stringify({ productId, quantity: qty, destinationWarehouse: dest, unit: "pz", notes: reason || note }),
+        });
+      } else if (type === "scarico") {
+        await fetchJSON("/api/inventory/" + productId + "/adjust", {
+          method: "PATCH",
+          body: JSON.stringify({ delta: -qty }),
+        });
+      } else if (type === "trasferimento") {
+        if (from === "central" || !from) {
+          await fetchJSON("/api/inventory/transfer", {
+            method: "POST",
+            body: JSON.stringify({ productId, toDepartment: to || "cucina", quantity: qty, note }),
+          });
+        } else {
+          await fetchJSON("/api/inventory/return", {
+            method: "POST",
+            body: JSON.stringify({ productId, fromDepartment: from, quantity: qty, note }),
+          });
+          if (to && to !== "central") {
+            await fetchJSON("/api/inventory/transfer", {
+              method: "POST",
+              body: JSON.stringify({ productId, toDepartment: to, quantity: qty, note }),
+            });
+          }
+        }
+      } else if (type === "rettifica") {
+        await fetchJSON("/api/inventory/" + productId + "/adjust", {
+          method: "PATCH",
+          body: JSON.stringify({ delta: qty }),
+        });
       }
+      closeModal("modal-movement");
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  // edit movement modal
+  let editMovTransferId = null;
+
+  function openEditMovModal(tid) {
+    const t = transfers.find(x => String(x.id) === String(tid));
+    if (!t) return;
+    editMovTransferId = tid;
+    $("editmov-label").textContent = (t.productName || "—") + " – " + (t.type || "");
+    $("editmov-qty").value = t.quantity ?? "";
+    $("editmov-note").value = t.note || "";
+    openModal("modal-edit-mov");
+  }
+
+  async function confirmEditMov() {
+    if (!editMovTransferId) return;
+    const qty = parseFloat($("editmov-qty").value);
+    const note = $("editmov-note").value.trim();
+    if (!qty || qty <= 0) { alert("Quantità non valida."); return; }
+    try {
+      await fetchJSON("/api/inventory/transfers/" + encodeURIComponent(editMovTransferId), {
+        method: "PATCH",
+        body: JSON.stringify({ quantity: qty, note }),
+      });
+      closeModal("modal-edit-mov");
+      editMovTransferId = null;
+      await loadAll();
+    } catch (err) { alert(err.message); }
+  }
+
+  // ─── TAB 5: LISTA SPESA ───────────────────────────────────────────
+  function loadShoppingList() {
+    try {
+      const raw = localStorage.getItem(SHOP_LS_KEY);
+      shoppingList = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(shoppingList)) shoppingList = [];
+    } catch (_) { shoppingList = []; }
+  }
+
+  function saveShoppingList() {
+    try { localStorage.setItem(SHOP_LS_KEY, JSON.stringify(shoppingList)); } catch (_) {}
+  }
+
+  function renderSpesa() {
+    renderSuggestions();
+    renderShopList();
+  }
+
+  function renderSuggestions() {
+    const el = $("shop-suggestions");
+    if (!el) return;
+    const lowItems = inventory.filter(i => {
+      const qty = Number(i.central ?? i.quantity) || 0;
+      return Number(i.threshold) > 0 && qty <= Number(i.threshold);
     });
-  });
-}
-
-let transferProductId = null;
-
-const TRANSFER_DEPT_LABELS = {
-  cucina: "Cucina (kitchen)",
-  sala: "Sala",
-  bar: "Bar",
-  proprieta: "Proprietà",
-};
-
-function openTransferModal(dataset) {
-  transferProductId = dataset.id;
-  document.getElementById("transfer-product-name").textContent = dataset.name || "—";
-  document.getElementById("transfer-unit").textContent = dataset.unit || "un";
-  document.getElementById("transfer-qty").value = "";
-  document.getElementById("transfer-qty").max = Number(dataset.max) || 9999;
-  document.getElementById("transfer-operator").value = "";
-  document.getElementById("transfer-note").value = "";
-  const deptSel = document.getElementById("transfer-dept");
-  const labelEl = document.getElementById("transfer-to-label");
-  if (labelEl && deptSel) {
-    const v = deptSel.value || "cucina";
-    labelEl.textContent = TRANSFER_DEPT_LABELS[v] || v;
-  }
-  document.getElementById("modal-transfer").classList.add("open");
-}
-
-function closeTransferModal() {
-  document.getElementById("modal-transfer").classList.remove("open");
-  transferProductId = null;
-}
-
-async function confirmTransfer() {
-  if (!transferProductId) return;
-  const qty = parseFloat(document.getElementById("transfer-qty").value);
-  const dept = document.getElementById("transfer-dept").value;
-  const operator = document.getElementById("transfer-operator").value.trim();
-  const note = document.getElementById("transfer-note").value.trim();
-  if (!qty || qty <= 0) {
-    alert("Inserisci una quantità valida.");
-    return;
-  }
-  try {
-    await fetchJSON("/api/inventory/transfer", {
-      method: "POST",
-      body: JSON.stringify({
-        productId: transferProductId,
-        toDepartment: dept,
-        quantity: qty,
-        note,
-        operator,
-      }),
-    });
-    closeTransferModal();
-    await loadAll();
-  } catch (err) {
-    alert(err.message || "Errore trasferimento");
-  }
-}
-
-let returnProductId = null;
-let returnFromDept = null;
-
-function openReturnModal(dataset) {
-  returnProductId = dataset.id;
-  returnFromDept = dataset.dept || "";
-  const deptLabel = DEPT_LABELS[returnFromDept] || returnFromDept;
-  document.getElementById("return-product-name").textContent = dataset.name || "—";
-  document.getElementById("return-dept-label").textContent = `Reparto: ${deptLabel}`;
-  document.getElementById("return-unit").textContent = dataset.unit || "un";
-  document.getElementById("return-qty").value = "";
-  document.getElementById("return-qty").max = Number(dataset.max) || 9999;
-  document.getElementById("return-operator").value = "";
-  document.getElementById("return-note").value = "";
-  document.getElementById("modal-return").classList.add("open");
-}
-
-function closeReturnModal() {
-  document.getElementById("modal-return").classList.remove("open");
-  returnProductId = null;
-  returnFromDept = null;
-}
-
-async function confirmReturn() {
-  if (!returnProductId || !returnFromDept) return;
-  const qty = parseFloat(document.getElementById("return-qty").value);
-  const operator = document.getElementById("return-operator").value.trim();
-  const note = document.getElementById("return-note").value.trim();
-  if (!qty || qty <= 0) {
-    alert("Inserisci una quantità valida.");
-    return;
-  }
-  try {
-    await fetchJSON("/api/inventory/return", {
-      method: "POST",
-      body: JSON.stringify({
-        productId: returnProductId,
-        fromDepartment: returnFromDept,
-        quantity: qty,
-        note,
-        operator,
-      }),
-    });
-    closeReturnModal();
-    await loadAll();
-  } catch (err) {
-    alert(err.message || "Errore rientro");
-  }
-}
-
-async function loadInventory() {
-  inventoryCache = await fetchJSON("/api/inventory");
-}
-
-async function loadTransfers() {
-  transfersCache = await fetchJSON("/api/inventory/transfers?limit=100");
-}
-
-async function loadAll() {
-  const listEl = document.getElementById("inventory-central-list");
-  listEl.innerHTML = "<p class='muted'>Caricamento...</p>";
-  try {
-    await Promise.all([loadInventory(), loadTransfers()]);
-    renderCurrentTab();
-  } catch (err) {
-    console.error("Errore caricamento magazzino:", err);
-    listEl.innerHTML = "<p class='error'>Errore nel caricamento del magazzino.</p>";
-  }
-}
-
-async function addProduct() {
-  const name = document.getElementById("field-name").value.trim();
-  const unit = document.getElementById("field-unit").value || "kg";
-  const quantity = document.getElementById("field-quantity").value;
-  const cost = document.getElementById("field-cost").value;
-  const threshold = document.getElementById("field-threshold").value;
-  const category = document.getElementById("field-category").value.trim();
-  const lot = document.getElementById("field-lot").value.trim();
-  const supplier = document.getElementById("field-supplier")?.value?.trim() || "";
-  const deliveryDate = document.getElementById("field-delivery-date")?.value?.trim() || "";
-  const notes = document.getElementById("field-notes").value.trim();
-
-  if (!name) {
-    alert("Nome prodotto obbligatorio.");
-    return;
+    if (!lowItems.length) {
+      el.innerHTML = '<p class="muted">Nessun prodotto sotto scorta.</p>';
+      return;
+    }
+    el.innerHTML = lowItems.map(i =>
+      `<button class="suggestion-chip" data-name="${esc(i.name)}">${esc(i.name)} (${Number(i.central ?? i.quantity) || 0}/${i.threshold})</button>`
+    ).join("");
+    el.onclick = e => {
+      const chip = e.target.closest(".suggestion-chip");
+      if (!chip) return;
+      addToShoppingList(chip.dataset.name, "");
+    };
   }
 
-  try {
-    await fetchJSON("/api/inventory", {
-      method: "POST",
-      body: JSON.stringify({
-        name,
-        unit,
-        quantity: quantity ? parseFloat(quantity) : 0,
-        cost: cost ? parseFloat(cost) : 0,
-        threshold: threshold ? parseFloat(threshold) : 0,
-        category,
-        lot,
-        supplier,
-        deliveryDate,
-        notes,
-      }),
-    });
-    document.getElementById("field-name").value = "";
-    document.getElementById("field-unit").value = "kg";
-    document.getElementById("field-quantity").value = "";
-    document.getElementById("field-cost").value = "";
-    document.getElementById("field-threshold").value = "";
-    document.getElementById("field-category").value = "";
-    document.getElementById("field-lot").value = "";
-    if (document.getElementById("field-supplier")) document.getElementById("field-supplier").value = "";
-    if (document.getElementById("field-delivery-date")) document.getElementById("field-delivery-date").value = "";
-    document.getElementById("field-notes").value = "";
-    await loadAll();
-  } catch (err) {
-    alert(err.message || "Errore salvataggio prodotto");
-  }
-}
-
-async function barcodeLookup(code) {
-  if (!code || !code.trim()) return null;
-  try {
-    const product = await fetchJSON("/api/inventory/barcode/" + encodeURIComponent(code.trim()));
-    return product;
-  } catch {
-    return null;
-  }
-}
-
-function clearReceiveForm() {
-  const ids = [
-    "receive-barcode",
-    "receive-product-name",
-    "receive-quantity",
-    "receive-lot",
-    "receive-cost",
-    "receive-supplier",
-    "receive-notes",
-  ];
-  ids.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
-  document.getElementById("receive-unit").value = "kg";
-  document.getElementById("receive-destination").value = "central";
-  document.getElementById("receive-create-if-unknown").checked = false;
-}
-
-function showReceiveStatus(msg, type) {
-  const el = document.getElementById("receive-status");
-  if (!el) return;
-  el.textContent = msg;
-  el.className = "receive-status " + (type || "info");
-}
-
-async function doReceive() {
-  const barcode = document.getElementById("receive-barcode")?.value?.trim();
-  const productName = document.getElementById("receive-product-name")?.value?.trim();
-  const quantity = parseFloat(document.getElementById("receive-quantity")?.value);
-  const unit = document.getElementById("receive-unit")?.value || "kg";
-  const destination = document.getElementById("receive-destination")?.value || "central";
-  const receivedBy = document.getElementById("receive-operator")?.value?.trim();
-  const lot = document.getElementById("receive-lot")?.value?.trim();
-  const unitCost = document.getElementById("receive-cost")?.value;
-  const supplier = document.getElementById("receive-supplier")?.value?.trim();
-  const notes = document.getElementById("receive-notes")?.value?.trim();
-  const createIfUnknown = document.getElementById("receive-create-if-unknown")?.checked === true;
-
-  if (!quantity || quantity <= 0) {
-    showReceiveStatus("Inserisci una quantità valida.", "error");
-    return;
-  }
-  if (!barcode && !productName) {
-    showReceiveStatus("Inserisci barcode o nome prodotto. Per barcode sconosciuto, spunta 'Crea prodotto' e inserisci il nome.", "error");
-    return;
-  }
-  if (!createIfUnknown && !barcode) {
-    showReceiveStatus("Inserisci barcode per cercare il prodotto, oppure spunta 'Crea prodotto se barcode sconosciuto'.", "error");
-    return;
-  }
-
-  const payload = {
-    quantity,
-    unit,
-    destinationWarehouse: destination,
-    receivedBy: receivedBy || undefined,
-    lot: lot || undefined,
-    unitCost: unitCost ? parseFloat(unitCost) : undefined,
-    supplier: supplier || undefined,
-    notes: notes || undefined,
-    createIfUnknown: createIfUnknown && !!productName,
-  };
-  if (barcode) payload.barcode = barcode;
-  if (productName) payload.productName = productName;
-
-  try {
-    showReceiveStatus("Registrazione in corso...", "info");
-    await fetchJSON("/api/inventory/receive", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    showReceiveStatus("Ricevuta registrata correttamente.", "success");
-    clearReceiveForm();
-    document.getElementById("receive-barcode").focus();
-    await loadAll();
-    setTimeout(() => showReceiveStatus("", ""), 3000);
-  } catch (err) {
-    showReceiveStatus(err.message || "Errore registrazione ricevuta.", "error");
-  }
-}
-
-function initReceive() {
-  const barcodeInput = document.getElementById("receive-barcode");
-  const btnLookup = document.getElementById("btn-barcode-lookup");
-  const btnReceive = document.getElementById("btn-receive");
-  const btnVoice = document.getElementById("btn-voice-receive");
-
-  if (btnLookup) {
-    btnLookup.addEventListener("click", async () => {
-      const code = barcodeInput?.value?.trim();
-      if (!code) {
-        showReceiveStatus("Inserisci un barcode.", "error");
+  function renderShopList() {
+    const el = $("shop-list");
+    if (!el) return;
+    if (!shoppingList.length) {
+      el.innerHTML = '<p class="muted">Lista vuota.</p>';
+      return;
+    }
+    el.innerHTML = shoppingList.map((item, idx) => {
+      return `<div class="shop-item ${item.done ? "done" : ""}">
+        <input type="checkbox" data-idx="${idx}" ${item.done ? "checked" : ""} />
+        <span>${esc(item.name)}${item.qty ? " – " + esc(item.qty) : ""}</span>
+        <button class="btn small btn-danger" data-del="${idx}" style="margin-left:auto">×</button>
+      </div>`;
+    }).join("");
+    el.onclick = e => {
+      const cb = e.target.closest("input[type=checkbox]");
+      if (cb) {
+        const idx = Number(cb.dataset.idx);
+        shoppingList[idx].done = cb.checked;
+        saveShoppingList();
+        renderShopList();
         return;
       }
-      showReceiveStatus("Ricerca...", "info");
-      const product = await barcodeLookup(code);
-      if (product) {
-        document.getElementById("receive-product-name").value = product.name || "";
-        document.getElementById("receive-unit").value = product.unit || "kg";
-        document.getElementById("receive-cost").value = product.cost ? String(product.cost) : "";
-        showReceiveStatus("Prodotto trovato: " + (product.name || ""), "success");
-      } else {
-        showReceiveStatus("Barcode non trovato. Inserisci nome prodotto e spunta 'Crea prodotto se barcode sconosciuto'.", "error");
+      const del = e.target.closest("[data-del]");
+      if (del) {
+        shoppingList.splice(Number(del.dataset.del), 1);
+        saveShoppingList();
+        renderShopList();
       }
-    });
-  }
-
-  if (barcodeInput) {
-    barcodeInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        btnLookup?.click();
-      }
-    });
-  }
-
-  if (btnReceive) {
-    btnReceive.addEventListener("click", doReceive);
-  }
-
-  if (btnVoice) {
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRec) {
-      let recognizing = false;
-      const rec = new SpeechRec();
-      rec.continuous = false;
-      rec.interimResults = false;
-      rec.lang = "it-IT";
-      rec.onresult = (e) => {
-        const t = (e.results[0]?.[0]?.transcript || "").trim();
-        if (!t) return;
-        fetch("/api/inventory/receive/voice-preview", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ transcript: t }),
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            if (data.preview?.parsed) {
-              const p = data.preview;
-              if (p.productName) document.getElementById("receive-product-name").value = p.productName;
-              if (p.quantity) document.getElementById("receive-quantity").value = String(p.quantity);
-              if (p.unit) document.getElementById("receive-unit").value = p.unit;
-              if (p.destinationWarehouse) document.getElementById("receive-destination").value = p.destinationWarehouse;
-              document.getElementById("receive-create-if-unknown").checked = true;
-              showReceiveStatus("Campi precompilati dalla voce. Verifica e conferma.", "success");
-            } else {
-              document.getElementById("receive-product-name").value = t;
-              document.getElementById("receive-create-if-unknown").checked = true;
-              showReceiveStatus("Testo inserito. Completa quantità e destinazione.", "info");
-            }
-          })
-          .catch(() => showReceiveStatus("Errore elaborazione vocale.", "error"));
-      };
-      rec.onend = () => {
-        recognizing = false;
-        btnVoice?.classList.remove("recording");
-      };
-      rec.onerror = () => {
-        recognizing = false;
-        btnVoice?.classList.remove("recording");
-      };
-      btnVoice.addEventListener("click", () => {
-        if (recognizing) {
-          rec.stop();
-          return;
-        }
-        recognizing = true;
-        btnVoice.classList.add("recording");
-        rec.start();
-      });
-    } else {
-      btnVoice.style.display = "none";
-    }
-  }
-}
-
-async function loadAISuggestion() {
-  const el = document.getElementById("ai-message");
-  el.textContent = "Caricamento suggerimenti...";
-  try {
-    const res = await fetchJSON("/api/ai/inventory", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
-    el.textContent = res.message || "Nessun suggerimento.";
-  } catch (err) {
-    el.textContent = "Assistente non disponibile. Riprova più tardi.";
-  }
-}
-
-function initVoice() {
-  const SpeechRec =
-    window.SpeechRecognition || window.webkitSpeechRecognition;
-  const btn = document.getElementById("btn-voice-product");
-  if (!btn || !SpeechRec) {
-    if (btn) btn.style.display = "none";
-    return;
-  }
-  let recognizing = false;
-  const rec = new SpeechRec();
-  rec.continuous = false;
-  rec.interimResults = false;
-  rec.lang = "it-IT";
-  rec.onresult = (e) => {
-    const t = (e.results[0] && e.results[0][0] && e.results[0][0].transcript) || "";
-    if (!t.trim()) return;
-    const nameEl = document.getElementById("field-name");
-    if (nameEl && document.activeElement === nameEl) {
-      nameEl.value = t.trim();
-    } else {
-      nameEl.value = t.trim();
-    }
-  };
-  rec.onend = () => {
-    recognizing = false;
-    btn.classList.remove("recording");
-  };
-  rec.onerror = () => {
-    recognizing = false;
-    btn.classList.remove("recording");
-  };
-  btn.addEventListener("click", () => {
-    if (recognizing) {
-      rec.stop();
-      return;
-    }
-    recognizing = true;
-    btn.classList.add("recording");
-    document.getElementById("field-name").focus();
-    rec.start();
-  });
-}
-
-function initMagazzino() {
-  document.getElementById("btn-print-magazzino")?.addEventListener("click", () => window.print());
-  document.querySelectorAll(".mag-tab").forEach((btn) => {
-    btn.addEventListener("click", () => showTab(btn.dataset.tab));
-  });
-
-  document.getElementById("btn-add-product").addEventListener("click", (e) => {
-    e.preventDefault();
-    addProduct();
-  });
-
-  document.getElementById("btn-refresh").addEventListener("click", (e) => {
-    e.preventDefault();
-    loadAll();
-  });
-
-  document.getElementById("btn-to-cucina")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    window.location.href = "/cucina/cucina.html";
-  });
-
-  document.getElementById("search-input").addEventListener("input", () => {
-    renderCurrentTab();
-  });
-
-  document.getElementById("btn-ai-refresh").addEventListener("click", () => {
-    loadAISuggestion();
-  });
-
-  document.getElementById("transfer-dept")?.addEventListener("change", (e) => {
-    const labelEl = document.getElementById("transfer-to-label");
-    if (labelEl) labelEl.textContent = TRANSFER_DEPT_LABELS[e.target.value] || e.target.value;
-  });
-
-  document.getElementById("modal-transfer-close").addEventListener("click", closeTransferModal);
-  document.getElementById("modal-transfer-cancel").addEventListener("click", closeTransferModal);
-  document.getElementById("modal-transfer-confirm").addEventListener("click", confirmTransfer);
-  document.getElementById("modal-transfer").addEventListener("click", (e) => {
-    if (e.target.id === "modal-transfer") closeTransferModal();
-  });
-
-  document.getElementById("modal-return-close").addEventListener("click", closeReturnModal);
-  document.getElementById("modal-return-cancel").addEventListener("click", closeReturnModal);
-  document.getElementById("modal-return-confirm").addEventListener("click", confirmReturn);
-  document.getElementById("modal-return").addEventListener("click", (e) => {
-    if (e.target.id === "modal-return") closeReturnModal();
-  });
-
-  document.getElementById("modal-edit-load-close")?.addEventListener("click", closeEditLoadModal);
-  document.getElementById("modal-edit-load-cancel")?.addEventListener("click", closeEditLoadModal);
-  document.getElementById("modal-edit-load-confirm")?.addEventListener("click", confirmEditLoad);
-  document.getElementById("modal-edit-load")?.addEventListener("click", (e) => {
-    if (e.target.id === "modal-edit-load") closeEditLoadModal();
-  });
-
-  document.getElementById("btn-email-prefill")?.addEventListener("click", () => {
-    const loads = (transfersCache || []).filter((t) => t.type === "load").slice(0, 15);
-    const lines = loads.map((t) => {
-      const dest = DEPT_LABELS[t.to] || t.to || "";
-      return `- ${t.productName || "?"} — ${t.quantity} ${t.unit || ""} → ${dest}${t.note ? ` (${t.note})` : ""}`;
-    });
-    const body = lines.length
-      ? `Nota ordine / ultimi carichi:\n\n${lines.join("\n")}`
-      : "Nessun carico recente in elenco. Compila manualmente.";
-    const msg = document.getElementById("email-message");
-    if (msg) msg.value = body;
-    const sub = document.getElementById("email-subject");
-    if (sub && !sub.value.trim()) sub.value = "Ordine materie prime";
-    const st = document.getElementById("email-send-status");
-    if (st) {
-      st.textContent = lines.length ? "Testo precompilato dagli ultimi carichi." : "Nessun carico in storico.";
-      st.className = "receive-status info";
-    }
-  });
-
-  document.getElementById("btn-email-send")?.addEventListener("click", async () => {
-    const statusEl = document.getElementById("email-send-status");
-    const payload = {
-      fromName: document.getElementById("email-from-name")?.value?.trim(),
-      fromEmail: document.getElementById("email-from-email")?.value?.trim(),
-      toName: document.getElementById("email-to-name")?.value?.trim(),
-      toEmail: document.getElementById("email-to-email")?.value?.trim(),
-      subject: document.getElementById("email-subject")?.value?.trim(),
-      message: document.getElementById("email-message")?.value?.trim(),
     };
-    if (!payload.toEmail) {
-      if (statusEl) {
-        statusEl.textContent = "Inserisci l'email del fornitore.";
-        statusEl.className = "receive-status error";
-      }
+  }
+
+  function addToShoppingList(name, qty) {
+    if (!name) return;
+    shoppingList.push({ name, qty: qty || "", done: false });
+    saveShoppingList();
+    renderShopList();
+  }
+
+  // ─── TAB 6: ATTREZZATURE ──────────────────────────────────────────
+  let editingEquipId = null;
+
+  async function renderEquipment() {
+    if (!equipment.length) await loadEquipment();
+    const tbody = $("tbody-equip");
+    if (!tbody) return;
+    if (!equipment.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="muted" style="text-align:center">Nessuna attrezzatura.</td></tr>';
       return;
     }
-    if (!payload.message) {
-      if (statusEl) {
-        statusEl.textContent = "Inserisci il messaggio.";
-        statusEl.className = "receive-status error";
+
+    const STATUS_BADGES = {
+      operativo: '<span class="badge success">operativo</span>',
+      manutenzione: '<span class="badge warning">manutenzione</span>',
+      "fuori uso": '<span class="badge danger">fuori uso</span>',
+    };
+
+    tbody.innerHTML = equipment.map(e => `<tr data-eid="${e.id}">
+      <td class="prod-name">${esc(e.name || "—")}</td>
+      <td>${esc(e.category || "—")}</td>
+      <td class="num">${e.quantity ?? e.qty ?? "—"}</td>
+      <td>${STATUS_BADGES[e.status] || esc(e.status || "—")}</td>
+      <td>${esc(e.location || "—")}</td>
+      <td class="num">${fmtMoney(e.value || e.unitValue || 0)}</td>
+      <td>
+        <div class="actions">
+          <button class="btn small" data-act="edit-eq" data-eid="${e.id}">Modifica</button>
+          <button class="btn small btn-danger" data-act="del-eq" data-eid="${e.id}">Elimina</button>
+        </div>
+      </td>
+    </tr>`).join("");
+
+    tbody.onclick = async ev => {
+      const btn = ev.target.closest("[data-act]");
+      if (!btn) return;
+      const eid = btn.dataset.eid;
+      if (btn.dataset.act === "del-eq") {
+        if (!confirm("Eliminare questa attrezzatura?")) return;
+        try {
+          await fetchJSON("/api/devices/" + eid, { method: "DELETE" });
+          await loadEquipment();
+          renderEquipment();
+        } catch (err) { alert(err.message); }
+      } else if (btn.dataset.act === "edit-eq") {
+        fillEquipForm(eid);
       }
-      return;
-    }
+    };
+  }
+
+  function fillEquipForm(eid) {
+    const item = equipment.find(e => String(e.id) === String(eid));
+    if (!item) return;
+    editingEquipId = eid;
+    $("equip-form-title").textContent = "Modifica attrezzatura";
+    $("eq-name").value = item.name || "";
+    $("eq-category").value = item.category || "";
+    $("eq-qty").value = item.quantity ?? item.qty ?? "";
+    $("eq-status").value = item.status || "operativo";
+    $("eq-location").value = item.location || "cucina";
+    $("eq-value").value = item.value ?? item.unitValue ?? "";
+    $("btn-eq-cancel").style.display = "inline-flex";
+  }
+
+  function resetEquipForm() {
+    editingEquipId = null;
+    $("equip-form-title").textContent = "Nuova attrezzatura";
+    ["eq-name","eq-category","eq-qty","eq-value"].forEach(id => { const el = $(id); if (el) el.value = ""; });
+    $("eq-status").value = "operativo";
+    $("eq-location").value = "cucina";
+    $("btn-eq-cancel").style.display = "none";
+  }
+
+  async function saveEquipment() {
+    const name = $("eq-name").value.trim();
+    if (!name) { alert("Nome obbligatorio."); return; }
+    const body = {
+      name,
+      category: $("eq-category").value.trim(),
+      quantity: parseInt($("eq-qty").value, 10) || 0,
+      status: $("eq-status").value,
+      location: $("eq-location").value,
+      value: parseFloat($("eq-value").value) || 0,
+    };
     try {
-      if (statusEl) {
-        statusEl.textContent = "Invio in corso...";
-        statusEl.className = "receive-status info";
+      if (editingEquipId) {
+        await fetchJSON("/api/devices/" + editingEquipId, { method: "PATCH", body: JSON.stringify(body) });
+      } else {
+        await fetchJSON("/api/devices", { method: "POST", body: JSON.stringify(body) });
       }
-      await fetchJSON("/api/inventory/email-supplier", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      if (statusEl) {
-        statusEl.textContent = "Email inviata correttamente.";
-        statusEl.className = "receive-status success";
-      }
-    } catch (err) {
-      if (statusEl) {
-        statusEl.textContent = err.message || "Errore invio email.";
-        statusEl.className = "receive-status error";
-      }
-    }
-  });
+      resetEquipForm();
+      await loadEquipment();
+      renderEquipment();
+    } catch (err) { alert(err.message); }
+  }
 
-  initVoice();
-  initReceive();
-  loadAll();
-  loadAISuggestion();
-}
+  // ─── INIT ──────────────────────────────────────────────────────────
+  function init() {
+    // tabs
+    document.querySelectorAll(".mag-tab").forEach(btn => {
+      btn.addEventListener("click", () => showTab(btn.dataset.tab));
+    });
 
-document.addEventListener("DOMContentLoaded", initMagazzino);
+    // close modals via data-close
+    document.querySelectorAll("[data-close]").forEach(btn => {
+      btn.addEventListener("click", () => closeModal(btn.dataset.close));
+    });
+    document.querySelectorAll(".modal-overlay").forEach(ov => {
+      ov.addEventListener("click", e => { if (e.target === ov) closeModal(ov.id); });
+    });
+
+    // refresh
+    $("btn-refresh")?.addEventListener("click", () => loadAll());
+
+    // centrale: search
+    $("search-centrale")?.addEventListener("input", () => renderCentrale());
+    // centrale: add product
+    $("btn-add-product")?.addEventListener("click", e => { e.preventDefault(); addProduct(); });
+    // edit confirm
+    $("btn-edit-confirm")?.addEventListener("click", confirmEdit);
+    // adjust confirm
+    $("btn-adjust-confirm")?.addEventListener("click", confirmAdjust);
+    // delete confirm
+    $("btn-delete-confirm")?.addEventListener("click", confirmDelete);
+
+    // reparti: transfer
+    $("btn-new-transfer")?.addEventListener("click", openTransferModal);
+    $("btn-xfer-confirm")?.addEventListener("click", confirmTransfer);
+
+    // ricezione
+    $("btn-recv")?.addEventListener("click", doReceive);
+
+    // movimenti
+    $("btn-new-movement")?.addEventListener("click", openMovementModal);
+    $("btn-mov-confirm")?.addEventListener("click", confirmMovement);
+    $("btn-editmov-confirm")?.addEventListener("click", confirmEditMov);
+
+    // lista spesa
+    $("btn-shop-add")?.addEventListener("click", () => {
+      const name = $("shop-name")?.value.trim();
+      const qty = $("shop-qty")?.value.trim();
+      if (!name) return;
+      addToShoppingList(name, qty);
+      $("shop-name").value = "";
+      $("shop-qty").value = "";
+    });
+    $("btn-shop-clear")?.addEventListener("click", () => {
+      if (!shoppingList.length) return;
+      shoppingList = [];
+      saveShoppingList();
+      renderShopList();
+    });
+
+    // attrezzature
+    $("btn-eq-save")?.addEventListener("click", e => { e.preventDefault(); saveEquipment(); });
+    $("btn-eq-cancel")?.addEventListener("click", resetEquipForm);
+
+    // load data
+    loadShoppingList();
+    loadAll();
+    loadEquipment();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
