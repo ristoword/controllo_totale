@@ -449,7 +449,12 @@ async function handleTableAction(actionId) {
 
     case "menu-giorno":
       closeTableModal();
-      window.location.href = "/cucina/cucina.html";
+      window.location.href = "/daily-menu/daily-menu.html";
+      break;
+
+    case "fuori-menu":
+      closeTableModal();
+      window.location.href = "/menu-admin/menu-admin.html";
       break;
 
     case "ordine-bevande":
