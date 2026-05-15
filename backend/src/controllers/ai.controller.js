@@ -114,7 +114,7 @@ exports.postDepartmentQuery = async (req, res) => {
   const quickIntent = body.quickIntent || null;
 
   let responded = false;
-  const timeoutMs = 5000;
+  const timeoutMs = 25000;
   const timeoutId = setTimeout(() => {
     if (responded) return;
     responded = true;

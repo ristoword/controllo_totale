@@ -12,5 +12,6 @@ router.post("/tables", requireAuth, asyncHandler(salaController.createTable));
 router.patch("/tables/:id", requireAuth, asyncHandler(salaController.updateTable));
 router.patch("/tables/:id/status", requireAuth, asyncHandler(salaController.patchStatus));
 router.delete("/tables/:id", requireAuth, asyncHandler(salaController.deleteTable));
+router.post("/note", requireAuth, asyncHandler(salaController.sendNote));
 
 module.exports = router;

@@ -180,9 +180,20 @@ function broadcastOrders(orders) {
   });
 }
 
+function broadcastNote(note) {
+  if (!wss) return;
+  const payload = JSON.stringify({ type: "sala_note", ...note });
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(payload);
+    }
+  });
+}
+
 module.exports = {
   initWebSocket,
   broadcastOrders,
+  broadcastNote,
   broadcastSupervisorSync,
   broadcastSupervisorSyncFromData,
   computeSupervisorStats,

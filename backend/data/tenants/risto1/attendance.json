@@ -1,0 +1,18 @@
+{
+  "records": [
+    {
+      "id": "6db6fb10-38de-4101-8158-6dcea75b2957",
+      "userId": "3",
+      "restaurantId": "risto1",
+      "date": "2026-05-15",
+      "clockInAt": "2026-05-15T22:45:38.248Z",
+      "clockOutAt": null,
+      "workedMinutes": 0,
+      "status": "open",
+      "anomalyType": null,
+      "notes": "",
+      "createdAt": "2026-05-15T22:45:38.248Z",
+      "updatedAt": "2026-05-15T22:45:38.248Z"
+    }
+  ]
+}

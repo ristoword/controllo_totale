@@ -957,11 +957,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // TABLE MODAL – invia nota
-  document.getElementById("btn-send-note").addEventListener("click", () => {
+  // TABLE MODAL – invia nota (real API call → WebSocket broadcast)
+  document.getElementById("btn-send-note").addEventListener("click", async () => {
     const testo = document.getElementById("note-text").value.trim();
-    showModalFlash(`Nota per ${noteDest}${testo ? ": " + testo : " (vuota)"} – inviata.`);
-    document.getElementById("note-text").value = "";
+    if (!testo) {
+      showModalFlash("Scrivi una nota prima di inviarla.");
+      return;
+    }
+    try {
+      await api("POST", "/api/sala/note", {
+        table: selectedTable?.nome || "",
+        department: noteDest,
+        text: testo,
+      });
+      showModalFlash(`Nota per ${noteDest}: inviata.`);
+      document.getElementById("note-text").value = "";
+    } catch (e) {
+      showModalFlash("Errore invio nota: " + e.message);
+    }
   });
 
   // ORDER MODAL – close

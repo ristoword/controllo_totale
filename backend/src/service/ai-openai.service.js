@@ -64,9 +64,9 @@ Intenti supportati:
 - generic: domanda generale o non classificabile`;
 
 /**
- * Validate parsed AI output against the response contract.
+ * Validate parsed AI output against the generic query response contract.
  */
-function validateAiOutput(obj) {
+function validateGenericOutput(obj) {
   if (!obj || typeof obj !== "object") return false;
   if (typeof obj.ok !== "boolean") return false;
   if (typeof obj.answer !== "string") return false;
@@ -83,7 +83,24 @@ function validateAiOutput(obj) {
 }
 
 /**
+ * Validate parsed AI output against the department orchestrator schema.
+ */
+function validateDepartmentOutput(obj) {
+  if (!obj || typeof obj !== "object") return false;
+  if (typeof obj.summary !== "string" && typeof obj.title !== "string") return false;
+  return true;
+}
+
+/**
+ * Validate parsed AI output: accepts either the generic or department schema.
+ */
+function validateAiOutput(obj) {
+  return validateGenericOutput(obj) || validateDepartmentOutput(obj);
+}
+
+/**
  * Parse and validate model response. Returns validated object or null.
+ * Accepts both the generic query schema and the department orchestrator schema.
  */
 function parseAndValidate(content) {
   if (!content || typeof content !== "string") return null;
@@ -94,7 +111,9 @@ function parseAndValidate(content) {
   } catch {
     return null;
   }
-  return validateAiOutput(parsed) ? parsed : null;
+  if (validateGenericOutput(parsed)) return parsed;
+  if (validateDepartmentOutput(parsed)) return parsed;
+  return null;
 }
 
 /**

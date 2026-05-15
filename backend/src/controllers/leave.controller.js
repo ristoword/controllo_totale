@@ -94,7 +94,7 @@ exports.cancel = async (req, res) => {
   if (record.status !== "pending") {
     return res.status(400).json({ error: "Solo le richieste in attesa possono essere annullate." });
   }
-  const updated = await await leaveRepository.updateLeaveRequest(restaurantId, id, { status: "cancelled" });
+  const updated = await leaveRepository.updateLeaveRequest(restaurantId, id, { status: "cancelled" });
   res.json(updated);
 };
 
