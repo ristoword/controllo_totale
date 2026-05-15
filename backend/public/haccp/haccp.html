@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>CONTROLLO TOTALE – HACCP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="haccp.css" />
+</head>
+<body>
+  <div class="layout">
+
+    <!-- HEADER -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1>CONTROLLO TOTALE – HACCP</h1>
+        <p class="subtitle">
+          Registro controlli HACCP: temperature, pulizie, scadenze
+        </p>
+      </div>
+      <div class="topbar-right">
+        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
+        <div class="chip">
+          <span class="chip-label">Totale</span>
+          <span class="chip-value" id="kpi-total">0</span>
+        </div>
+        <div class="chip">
+          <span class="chip-label">Oggi</span>
+          <span class="chip-value" id="kpi-today">0</span>
+        </div>
+        <button class="btn ghost" id="btn-refresh">Aggiorna</button>
+      </div>
+    </header>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    <main class="main">
+
+      <!-- COLONNA SINISTRA: NUOVO CONTROLLO + FILTRI -->
+      <section class="left-column">
+
+        <!-- NUOVO CONTROLLO -->
+        <article class="card">
+          <header class="card-header">
+            <h2>Nuovo controllo</h2>
+            <p>Registra un controllo HACCP</p>
+          </header>
+          <div class="card-body form-grid">
+            <label>
+              Tipo
+              <select id="field-type">
+                <option value="temperatura_frigo">Temperatura frigo</option>
+                <option value="temperatura_congelatore">Temperatura congelatore</option>
+                <option value="temperatura_alimento">Temperatura alimento</option>
+                <option value="pulizia">Pulizia</option>
+                <option value="scadenza">Controllo scadenze</option>
+                <option value="ricezione_merce">Ricezione merce</option>
+                <option value="altro">Altro</option>
+              </select>
+            </label>
+
+            <label>
+              Valore / Temperatura
+              <input type="text" id="field-value" placeholder="Es. 4.2°C" />
+            </label>
+
+            <label>
+              Data
+              <input type="date" id="field-date" />
+            </label>
+
+            <label>
+              Ora
+              <input type="time" id="field-time" />
+            </label>
+
+            <label>
+              Operatore
+              <input type="text" id="field-operator" placeholder="Nome operatore" />
+            </label>
+
+            <label>
+              Unità
+              <input type="text" id="field-unit" placeholder="Es. °C, OK/KO" />
+            </label>
+
+            <label class="full">
+              Note
+              <textarea id="field-notes" rows="2" placeholder="Note aggiuntive..."></textarea>
+            </label>
+
+            <div class="form-actions full">
+              <button class="btn primary" id="btn-save-check">
+                Registra controllo
+              </button>
+            </div>
+          </div>
+        </article>
+
+        <!-- FILTRI -->
+        <article class="card">
+          <header class="card-header">
+            <h2>Filtri</h2>
+            <p>Filtra la lista dei controlli</p>
+          </header>
+          <div class="card-body filter-grid">
+            <label>
+              Data
+              <input type="date" id="filter-date" />
+            </label>
+
+            <label>
+              Tipo
+              <select id="filter-type">
+                <option value="">Tutti</option>
+                <option value="temperatura_frigo">Temperatura frigo</option>
+                <option value="temperatura_congelatore">Temperatura congelatore</option>
+                <option value="temperatura_alimento">Temperatura alimento</option>
+                <option value="pulizia">Pulizia</option>
+                <option value="scadenza">Controllo scadenze</option>
+                <option value="ricezione_merce">Ricezione merce</option>
+                <option value="altro">Altro</option>
+              </select>
+            </label>
+
+            <div class="form-actions full">
+              <button class="btn ghost" id="btn-reset-filters">
+                Reset filtri
+              </button>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- COLONNA DESTRA: LISTA CONTROLLI -->
+      <section class="right-column">
+        <article class="card">
+          <header class="card-header">
+            <h2>Registro controlli</h2>
+            <p>Storico e dettagli dei controlli HACCP</p>
+          </header>
+          <div class="card-body checks-list" id="checks-list">
+          </div>
+        </article>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa"></script>
+  <script src="haccp.js"></script>
+  <link rel="stylesheet" href="/shared/ai-widget.css">
+  <script src="/shared/ai-widget.js" data-module="haccp"></script>
+</body>
+</html>

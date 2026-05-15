@@ -165,7 +165,7 @@ try {
 
 const ROLES_ALL = ["owner", "sala", "cucina", "cassa"];
 const ROLES_ORDERS = ["owner", "sala", "cucina", "cassa", "supervisor"];
-const ROLES_MENU = ["owner", "sala", "cassa", "supervisor"];
+const ROLES_MENU = ["owner", "sala", "cucina", "cassa", "supervisor"];
 const ROLES_PAYMENTS = ["owner", "cassa"];
 const ROLES_REPORTS = ["owner", "sala", "cucina", "cassa"];
 const ROLES_CLOSURES = ["owner", "cassa", "supervisor"];
@@ -449,6 +449,14 @@ try {
   app.use("/api/auth", authRouter);
 } catch (e) {
   console.warn("auth.routes non trovato (ok se non ancora creato)");
+}
+
+// LICENSE – /api/licenses (license verification, activation, status)
+try {
+  const licenseRouter = require("./routes/license.routes");
+  app.use("/api/licenses", licenseRouter);
+} catch (e) {
+  console.warn("license.routes non trovato (ok se non ancora creato)");
 }
 
 // SESSIONS (Staff access)

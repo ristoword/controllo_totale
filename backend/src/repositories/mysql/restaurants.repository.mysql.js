@@ -43,7 +43,7 @@ async function upsertRestaurant(conn, r) {
     `INSERT INTO restaurants (
       id, slug, restaurant_name, company_name, vat_number, address, city, postal_code, province, country,
       admin_email, phone, contact_name, plan, language, currency, status, tables_count, extra_json, created_at, updated_at
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, NOW(3))
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, NOW(3))
     ON DUPLICATE KEY UPDATE
       slug=VALUES(slug), restaurant_name=VALUES(restaurant_name), company_name=VALUES(company_name),
       vat_number=VALUES(vat_number), address=VALUES(address), city=VALUES(city), postal_code=VALUES(postal_code),
