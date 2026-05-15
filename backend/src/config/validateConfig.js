@@ -152,7 +152,8 @@ function validateQrOrdering() {
     return;
   }
   if (String(process.env.CT_QR_ORDER_SECRET_EPHEMERAL || "").toLowerCase() === "true") {
-    console.warn(
+    // stdout: molti host (Railway) taggano stderr (console.warn) come severity error nei log strutturati
+    console.log(
       "[CONFIG][QR] QR_ORDER_SECRET effimero (generato all’avvio): l’ordinazione QR funziona ma il segreto " +
         "cambia a ogni riavvio. Imposta QR_ORDER_SECRET nelle variabili d’ambiente per stabilità tra deploy."
     );
