@@ -1,5 +1,6 @@
 // backend/src/controllers/sala.controller.js
 const repo = require("../repositories/sala-tables.repository");
+const { broadcastNote } = require("../service/websocket.service");
 
 const VALID_STATI = ["libero", "aperto", "conto", "sporco"];
 const DEFAULT_TABLE_COUNT = 10;
@@ -61,5 +62,19 @@ exports.deleteTable = async (req, res) => {
   const { id } = req.params;
   const ok = await repo.deleteTable(id);
   if (!ok) return res.status(404).json({ error: "Tavolo non trovato" });
+  res.json({ ok: true });
+};
+
+exports.sendNote = async (req, res) => {
+  const { table, department, text } = req.body || {};
+  if (!department) return res.status(400).json({ error: "Campo department obbligatorio" });
+  const user = req.session?.user;
+  broadcastNote({
+    table: table || "",
+    department,
+    text: text || "",
+    from: user?.name || user?.username || "Sala",
+    sentAt: new Date().toISOString(),
+  });
   res.json({ ok: true });
 };

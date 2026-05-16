@@ -152,6 +152,7 @@ exports.clockIn = async (req, res) => {
 };
 
 // POST /api/attendance/me/clock-out – dipendente: timbratura uscita
+// Owner/supervisor can pass { staffId } to clock out another employee.
 exports.clockOut = async (req, res) => {
   const user = req.session?.user;
   if (!user || !user.id) {
@@ -161,11 +162,20 @@ exports.clockOut = async (req, res) => {
   if (!restaurantId) {
     return res.status(403).json({ error: "Ristorante non in sessione." });
   }
-  const openShift = await attendanceRepository.findOpenShiftByUser(user.id, restaurantId);
+  const { notes, staffId } = req.body || {};
+
+  let targetId = user.id;
+  if (staffId && String(staffId) !== String(user.id)) {
+    if (!["owner", "supervisor"].includes(user.role)) {
+      return res.status(403).json({ error: "Solo owner/supervisor possono registrare presenze per altri dipendenti." });
+    }
+    targetId = staffId;
+  }
+
+  const openShift = await attendanceRepository.findOpenShiftByUser(targetId, restaurantId);
   if (!openShift) {
     return res.status(404).json({ error: "Nessun turno aperto da chiudere." });
   }
-  const { notes } = req.body || {};
   const updated = await attendanceRepository.closeShift(restaurantId, openShift.id, {
     clockOutAt: new Date().toISOString(),
     notes: notes || openShift.notes || "",

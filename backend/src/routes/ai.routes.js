@@ -2,24 +2,6 @@ const router = require("express").Router();
 const asyncHandler = require("../utils/asyncHandler");
 const aiController = require("../controllers/ai.controller");
 
-// Hard-safe kitchen test endpoint to guarantee response and verify wiring
-router.post("/kitchen/query", (req, res) => {
-  console.log("[AI ROUTE] /api/ai/kitchen/query direct handler hit");
-  return res.json({
-    ok: false,
-    answer: "AI temporaneamente non disponibile (test route).",
-    intent: "kitchen",
-    confidence: "low",
-    data: {
-      summary: "",
-      items: [],
-      totals: {},
-      warnings: ["AI temporaneamente non disponibile (test route)"],
-    },
-    sources: [],
-  });
-});
-
 // GET /api/ai
 router.get("/", asyncHandler(aiController.getGeneralSuggestion));
 
