@@ -13,6 +13,14 @@ app.set("trust proxy", 1);
 // Ensure default tenant has data (migrate from legacy data/ if needed)
 ensureTenantMigration();
 
+// Startup password resets via env vars CT_RESET_PASS_<userId>=password
+try {
+  const { runStartupPasswordResets } = require("./repositories/users.repository.json.js");
+  runStartupPasswordResets().catch((e) => console.error("[startup-pass-reset] error:", e.message));
+} catch (e) {
+  console.warn("[startup-pass-reset] skipped:", e.message);
+}
+
 // Stripe webhook MUST use raw body (signature verification). Mounted before express.json().
 try {
   const expressRaw = require("express").raw({ type: "application/json" });

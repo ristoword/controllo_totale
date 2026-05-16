@@ -76,10 +76,11 @@
       "id": "10",
       "username": "costantino",
       "email": "costantinolaudani1@gmail.com",
-      "password": "$2b$10$6kyubeaejiCNeIqi8f6SLOZzFZ24xnY.SjcBkkIvxP95VU6CxmGoi",
+      "password": "$2b$10$kd2uTCEhIe3260lm.lEb7O1KCEe5Np7Z5Mk7X60.F9qwa.wjHa6E.",
       "role": "owner",
       "is_active": true,
       "restaurantId": "baia-verde",
+      "mustChangePassword": true,
       "createdAt": "2026-03-16T00:00:00.000Z"
     },
     {
