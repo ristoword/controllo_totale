@@ -203,6 +203,11 @@ app.get("/owner-activate", (req, res) => {
   );
 });
 
+// AI Assistente page (requires auth)
+app.get("/ai-assistente", requirePageAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/ai-assistente/ai-assistente.html"));
+});
+
 // QR table ordering: /qr/1, /qr/2, etc. (no auth – public QR)
 app.get("/qr", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/qr/index.html"));

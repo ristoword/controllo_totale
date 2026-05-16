@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>AI Assistente – Controllo Totale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="ai-assistente.css">
+</head>
+<body>
+
+<div class="ai-page">
+
+<header class="ai-topbar">
+  <a href="/" class="ai-back" title="Torna alla Dashboard">← Dashboard</a>
+  <h1 class="ai-page-title">🤖 AI Assistente</h1>
+  <div class="ai-status" id="ai-status">
+    <span class="ai-status-dot" id="ai-status-dot"></span>
+    <span id="ai-status-text">Verifica connessione…</span>
+  </div>
+</header>
+
+<section class="ai-intro">
+  <p>L'assistente AI analizza i <strong>dati operativi reali</strong> del tuo ristorante in tempo reale.
+  Seleziona un reparto per iniziare una conversazione o scoprire cosa può fare per te.</p>
+</section>
+
+<div class="ai-departments" id="ai-departments"></div>
+
+<!-- Chat modal -->
+<div class="ai-chat-backdrop" id="ai-chat-backdrop" style="display:none">
+  <div class="ai-chat-modal" id="ai-chat-modal">
+    <div class="ai-chat-head">
+      <div class="ai-chat-head-left">
+        <span class="ai-chat-icon" id="ai-chat-icon"></span>
+        <div>
+          <div class="ai-chat-title" id="ai-chat-title"></div>
+          <div class="ai-chat-dept" id="ai-chat-dept"></div>
+        </div>
+      </div>
+      <button class="ai-chat-close" id="ai-chat-close" aria-label="Chiudi">✕</button>
+    </div>
+    <div class="ai-chat-quick" id="ai-chat-quick"></div>
+    <div class="ai-chat-messages" id="ai-chat-messages"></div>
+    <div class="ai-chat-input-bar">
+      <input type="text" class="ai-chat-input" id="ai-chat-input"
+        placeholder="Scrivi una domanda…" autocomplete="off" maxlength="500">
+      <button class="ai-chat-send" id="ai-chat-send" disabled>➤</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="ai-assistente.js"></script>
+</body>
+</html>
