@@ -71,6 +71,21 @@ async function ensureAuthInitialized() {
   if (authCache.state && ageMs < 1500) return authCache.state;
 
   ensureDir();
+
+  // Se SUPER_ADMIN_FORCE_RESET=true cancella auth.json e si ricrea da .env
+  if (String(process.env.SUPER_ADMIN_FORCE_RESET || "").toLowerCase() === "true") {
+    try {
+      if (fs.existsSync(AUTH_FILE)) {
+        fs.unlinkSync(AUTH_FILE);
+        console.info("[SuperAdmin] SUPER_ADMIN_FORCE_RESET=true: auth.json eliminato, verrà ricreato da .env");
+      }
+    } catch (e) {
+      console.warn("[SuperAdmin] SUPER_ADMIN_FORCE_RESET: impossibile eliminare auth.json:", e.message);
+    }
+    // Reset cache
+    authCache = { state: null, atMs: 0 };
+  }
+
   let state = readAuthRaw();
   if (!state || typeof state !== "object") state = defaultAuthState();
 
