@@ -13,9 +13,10 @@ app.set("trust proxy", 1);
 // Ensure default tenant has data (migrate from legacy data/ if needed)
 ensureTenantMigration();
 
-// Startup password resets via env vars CT_RESET_PASS_<userId>=password
+// Startup password resets via env vars CT_RESET_PASS_<userId|USER_username|OWNER_restaurantId>=password
+// Works with both JSON and MySQL persistence.
 try {
-  const { runStartupPasswordResets } = require("./repositories/users.repository.json.js");
+  const { runStartupPasswordResets } = require("./utils/startupPasswordResets");
   runStartupPasswordResets().catch((e) => console.error("[startup-pass-reset] error:", e.message));
 } catch (e) {
   console.warn("[startup-pass-reset] skipped:", e.message);

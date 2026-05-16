@@ -177,45 +177,6 @@ async function setUserPassword(userId, hashedPassword, opts = {}) {
   return true;
 }
 
-/**
- * runStartupPasswordResets()
- *
- * Reads env vars of the form:
- *   CT_RESET_PASS_<userId>=plainTextPassword
- *
- * Example:
- *   CT_RESET_PASS_10=BaiaVerde2026!
- *
- * On startup: if the env var is set, bcrypt-hashes the value, updates the
- * user's password, sets mustChangePassword=true so the owner must change it on
- * first login, then logs what was done. Safe to leave the env var set: on
- * subsequent startups the hash comparison shows the same password so bcrypt
- * re-hashing is idempotent (it just writes a new hash each boot - acceptable).
- */
-async function runStartupPasswordResets() {
-  const prefix = "CT_RESET_PASS_";
-  const entries = Object.entries(process.env).filter(([k]) => k.startsWith(prefix));
-  if (entries.length === 0) return;
-
-  const users = await readUsers();
-
-  for (const [key, plain] of entries) {
-    const userId = key.slice(prefix.length);
-    if (!userId || !plain) continue;
-    const idx = users.findIndex((x) => String(x.id) === String(userId));
-    if (idx === -1) {
-      console.warn(`[startup-pass-reset] user id=${userId} not found, skipping`);
-      continue;
-    }
-    const hash = await bcrypt.hash(String(plain), BCRYPT_ROUNDS);
-    users[idx].password = hash;
-    users[idx].mustChangePassword = true;
-    console.log(`[startup-pass-reset] password reset for user id=${userId} (${users[idx].username}) restaurantId=${users[idx].restaurantId}`);
-  }
-
-  await writeUsers(users);
-}
-
 module.exports = {
   readUsers,
   writeUsers,
@@ -229,5 +190,4 @@ module.exports = {
   setUserPassword,
   ensureLeaveBalances,
   DEFAULT_LEAVE_BALANCES,
-  runStartupPasswordResets,
 };
