@@ -94,3 +94,12 @@
 }
 .rw-active-staff .rw-badge-logout:hover { background: rgba(244,67,54,0.6); }
 .rw-active-staff .rw-empty { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+@media (max-width: 640px) {
+  .rw-staff-chip .rw-btn { padding: 8px 14px; font-size: 13px; min-height: 44px; min-width: 44px; }
+  .rw-active-staff .rw-badge { padding: 8px 12px; font-size: 13px; min-height: 44px; }
+  .rw-active-staff .rw-badge-logout { padding: 8px 10px; font-size: 16px; min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .rw-staff-modal { min-width: auto; max-width: 96vw; width: 100%; padding: 16px; }
+  .rw-staff-modal .field input, .rw-staff-modal .field select { font-size: 16px; }
+  .rw-staff-modal .btn { min-height: 44px; }
+}

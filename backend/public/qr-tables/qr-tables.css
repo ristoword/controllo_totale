@@ -121,3 +121,17 @@
 .table-card .btn.ghost:hover {
   background: var(--border-soft);
 }
+
+@media (max-width: 640px) {
+  .card-header { padding: 16px 16px; }
+  .card-body { padding: 16px; }
+  .tables-grid { gap: 14px; }
+  .table-card { padding: 16px; }
+  .table-card .btn { min-height: 44px; }
+}
+@media (max-width: 480px) {
+  .card-header { padding: 14px 12px; }
+  .card-body { padding: 12px; }
+  .table-card { padding: 12px; }
+  .tables-grid { gap: 10px; }
+}
