@@ -30,32 +30,33 @@
 <nav class="side-nav">
 
 <a class="side-nav-item active" href="/" data-i18n="dashboard">Dashboard</a>
-<a class="side-nav-item" href="/owner-console" title="Licenza, locale, configurazione">Area owner</a>
+<a class="side-nav-item" href="/owner-console" data-i18n="owner_area" data-i18n-title="owner_area_tip">Area owner</a>
 <a class="side-nav-item" href="/sala/sala.html" data-i18n="sala">Sala</a>
-<a class="side-nav-item" href="/sala/sala-fullscreen.html" title="Mappa a schermo intero">Sala fullscreen</a>
+<a class="side-nav-item" href="/sala/sala-fullscreen.html" data-i18n="sala_fullscreen" data-i18n-title="sala_fullscreen_tip">Sala fullscreen</a>
 <a class="side-nav-item" href="/cucina/cucina.html" data-i18n="cucina">Cucina</a>
 <a class="side-nav-item" href="/pizzeria/pizzeria.html" data-i18n="pizzeria">Pizzeria</a>
 <a class="side-nav-item" href="/bar/bar.html" data-i18n="bar">Bar</a>
 <a class="side-nav-item" href="/cassa/cassa.html" data-i18n="cassa">Cassa</a>
 <a class="side-nav-item" href="/magazzino/magazzino.html" data-i18n="magazzino">Magazzino</a>
-<a class="side-nav-item" href="/fornitori/fornitori.html">Fornitori</a>
-<a class="side-nav-item" href="/qr-tables/qr-tables.html">QR Tavoli</a>
+<a class="side-nav-item" href="/fornitori/fornitori.html" data-i18n="fornitori">Fornitori</a>
+<a class="side-nav-item" href="/qr-tables/qr-tables.html" data-i18n="qr_tables">QR Tavoli</a>
 <a class="side-nav-item" href="/catering/catering.html" data-i18n="catering">Catering</a>
 <a class="side-nav-item" href="/prenotazioni/prenotazioni.html" data-i18n="prenotazioni">Prenotazioni</a>
 <a class="side-nav-item" href="/asporto/asporto.html" data-i18n="asporto">Asporto</a>
 <a class="side-nav-item" href="/supervisor/supervisor.html" data-i18n="supervisor">Supervisor</a>
-<a class="side-nav-item" href="/staff/staff.html">Staff</a>
-<a class="side-nav-item" href="/turni/turni.html" title="Pianificazione turni settimanale">Turni</a>
-<a class="side-nav-item" href="/staff-hr/index.html" title="HR — presenze, ferie, pagamenti">Staff HR</a>
-<a class="side-nav-item" href="/staff/me/index.html" title="Il tuo profilo, turni e richieste">Il mio profilo</a>
-<a class="side-nav-item" href="/supervisor/customers/customers.html" title="CRM clienti">Clienti</a>
-<a class="side-nav-item" href="/hardware/hardware.html">Hardware / Stampa</a>
+<a class="side-nav-item" href="/staff/staff.html" data-i18n="staff">Staff</a>
+<a class="side-nav-item" href="/turni/turni.html" data-i18n="turni" data-i18n-title="turni_tip">Turni</a>
+<a class="side-nav-item" href="/staff-hr/index.html" data-i18n="staff_hr" data-i18n-title="staff_hr_tip">Staff HR</a>
+<a class="side-nav-item" href="/staff/me/index.html" data-i18n="my_profile" data-i18n-title="my_profile_tip">Il mio profilo</a>
+<a class="side-nav-item" href="/supervisor/customers/customers.html" data-i18n="customers" data-i18n-title="customers_tip">Clienti</a>
+<a class="side-nav-item" href="/hardware/hardware.html" data-i18n="hardware">Hardware / Stampa</a>
 <a class="side-nav-item" href="/menu-admin/menu-admin.html" data-i18n="menu_admin">Menu Admin</a>
-<a class="side-nav-item" href="/daily-menu/daily-menu.html">Menu del Giorno</a>
-<a class="side-nav-item" href="/cucina/food-cost.html" title="Analisi costi piatti e food cost">Food Cost</a>
-<a class="side-nav-item" href="/haccp/haccp.html" title="Registro controlli HACCP">HACCP</a>
-<a class="side-nav-item" href="/archivio/archivio.html" title="Incassi storici, fatture, confronti">Archivio</a>
-<a class="side-nav-item" href="/archivio/comande.html" title="Comande servite">Archivio comande</a>
+<a class="side-nav-item" href="/daily-menu/daily-menu.html" data-i18n="daily_menu">Menu del Giorno</a>
+<a class="side-nav-item" href="/cucina/food-cost.html" data-i18n="food_cost" data-i18n-title="food_cost_tip">Food Cost</a>
+<a class="side-nav-item" href="/haccp/haccp.html" data-i18n="haccp" data-i18n-title="haccp_tip">HACCP</a>
+<a class="side-nav-item" href="/archivio/archivio.html" data-i18n="archivio" data-i18n-title="archivio_tip">Archivio</a>
+<a class="side-nav-item" href="/archivio/comande.html" data-i18n="archivio_orders" data-i18n-title="archivio_orders_tip">Archivio comande</a>
+<a class="side-nav-item" href="/ai-assistente" data-i18n="ai_assistente" data-i18n-title="ai_assistente_tip">AI Assistente</a>
 
 </nav>
 
@@ -174,60 +175,73 @@ Controllo totale di Sala → Cucina → Pizzeria → Magazzino → Cassa
 <a class="module-card" href="/pizzeria/pizzeria.html">
 <div class="module-icon">🍕</div>
 <div class="module-title" data-i18n="pizzeria">Pizzeria</div>
+<div class="module-desc" data-i18n="pizzeria_desc">Produzione pizze</div>
 </a>
 
 <a class="module-card" href="/bar/bar.html">
 <div class="module-icon">🍸</div>
 <div class="module-title" data-i18n="bar">Bar</div>
+<div class="module-desc" data-i18n="bar_desc">Bevande e cocktail</div>
 </a>
 
 <a class="module-card" href="/magazzino/magazzino.html">
 <div class="module-icon">📦</div>
 <div class="module-title" data-i18n="magazzino">Magazzino</div>
+<div class="module-desc" data-i18n="magazzino_desc">Scorte e inventario</div>
 </a>
 
 <a class="module-card" href="/cassa/cassa.html">
 <div class="module-icon">💳</div>
 <div class="module-title" data-i18n="cassa">Cassa</div>
+<div class="module-desc" data-i18n="cassa_desc">Incassi e pagamenti</div>
 </a>
 
 <a class="module-card" href="/catering/catering.html">
 <div class="module-icon">🎉</div>
 <div class="module-title" data-i18n="catering">Catering</div>
+<div class="module-desc" data-i18n="catering_desc">Eventi e banchetti</div>
 </a>
 
 <a class="module-card" href="/prenotazioni/prenotazioni.html">
 <div class="module-icon">📅</div>
 <div class="module-title" data-i18n="prenotazioni">Prenotazioni</div>
+<div class="module-desc" data-i18n="prenotazioni_desc">Gestione prenotazioni</div>
 </a>
 
 <a class="module-card" href="/supervisor/supervisor.html">
 <div class="module-icon">🧭</div>
 <div class="module-title" data-i18n="supervisor">Supervisor</div>
+<div class="module-desc" data-i18n="supervisor_desc">Direzione e analisi</div>
 </a>
 
 <a class="module-card" href="/turni/turni.html">
 <div class="module-icon">📋</div>
-<div class="module-title">Turni</div>
-<div class="module-desc">Pianificazione settimanale</div>
+<div class="module-title" data-i18n="turni">Turni</div>
+<div class="module-desc" data-i18n="turni_desc">Pianificazione settimanale</div>
 </a>
 
 <a class="module-card" href="/staff-hr/index.html">
 <div class="module-icon">👥</div>
-<div class="module-title">Staff HR</div>
-<div class="module-desc">Presenze e ferie</div>
+<div class="module-title" data-i18n="staff_hr">Staff HR</div>
+<div class="module-desc" data-i18n="staff_hr_desc">Presenze e ferie</div>
 </a>
 
 <a class="module-card" href="/supervisor/customers/customers.html">
 <div class="module-icon">⭐</div>
-<div class="module-title">Clienti</div>
-<div class="module-desc">CRM del ristorante</div>
+<div class="module-title" data-i18n="customers">Clienti</div>
+<div class="module-desc" data-i18n="customers_desc">CRM del ristorante</div>
 </a>
 
 <a class="module-card" href="/haccp/haccp.html">
 <div class="module-icon">🧪</div>
-<div class="module-title">HACCP</div>
-<div class="module-desc">Controlli e registri</div>
+<div class="module-title" data-i18n="haccp">HACCP</div>
+<div class="module-desc" data-i18n="haccp_desc">Controlli e registri</div>
+</a>
+
+<a class="module-card" href="/ai-assistente">
+<div class="module-icon">🤖</div>
+<div class="module-title" data-i18n="ai_assistente">AI Assistente</div>
+<div class="module-desc" data-i18n="ai_assistente_desc">Assistente AI per reparto</div>
 </a>
 
 </div>
@@ -250,13 +264,13 @@ Nessuna comanda trovata
 </article>
 
 <header class="grid-section-header">
-<h2>Menu del Giorno</h2>
-<p>Riepilogo piatti attivi – gestito dalla Cucina</p>
+<h2 data-i18n="daily_menu">Menu del Giorno</h2>
+<p data-i18n="daily_menu_summary">Riepilogo piatti attivi – gestito dalla Cucina</p>
 </header>
 
 <article class="card daily-menu-dash-card">
 <div class="card-body" id="daily-menu-dash-content">
-<div class="placeholder">Caricamento...</div>
+<div class="placeholder" data-i18n="loading">Caricamento...</div>
 </div>
 </article>
 
