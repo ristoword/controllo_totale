@@ -64,6 +64,13 @@
         el.placeholder = t;
       }
     });
+    document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
+      const key = el.getAttribute("data-i18n-title");
+      const t = translations[key];
+      if (t !== undefined && t !== null) {
+        el.title = t;
+      }
+    });
     document.documentElement.lang = currentLang;
     if (typeof window.dispatchEvent === "function") {
       window.dispatchEvent(new CustomEvent("i18n:updated", { detail: { lang: currentLang } }));
