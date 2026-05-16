@@ -19,3 +19,14 @@
   flex-wrap: wrap;
   margin-top: 12px;
 }
+
+/* Chiusura responsive */
+@media (max-width: 640px) {
+  .form-actions { gap: 14px; flex-direction: column; }
+  .form-actions .btn { width: 100%; min-height: 44px; justify-content: center; }
+  .closure-status { font-size: 14px; padding: 10px 14px; }
+}
+
+@media (max-width: 480px) {
+  .closure-status { font-size: 13px; }
+}

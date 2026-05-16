@@ -420,4 +420,37 @@ body{
   .topbar{flex-direction:column;align-items:flex-start}
   .topbar-right{flex-wrap:wrap;justify-content:flex-start}
   .two-cols-tight{grid-template-columns:minmax(0,1fr)}
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+
+@media (max-width: 640px){
+  .form-grid{grid-template-columns:1fr}
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea{font-size:16px}
+  .btn-xs{padding:8px 14px;font-size:13px;min-height:44px}
+  .btn{min-height:44px;padding:10px 14px;font-size:13px}
+  .tab{min-height:44px;padding:10px 14px;font-size:14px}
+  .invoice-line{grid-template-columns:1fr;gap:4px;padding:10px}
+  .invoice-line .qty,
+  .invoice-line .sum{text-align:left}
+  .layout{padding:10px 10px}
+  .chip{min-width:110px;padding:6px 10px}
+  .chip-value{font-size:16px}
+  .modal{width:min(720px,100vw)}
+  .order-row{padding:10px}
+}
+
+@media (max-width: 480px){
+  .topbar-left h1{font-size:20px}
+  .modal-header{padding:10px}
+  .modal-body{padding:10px}
+  .daily-menu-cassa-row{font-size:13px}
+}
+
+@media (pointer: coarse){
+  .btn:hover{filter:none}
+  .btn.ghost:hover{border-color:#343848;color:var(--text-soft)}
+  .btn-xs:hover{background:transparent}
+  .order-row:hover{background:transparent}
 }
