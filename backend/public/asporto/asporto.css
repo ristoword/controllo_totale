@@ -51,6 +51,22 @@
   gap: 12px;
 }
 
-@media (max-width: 1000px) {
-  .orders-container {
-    grid-template-c
+@media (max-width: 1200px) {
+  .orders-container { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 900px) {
+  .orders-container { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid input,
+  .form-grid textarea { font-size: 16px; }
+  .form-card { padding: 10px; }
+  .form-card h2 { font-size: 15px; }
+}
+
+@media (max-width: 480px) {
+  .orders-container { gap: 8px; }
+}

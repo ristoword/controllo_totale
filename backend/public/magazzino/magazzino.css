@@ -386,3 +386,44 @@ textarea { resize: vertical; min-height: 60px; }
 @media print {
   .no-print { display: none !important; }
 }
+
+/* ===== ADDITIONAL RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  input, select, textarea { font-size: 16px; }
+  .stock-btns button {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .btn { min-height: 44px; padding: 10px 14px; font-size: 14px; }
+  .btn.small { min-height: 40px; padding: 8px 12px; }
+  .btn-danger { min-height: 44px; padding: 10px 14px; }
+  .btn-success,
+  .btn-info { min-height: 44px; }
+  .mag-tab { min-height: 44px; padding: 10px 16px; font-size: 14px; }
+  .search-input { font-size: 16px; padding: 10px; }
+  .layout { padding: 12px 10px; }
+  .tbl { font-size: 12px; }
+  .tbl th,
+  .tbl td { padding: 6px 8px; }
+  .modal { max-width: 100%; min-width: 0; }
+  .modal-body label { font-size: 13px; }
+}
+
+@media (max-width: 480px) {
+  .topbar h1 { font-size: 16px; }
+  .kpi { min-width: 80px; padding: 6px 10px; }
+  .kpi-value { font-size: 13px; }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .suggestion-chip { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+}
+
+@media (pointer: coarse) {
+  .btn:hover { filter: none; }
+  .btn.ghost:hover { background: transparent; }
+  .stock-btns button:hover { background: var(--bg-alt); }
+  .mag-tab:hover { background: var(--bg-alt); color: var(--text-soft); }
+  .mag-tab.active:hover { background: var(--accent); color: #000; }
+  .suggestion-chip:hover { background: transparent; }
+}

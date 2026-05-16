@@ -255,5 +255,19 @@ body {
 
 @media (max-width:800px) {
   .layout { grid-template-columns:1fr; }
-  .sidebar { display:none; }
+  .sidebar { display:flex; flex-direction:row; overflow-x:auto; gap:0; padding:8px 12px; border-bottom:1px solid var(--border); border-right:none; }
+  .sidebar a { white-space:nowrap; padding:8px 14px; font-size:13px; }
+  .brand { display:none; }
+  .sidebar-footer { display:none; }
+  .nav { flex-direction:row; gap:2px; }
+  .main { max-height:none; }
+}
+@media (max-width:640px) {
+  .topbar { flex-direction:column; align-items:flex-start; }
+  .cal-cell { min-height:56px; padding:4px; }
+  .cal-event { font-size:11px; padding:3px 5px; }
+  .cal-grid, .cal-grid-header { min-width:600px; }
+  .card-body:has(.cal-grid) { overflow-x:auto; }
+  .clock-card-actions .btn { padding:8px 14px; font-size:12px; min-height:44px; }
+  .input-date, .select-sm { font-size:16px; min-height:44px; }
 }

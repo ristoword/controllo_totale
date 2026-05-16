@@ -1,4 +1,4 @@
-root {
+:root {
   --bg: #0b0d12;
   --bg-alt: #141824;
   --bg-soft: #1b1f2b;
@@ -460,5 +460,78 @@ a.side-nav-item {
   .menu-list-header,
   .menu-row {
     grid-template-columns: 1.6fr 1fr 0.9fr 0.9fr 1.1fr;
+  }
+
+  .fc-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fc-options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid,
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-actions button {
+    padding: 8px 14px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 8px 14px;
+  }
+
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea,
+  .filters-grid input,
+  .filters-grid select {
+    font-size: 16px;
+  }
+
+  .layout {
+    padding: 10px 10px;
+  }
+
+  .card-body {
+    padding: 8px 8px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-left h1 {
+    font-size: 18px;
+  }
+
+  .menu-list-header,
+  .menu-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .menu-list-header {
+    display: none;
+  }
+
+  .menu-row {
+    padding: 8px;
+  }
+
+  .fc-ingredients-table {
+    font-size: 10px;
+  }
+}
+
+@media (pointer: coarse) {
+  .btn.primary:hover,
+  .btn.ghost:hover,
+  .menu-actions button:hover {
+    transform: none;
+    filter: none;
   }
 }

@@ -176,6 +176,9 @@ body {
 .msg-bar.err { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); color: var(--danger); }
 .msg-bar:empty { display: none; }
 
+@media (max-width: 800px) {
+  .info-cards { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 640px) {
   .info-cards { grid-template-columns: 1fr; }
   .profile-header { flex-direction: column; text-align: center; }

@@ -467,7 +467,7 @@ textarea{ resize: vertical; }
 .table{
   border:1px solid var(--border);
   border-radius: var(--r-md);
-  overflow:hidden;
+  overflow-x:auto;
 }
 
 .trow{

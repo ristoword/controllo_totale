@@ -1,3 +1,28 @@
+// Mobile sidebar toggle
+(function() {
+  const hamburger = document.getElementById('hamburger-btn');
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!hamburger || !sidebar) return;
+
+  function toggleSidebar(open) {
+    const isOpen = typeof open === 'boolean' ? open : !sidebar.classList.contains('open');
+    sidebar.classList.toggle('open', isOpen);
+    hamburger.classList.toggle('active', isOpen);
+    if (backdrop) backdrop.style.display = isOpen ? 'block' : 'none';
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+
+  hamburger.addEventListener('click', () => toggleSidebar());
+  if (backdrop) backdrop.addEventListener('click', () => toggleSidebar(false));
+
+  sidebar.querySelectorAll('.side-nav-item').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 720) toggleSidebar(false);
+    });
+  });
+})();
+
 // =============================
 // HELPERS
 // =============================

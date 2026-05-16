@@ -9,3 +9,21 @@
 .kds-column-header {
   font-size: 18px;
 }
+
+/* Bar-specific responsive overrides */
+@media (max-width: 768px) {
+  .kds-column-header { font-size: 16px; padding: 12px; }
+}
+
+@media (max-width: 640px) {
+  .kds-column-header { font-size: 14px; padding: 10px; letter-spacing: 0.04em; }
+  .order-card { padding: 12px; gap: 10px; }
+  .order-actions { gap: 8px; flex-wrap: wrap; }
+  .btn-xs { min-height: 44px; font-size: 15px; }
+}
+
+@media (max-width: 480px) {
+  .topbar-left h1 { font-size: 20px; }
+  .order-title { font-size: 24px; }
+  .order-time { font-size: 18px; }
+}

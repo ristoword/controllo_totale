@@ -91,6 +91,12 @@
     border-radius: 20px 20px 0 0;
   }
   #ai-fab { bottom: 16px; right: 16px; }
+  .ai-panel-close { width: 44px; height: 44px; font-size: 18px; }
+  .ai-send-btn { width: 44px; height: 44px; }
+  .ai-input { height: 44px; font-size: 16px; }
+  .ai-qp-btn { padding: 10px 16px; font-size: 13px; min-height: 44px; }
+  .ai-clear-btn { width: 44px; height: 44px; }
+  .ai-action-chip { padding: 10px 16px; min-height: 44px; }
 }
 
 /* PANEL HEADER */

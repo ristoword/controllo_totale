@@ -364,4 +364,63 @@ body {
     flex-wrap: wrap;
     justify-content: flex-start;
   }
+
+  .form-grid,
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea,
+  .filter-grid input,
+  .filter-grid select {
+    font-size: 16px;
+  }
+
+  .btn-xs {
+    padding: 8px 14px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 8px 14px;
+  }
+
+  .layout {
+    padding: 10px 10px;
+  }
+
+  .chip {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-left h1 {
+    font-size: 17px;
+  }
+
+  .card-header h2 {
+    font-size: 13px;
+  }
+
+  .card-body {
+    padding: 8px 8px 10px;
+  }
+
+  .booking-card {
+    padding: 6px 7px;
+  }
+}
+
+@media (pointer: coarse) {
+  .btn-xs:hover,
+  .btn.ghost:hover,
+  .btn.primary:hover {
+    filter: none;
+    transform: none;
+  }
 }
