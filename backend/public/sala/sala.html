@@ -11,19 +11,19 @@
   <!-- HEADER -->
   <header class="topbar">
     <div class="topbar-left">
-      <a href="/dashboard/dashboard.html" class="back-btn" title="Dashboard">&#8592;</a>
+      <a href="/dashboard/dashboard.html" class="back-btn" title="Dashboard" data-i18n="nav_back_dashboard">&#8592;</a>
       <div>
-        <h1>Sala</h1>
-        <p class="subtitle">Planimetria touch: tocca un tavolo, scegli cosa fare. Invia comande con corsi.</p>
+        <h1 data-i18n="sala">Sala</h1>
+        <p class="subtitle" data-i18n="sala_subtitle">Planimetria touch: tocca un tavolo, scegli cosa fare. Invia comande con corsi.</p>
       </div>
     </div>
     <div class="topbar-right">
       <div class="chip">
         <span class="chip-dot dot-accent"></span>
-        <span class="chip-label">Ordini attivi:</span>
+        <span class="chip-label" data-i18n="active_orders">Ordini attivi:</span>
         <strong class="chip-value" id="kpi-active-orders">–</strong>
       </div>
-      <button class="btn ghost small" id="btn-refresh" title="Aggiorna">↻ Aggiorna</button>
+      <button class="btn ghost small" id="btn-refresh" title="Aggiorna" data-i18n="refresh">↻ Aggiorna</button>
     </div>
   </header>
 
@@ -268,6 +268,7 @@
     </div>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,supervisor"></script>
   <script src="/shared/websocket.js"></script>
   <script src="sala.js?v=20260510"></script>

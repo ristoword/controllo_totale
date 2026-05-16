@@ -12,36 +12,36 @@
 
     <header class="topbar">
       <div>
-        <h1>CONTROLLO TOTALE – Magazzino</h1>
-        <p class="subtitle">Magazzino Centrale · Reparti · Movimenti · Lista spesa · Attrezzature</p>
+        <h1>CONTROLLO TOTALE – <span data-i18n="magazzino">Magazzino</span></h1>
+        <p class="subtitle" data-i18n="magazzino_subtitle">Magazzino Centrale · Reparti · Movimenti · Lista spesa · Attrezzature</p>
       </div>
       <div class="kpi-row">
-        <a href="/dashboard/dashboard.html" class="btn ghost no-print" title="Dashboard">← Dashboard</a>
-        <a href="/fornitori/fornitori.html" class="btn ghost no-print" title="Fornitori">Fornitori</a>
+        <a href="/dashboard/dashboard.html" class="btn ghost no-print" title="Dashboard" data-i18n="nav_back_dashboard">← Dashboard</a>
+        <a href="/fornitori/fornitori.html" class="btn ghost no-print" title="Fornitori" data-i18n="fornitori">Fornitori</a>
         <div class="kpi" id="kpi-prodotti">
-          <span class="kpi-label">Prodotti</span>
+          <span class="kpi-label" data-i18n="mag_products">Prodotti</span>
           <span class="kpi-value" id="kpi-count">0</span>
         </div>
         <div class="kpi" id="kpi-sotto-scorta">
-          <span class="kpi-label">Sotto scorta</span>
+          <span class="kpi-label" data-i18n="mag_low_stock">Sotto scorta</span>
           <span class="kpi-value" id="kpi-low">0</span>
         </div>
         <div class="kpi">
-          <span class="kpi-label">Valore totale</span>
+          <span class="kpi-label" data-i18n="mag_total_value">Valore totale</span>
           <span class="kpi-value" id="kpi-value">€ 0,00</span>
         </div>
-        <button class="btn ghost no-print" id="btn-refresh" type="button">Aggiorna</button>
+        <button class="btn ghost no-print" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
       </div>
     </header>
 
     <!-- TAB NAV -->
     <nav class="mag-tabs no-print">
-      <button class="mag-tab active" data-tab="centrale">Centrale</button>
-      <button class="mag-tab" data-tab="reparti">Reparti</button>
-      <button class="mag-tab" data-tab="ricezione">Ricezione</button>
-      <button class="mag-tab" data-tab="movimenti">Movimenti</button>
-      <button class="mag-tab" data-tab="spesa">Lista spesa</button>
-      <button class="mag-tab" data-tab="attrezzature">Attrezzature</button>
+      <button class="mag-tab active" data-tab="centrale" data-i18n="mag_centrale">Centrale</button>
+      <button class="mag-tab" data-tab="reparti" data-i18n="mag_reparti">Reparti</button>
+      <button class="mag-tab" data-tab="ricezione" data-i18n="nav_ricezione">Ricezione</button>
+      <button class="mag-tab" data-tab="movimenti" data-i18n="nav_movements">Movimenti</button>
+      <button class="mag-tab" data-tab="spesa" data-i18n="nav_lista_spesa">Lista spesa</button>
+      <button class="mag-tab" data-tab="attrezzature" data-i18n="mag_attrezzature">Attrezzature</button>
     </nav>
 
     <main class="main">
@@ -476,6 +476,7 @@
     </div>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa,magazzino"></script>
   <script src="magazzino.js"></script>
   <link rel="stylesheet" href="/shared/ai-widget.css">

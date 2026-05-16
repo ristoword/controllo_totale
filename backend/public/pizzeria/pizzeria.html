@@ -12,34 +12,34 @@
     <!-- HEADER -->
     <header class="topbar">
       <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Pizzeria</h1>
-        <p class="subtitle">
+        <h1>CONTROLLO TOTALE – <span data-i18n="pizzeria">Pizzeria</span></h1>
+        <p class="subtitle" data-i18n="pizzeria_subtitle">
           Monitor produzione pizze + strumenti di lavoro pizzeria
         </p>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
+        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa" data-i18n="nav_back_dashboard">← Dashboard</a>
         <div class="chip">
-          <span class="chip-label">In preparazione</span>
+          <span class="chip-label" data-i18n="kpi_prep">In preparazione</span>
           <span class="chip-value" id="kpi-prep">–</span>
         </div>
         <div class="chip">
-          <span class="chip-label">Pronte</span>
+          <span class="chip-label" data-i18n="kpi_ready">Pronte</span>
           <span class="chip-value" id="kpi-ready">–</span>
         </div>
         <div class="chip">
-          <span class="chip-label">In ritardo</span>
+          <span class="chip-label" data-i18n="kpi_late">In ritardo</span>
           <span class="chip-value" id="kpi-late">–</span>
         </div>
-        <button class="btn ghost" id="btn-refresh">Aggiorna</button>
+        <button class="btn ghost" id="btn-refresh" data-i18n="refresh">Aggiorna</button>
       </div>
     </header>
 
     <!-- NAV PULSANTI TOUCH -->
     <nav class="pizzeria-nav">
-      <button class="nav-btn active" data-view="comande">Comande</button>
-      <button class="nav-btn" data-view="ricette">Ricette</button>
-      <button class="nav-btn" data-view="vocale">Comandi vocali</button>
+      <button class="nav-btn active" data-view="comande" data-i18n="nav_comande">Comande</button>
+      <button class="nav-btn" data-view="ricette" data-i18n="nav_ricette">Ricette</button>
+      <button class="nav-btn" data-view="vocale" data-i18n="nav_ai">Comandi vocali</button>
     </nav>
 
     <!-- CONTENUTO PRINCIPALE -->
@@ -49,14 +49,14 @@
       <section id="view-comande" class="view active-view">
         <div class="orders-container">
           <div class="kds-column">
-            <header class="kds-column-header">Nuove / In attesa</header>
+            <header class="kds-column-header" data-i18n="kds_pending">Nuove / In attesa</header>
             <div class="kds-column-body" id="col-pending">
               <!-- popolato da pizzeria.js -->
             </div>
           </div>
 
           <div class="kds-column">
-            <header class="kds-column-header">In preparazione</header>
+            <header class="kds-column-header" data-i18n="kds_prep">In preparazione</header>
             <div class="kds-column-body" id="col-prep">
               <!-- popolato da pizzeria.js -->
             </div>
@@ -141,6 +141,7 @@
     </main>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa"></script>
   <script src="/shared/websocket.js"></script>
   <script src="pizzeria.js"></script>

@@ -15,13 +15,13 @@
     <!-- HEADER -->
     <header class="topbar no-print">
       <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Cassa</h1>
-        <p class="subtitle">
+        <h1>CONTROLLO TOTALE – <span data-i18n="cassa">Cassa</span></h1>
+        <p class="subtitle" data-i18n="cassa_subtitle">
           Chiusura tavoli • sconti/IVA • pagamenti • fatture • report
         </p>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
+        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa" data-i18n="nav_back_dashboard">← Dashboard</a>
         <div class="rw-staff-chip" id="rw-cassa-datetime">
           <span class="rw-value" id="rw-datetime-value">—</span>
         </div>
@@ -895,6 +895,7 @@
   </div>
 
   <!-- Shared -->
+  <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,cassa"></script>
   <script src="/shared/api.js"></script>
   <script src="/shared/websocket.js"></script>

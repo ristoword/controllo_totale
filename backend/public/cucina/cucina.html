@@ -14,89 +14,96 @@
     <!-- HEADER -->
     <header class="topbar">
       <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Cucina</h1>
-        <p class="subtitle">
+        <h1>CONTROLLO TOTALE – <span data-i18n="cucina">Cucina</span></h1>
+        <p class="subtitle" data-i18n="cucina_subtitle">
           Monitor produzione ordini + strumenti di lavoro cucina
         </p>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
+        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa" data-i18n="nav_back_dashboard">← Dashboard</a>
         <div id="rw-cucina-manager-chip" class="rw-staff-chip">
           <span class="rw-label">Manager:</span>
           <span class="rw-value" id="rw-manager-value">—</span>
-          <button type="button" class="rw-btn" id="rw-btn-manager-login">Manager login</button>
-          <button type="button" class="rw-btn" id="rw-btn-manager-logout" style="display:none">Logout</button>
+          <button type="button" class="rw-btn" id="rw-btn-manager-login" data-i18n="manager_login">Manager login</button>
+          <button type="button" class="rw-btn" id="rw-btn-manager-logout" style="display:none" data-i18n="logout">Logout</button>
         </div>
         <div class="chip">
-          <span class="chip-label">Valore Magazzino</span>
+          <span class="chip-label" data-i18n="inventory_value">Valore Magazzino</span>
           <span class="chip-value" id="kpi-inventory-value">–</span>
         </div>
         <div class="chip">
-          <span class="chip-label">In preparazione</span>
+          <span class="chip-label" data-i18n="kpi_prep">In preparazione</span>
           <span class="chip-value" id="kpi-prep">–</span>
         </div>
         <div class="chip">
-          <span class="chip-label">Pronti</span>
+          <span class="chip-label" data-i18n="kpi_ready">Pronti</span>
           <span class="chip-value" id="kpi-ready">–</span>
         </div>
         <div class="chip">
-          <span class="chip-label">In ritardo</span>
+          <span class="chip-label" data-i18n="kpi_late">In ritardo</span>
           <span class="chip-value" id="kpi-late">–</span>
         </div>
-        <button class="btn ghost no-print" id="btn-refresh">Aggiorna</button>
+        <button class="btn ghost no-print" id="btn-refresh" data-i18n="refresh">Aggiorna</button>
       </div>
     </header>
 
     <!-- NAV PULSANTI TOUCH -->
     <nav class="kitchen-nav no-print">
-      <button class="nav-btn active" data-view="comande">Comande</button>
+      <button class="nav-btn active" data-view="comande" data-i18n="nav_comande">Comande</button>
 
       <!-- link alle altre pagine reparto -->
       <button class="nav-btn"
               type="button"
-              onclick="window.location.href='/magazzino/magazzino.html'">
+              onclick="window.location.href='/magazzino/magazzino.html'"
+              data-i18n="magazzino">
         Magazzino
       </button>
       <button class="nav-btn"
               type="button"
-              onclick="window.location.href='/fornitori/fornitori.html'">
+              onclick="window.location.href='/fornitori/fornitori.html'"
+              data-i18n="fornitori">
         Fornitori
       </button>
       <button class="nav-btn"
               type="button"
-              onclick="window.location.href='/cucina/food-cost.html'">
+              onclick="window.location.href='/cucina/food-cost.html'"
+              data-i18n="food_cost">
         Food Cost
       </button>
       <button class="nav-btn"
               type="button"
-              onclick="window.location.href='/daily-menu/daily-menu.html'">
+              onclick="window.location.href='/daily-menu/daily-menu.html'"
+              data-i18n="daily_menu">
         Menu del Giorno
       </button>
       <button class="nav-btn"
               type="button"
-              onclick="window.location.href='/menu-admin/menu-admin.html'">
+              onclick="window.location.href='/menu-admin/menu-admin.html'"
+              data-i18n="nav_crea_piatti">
         Crea piatti
       </button>
       <button class="nav-btn"
               type="button"
-              onclick="window.location.href='/catering/catering.html'">
+              onclick="window.location.href='/catering/catering.html'"
+              data-i18n="catering">
         Catering
       </button>
 
-      <!-- viste interne di questa pagina — Menu al posto di Ricette (allineato a Controllo Totale) -->
+      <!-- viste interne di questa pagina -->
       <button
         class="nav-btn"
         type="button"
         title="Gestione menu e listini"
-        onclick="window.location.href='/menu-admin/menu-admin.html'">
+        onclick="window.location.href='/menu-admin/menu-admin.html'"
+        data-i18n="menu_admin">
         Menu
       </button>
-      <button class="nav-btn" data-view="ricette" title="Editor ricette e food cost in pagina">Scheda ricette</button>
-      <button class="nav-btn" data-view="ricezione">Ricezione merce</button>
-      <button class="nav-btn" data-view="spesa">Lista spesa</button>
-      <button class="nav-btn" data-view="haccp">HACCP</button>
-      <button class="nav-btn" data-view="turni">Turni cucina</button>
-      <button class="nav-btn" data-view="vocale">AI</button>
+      <button class="nav-btn" data-view="ricette" title="Editor ricette e food cost in pagina" data-i18n="nav_ricette">Scheda ricette</button>
+      <button class="nav-btn" data-view="ricezione" data-i18n="nav_ricezione">Ricezione merce</button>
+      <button class="nav-btn" data-view="spesa" data-i18n="nav_lista_spesa">Lista spesa</button>
+      <button class="nav-btn" data-view="haccp" data-i18n="haccp">HACCP</button>
+      <button class="nav-btn" data-view="turni" data-i18n="nav_turni_cucina">Turni cucina</button>
+      <button class="nav-btn" data-view="vocale" data-i18n="nav_ai">AI</button>
     </nav>
 
     <!-- CONTENUTO PRINCIPALE -->
@@ -106,8 +113,8 @@
       <section id="view-comande" class="view active-view">
         <article class="card" style="margin-bottom:12px;">
           <header class="card-header">
-            <h2>Staff attivi (cucina)</h2>
-            <p>Personale loggato in cucina</p>
+            <h2 data-i18n="active_staff_cucina">Staff attivi (cucina)</h2>
+            <p data-i18n="active_staff_cucina_desc">Personale loggato in cucina</p>
           </header>
           <div class="card-body">
             <div id="rw-cucina-active-staff"></div>
@@ -115,21 +122,21 @@
         </article>
         <div class="orders-container">
           <div class="kds-column">
-            <header class="kds-column-header">Nuove / In attesa</header>
+            <header class="kds-column-header" data-i18n="kds_pending">Nuove / In attesa</header>
             <div class="kds-column-body" id="col-pending">
               <!-- popolato da cucina.js -->
             </div>
           </div>
 
           <div class="kds-column">
-            <header class="kds-column-header">In preparazione</header>
+            <header class="kds-column-header" data-i18n="kds_prep">In preparazione</header>
             <div class="kds-column-body" id="col-prep">
               <!-- popolato da cucina.js -->
             </div>
           </div>
 
           <div class="kds-column">
-            <header class="kds-column-header">Pronti da servire</header>
+            <header class="kds-column-header" data-i18n="kds_ready">Pronti da servire</header>
             <div class="kds-column-body" id="col-ready">
               <!-- popolato da cucina.js -->
             </div>
@@ -480,6 +487,7 @@
     </main>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,cucina"></script>
   <script src="/shared/websocket.js"></script>
   <script src="/shared/staff-access.js"></script>

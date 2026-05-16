@@ -13,40 +13,40 @@
     <!-- HEADER -->
     <header class="topbar">
       <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Bar</h1>
-        <p class="subtitle">
+        <h1>CONTROLLO TOTALE – <span data-i18n="bar">Bar</span></h1>
+        <p class="subtitle" data-i18n="bar_subtitle">
           Monitor drink + strumenti di lavoro bar
         </p>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa">← Dashboard</a>
+        <a href="/dashboard/dashboard.html" class="btn ghost" title="Torna alla dashboard operativa" data-i18n="nav_back_dashboard">← Dashboard</a>
         <div id="rw-bar-manager-chip" class="rw-staff-chip">
           <span class="rw-label">Manager:</span>
           <span class="rw-value" id="rw-manager-value">—</span>
-          <button type="button" class="rw-btn" id="rw-btn-manager-login">Manager login</button>
-          <button type="button" class="rw-btn" id="rw-btn-manager-logout" style="display:none">Logout</button>
+          <button type="button" class="rw-btn" id="rw-btn-manager-login" data-i18n="manager_login">Manager login</button>
+          <button type="button" class="rw-btn" id="rw-btn-manager-logout" style="display:none" data-i18n="logout">Logout</button>
         </div>
         <div class="chip">
-          <span class="chip-label">In preparazione</span>
+          <span class="chip-label" data-i18n="kpi_prep">In preparazione</span>
           <span class="chip-value" id="kpi-prep">–</span>
         </div>
         <div class="chip">
-          <span class="chip-label">Pronti</span>
+          <span class="chip-label" data-i18n="kpi_ready">Pronti</span>
           <span class="chip-value" id="kpi-ready">–</span>
         </div>
         <div class="chip">
-          <span class="chip-label">In ritardo</span>
+          <span class="chip-label" data-i18n="kpi_late">In ritardo</span>
           <span class="chip-value" id="kpi-late">–</span>
         </div>
-        <button class="btn ghost" id="btn-refresh">Aggiorna</button>
+        <button class="btn ghost" id="btn-refresh" data-i18n="refresh">Aggiorna</button>
       </div>
     </header>
 
     <!-- NAV -->
     <nav class="kitchen-nav">
-      <button class="nav-btn active" data-view="comande">Comande</button>
-      <button class="nav-btn" data-view="ricette">Ricette</button>
-      <button class="nav-btn" data-view="vocale">Comandi vocali</button>
+      <button class="nav-btn active" data-view="comande" data-i18n="nav_comande">Comande</button>
+      <button class="nav-btn" data-view="ricette" data-i18n="nav_ricette">Ricette</button>
+      <button class="nav-btn" data-view="vocale" data-i18n="nav_ai">Comandi vocali</button>
     </nav>
 
     <main class="main">
@@ -144,6 +144,7 @@
     </main>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa,bar,bar_manager"></script>
   <script src="/shared/websocket.js"></script>
   <script src="/shared/staff-access.js"></script>
