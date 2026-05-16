@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>AI Assistente – Controllo Totale</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1117">
 <link rel="stylesheet" href="ai-assistente.css">
 </head>
 <body>
@@ -43,8 +46,9 @@
     <div class="ai-chat-messages" id="ai-chat-messages"></div>
     <div class="ai-chat-input-bar">
       <input type="text" class="ai-chat-input" id="ai-chat-input"
-        placeholder="Scrivi una domanda…" autocomplete="off" maxlength="500">
-      <button class="ai-chat-send" id="ai-chat-send" disabled>➤</button>
+        placeholder="Scrivi una domanda…" autocomplete="off" maxlength="500"
+        enterkeyhint="send" inputmode="text">
+      <button class="ai-chat-send" id="ai-chat-send" disabled aria-label="Invia">➤</button>
     </div>
   </div>
 </div>
