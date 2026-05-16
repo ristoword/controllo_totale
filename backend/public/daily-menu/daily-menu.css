@@ -196,3 +196,96 @@
   padding: 16px 20px;
   border-top: 1px solid var(--border-soft);
 }
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .daily-menu-form .form-grid,
+  .modal-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .daily-menu-main {
+    gap: 12px;
+  }
+
+  .daily-dish-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 12px;
+  }
+
+  .daily-dish-price {
+    margin-right: 0;
+    margin-top: 6px;
+  }
+
+  .daily-dish-actions {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .daily-dish-actions .btn {
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 12px;
+    flex: 1;
+  }
+
+  .daily-dish-name {
+    font-size: 14px;
+  }
+
+  .modal-body input,
+  .modal-body select,
+  .daily-menu-form .form-grid input,
+  .daily-menu-form .form-grid select {
+    font-size: 16px;
+  }
+
+  .modal-header {
+    padding: 12px 14px;
+  }
+
+  .modal-body {
+    padding: 14px;
+  }
+
+  .modal-footer {
+    padding: 12px 14px;
+  }
+
+  .modal-footer .btn {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .daily-category-title {
+    font-size: 12px;
+  }
+
+  .daily-dish-name {
+    font-size: 13px;
+  }
+
+  .daily-dish-desc {
+    font-size: 12px;
+  }
+
+  .modal-card {
+    max-width: 100%;
+    width: 96%;
+    border-radius: var(--radius-md);
+  }
+}
+
+@media (pointer: coarse) {
+  .daily-dish-card:hover,
+  .daily-dish-actions .btn:hover,
+  .btn-close:hover {
+    transform: none;
+  }
+}
