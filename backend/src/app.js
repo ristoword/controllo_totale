@@ -310,7 +310,7 @@ try {
 // INVENTORY (Magazzino)
 try {
   const inventoryRouter = require("./routes/inventory.routes");
-  const ROLES_INVENTORY = ["owner", "sala", "cucina", "cassa", "magazzino", "supervisor"];
+  const ROLES_INVENTORY = ["owner", "sala", "cucina", "cassa", "magazzino"];
   app.use("/api/inventory", requireAuth, requireRole(ROLES_INVENTORY), inventoryRouter);
 } catch (e) {
   console.warn("inventory.routes non trovato (ok se non ancora creato)");

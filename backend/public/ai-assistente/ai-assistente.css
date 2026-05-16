@@ -32,14 +32,11 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--ink);
   min-height: 100vh;
-  min-height: 100dvh;
-  overflow-x: hidden;
 }
 
 .ai-page {
@@ -48,7 +45,7 @@ body {
   padding: 20px 24px 60px;
 }
 
-/* ===== Topbar ===== */
+/* Topbar */
 .ai-topbar {
   display: flex;
   align-items: center;
@@ -63,15 +60,12 @@ body {
   text-decoration: none;
   font-size: 14px;
   transition: color .2s;
-  padding: 6px 0;
-  -webkit-tap-highlight-color: transparent;
 }
 .ai-back:hover { color: var(--accent-soft); }
 .ai-page-title {
   font-size: 22px;
   font-weight: 700;
   flex: 1;
-  min-width: 0;
 }
 .ai-status {
   display: flex;
@@ -79,19 +73,17 @@ body {
   gap: 8px;
   font-size: 13px;
   color: var(--muted);
-  white-space: nowrap;
 }
 .ai-status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--muted);
-  flex-shrink: 0;
 }
 .ai-status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
 .ai-status-dot.offline { background: var(--red); }
 
-/* ===== Intro ===== */
+/* Intro */
 .ai-intro {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -104,14 +96,14 @@ body {
 }
 .ai-intro strong { color: var(--ink); }
 
-/* ===== Department grid ===== */
+/* Department grid */
 .ai-departments {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }
 
-/* ===== Department card ===== */
+/* Department card */
 .ai-dept-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -119,15 +111,11 @@ body {
   padding: 24px;
   cursor: pointer;
   transition: border-color .2s, transform .15s, box-shadow .2s;
-  -webkit-tap-highlight-color: transparent;
 }
 .ai-dept-card:hover {
   border-color: var(--accent);
   transform: translateY(-2px);
   box-shadow: var(--shadow);
-}
-.ai-dept-card:active {
-  transform: translateY(0);
 }
 .ai-dept-card-head {
   display: flex;
@@ -179,7 +167,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
 }
 .ai-dept-cta {
   font-size: 13px;
@@ -189,10 +176,9 @@ body {
 .ai-dept-examples {
   font-size: 11px;
   color: var(--muted);
-  white-space: nowrap;
 }
 
-/* ===== Chat modal ===== */
+/* Chat modal */
 .ai-chat-backdrop {
   position: fixed;
   inset: 0;
@@ -213,7 +199,6 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: 0 16px 64px rgba(0,0,0,.5);
-  overflow: hidden;
 }
 .ai-chat-head {
   display: flex;
@@ -221,17 +206,14 @@ body {
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
 }
 .ai-chat-head-left {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;
 }
 .ai-chat-icon {
   font-size: 28px;
-  flex-shrink: 0;
 }
 .ai-chat-title {
   font-size: 16px;
@@ -247,11 +229,9 @@ body {
   color: var(--muted);
   font-size: 20px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 4px 8px;
   border-radius: 6px;
   transition: background .2s, color .2s;
-  -webkit-tap-highlight-color: transparent;
-  flex-shrink: 0;
 }
 .ai-chat-close:hover { background: var(--surface-3); color: var(--ink); }
 
@@ -261,7 +241,6 @@ body {
   gap: 6px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
 }
 .ai-qp {
   font-size: 12px;
@@ -272,19 +251,16 @@ body {
   border: 1px solid transparent;
   cursor: pointer;
   transition: background .2s, border-color .2s;
-  -webkit-tap-highlight-color: transparent;
 }
 .ai-qp:hover { border-color: var(--accent); background: rgba(108,99,255,.2); }
 
 .ai-chat-messages {
   flex: 1;
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-height: 0;
 }
 .ai-msg-user {
   align-self: flex-end;
@@ -295,7 +271,6 @@ body {
   max-width: 80%;
   font-size: 14px;
   line-height: 1.5;
-  word-break: break-word;
 }
 .ai-msg-assistant {
   align-self: flex-start;
@@ -316,7 +291,6 @@ body {
   font-size: 14px;
   line-height: 1.6;
   color: var(--ink);
-  word-break: break-word;
 }
 .ai-msg-insights {
   margin-top: 10px;
@@ -355,7 +329,6 @@ body {
   border: 1px solid var(--accent);
   cursor: pointer;
   transition: background .2s;
-  -webkit-tap-highlight-color: transparent;
 }
 .ai-msg-action:hover { background: rgba(108,99,255,.25); }
 .ai-msg-dp {
@@ -404,7 +377,6 @@ body {
   gap: 8px;
   padding: 12px 20px;
   border-top: 1px solid var(--border);
-  flex-shrink: 0;
 }
 .ai-chat-input {
   flex: 1;
@@ -413,11 +385,8 @@ body {
   border-radius: 8px;
   padding: 10px 14px;
   color: var(--ink);
-  font-size: 16px;
+  font-size: 14px;
   outline: none;
-  min-width: 0;
-  -webkit-appearance: none;
-  appearance: none;
 }
 .ai-chat-input:focus { border-color: var(--accent); }
 .ai-chat-input::placeholder { color: var(--muted); }
@@ -425,402 +394,19 @@ body {
   background: var(--accent);
   border: none;
   color: #fff;
-  width: 46px;
-  min-width: 46px;
+  width: 42px;
   border-radius: 8px;
   font-size: 18px;
   cursor: pointer;
   transition: opacity .2s;
-  -webkit-tap-highlight-color: transparent;
 }
 .ai-chat-send:disabled { opacity: .4; cursor: not-allowed; }
 .ai-chat-send:not(:disabled):hover { opacity: .85; }
-.ai-chat-send:not(:disabled):active { opacity: .7; }
 
-/* ==========================================================================
-   RESPONSIVE — TABLET (max-width: 900px)
-   ========================================================================== */
-@media (max-width: 900px) {
-  .ai-page {
-    padding: 16px 16px 48px;
-  }
-
-  .ai-departments {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-  }
-
-  .ai-dept-card {
-    padding: 20px;
-  }
-
-  .ai-intro {
-    padding: 16px 20px;
-    margin-bottom: 24px;
-  }
-
-  .ai-chat-modal {
-    max-width: 90vw;
-    height: min(85vh, 700px);
-  }
-}
-
-/* ==========================================================================
-   RESPONSIVE — SMALL TABLET / LARGE PHONE (max-width: 680px)
-   ========================================================================== */
-@media (max-width: 680px) {
-  .ai-page {
-    padding: 12px 12px 40px;
-  }
-
-  .ai-topbar {
-    gap: 10px;
-    padding: 12px 0;
-    margin-bottom: 16px;
-  }
-
-  .ai-page-title {
-    font-size: 18px;
-    order: -1;
-    flex-basis: 100%;
-  }
-
-  .ai-back {
-    font-size: 13px;
-  }
-
-  .ai-status {
-    margin-left: auto;
-  }
-
-  .ai-intro {
-    padding: 14px 16px;
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
-
-  .ai-departments {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .ai-dept-card {
-    padding: 16px;
-  }
-
-  .ai-dept-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 20px;
-  }
-
-  .ai-dept-name {
-    font-size: 15px;
-  }
-
-  .ai-dept-desc {
-    font-size: 12px;
-    margin-bottom: 12px;
-  }
-
-  .ai-cap-tag {
-    font-size: 10px;
-    padding: 3px 8px;
-  }
-
-  .ai-dept-cta {
-    font-size: 12px;
-  }
-
-  /* Chat modal — fullscreen on smaller screens */
-  .ai-chat-backdrop {
-    padding: 0;
-    align-items: stretch;
-  }
-
-  .ai-chat-modal {
-    max-width: 100%;
-    width: 100%;
-    height: 100%;
-    height: 100dvh;
-    border-radius: 0;
-    border: none;
-  }
-
-  .ai-chat-head {
-    padding: 12px 16px;
-    padding-top: max(12px, env(safe-area-inset-top));
-  }
-
-  .ai-chat-icon {
-    font-size: 24px;
-  }
-
-  .ai-chat-title {
-    font-size: 15px;
-  }
-
-  .ai-chat-quick {
-    padding: 10px 16px;
-    gap: 6px;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .ai-chat-quick::-webkit-scrollbar { display: none; }
-
-  .ai-qp {
-    flex-shrink: 0;
-    font-size: 12px;
-    padding: 8px 14px;
-  }
-
-  .ai-chat-messages {
-    padding: 12px 16px;
-  }
-
-  .ai-msg-user {
-    max-width: 85%;
-    font-size: 14px;
-  }
-
-  .ai-msg-assistant {
-    max-width: 95%;
-  }
-
-  .ai-chat-input-bar {
-    padding: 10px 16px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
-  }
-
-  .ai-chat-input {
-    padding: 12px 14px;
-  }
-
-  .ai-chat-send {
-    width: 48px;
-    min-width: 48px;
-    font-size: 20px;
-  }
-}
-
-/* ==========================================================================
-   RESPONSIVE — PHONE (max-width: 420px)
-   ========================================================================== */
-@media (max-width: 420px) {
-  .ai-page {
-    padding: 8px 8px 32px;
-  }
-
-  .ai-topbar {
-    gap: 8px;
-    padding: 10px 0;
-    margin-bottom: 12px;
-  }
-
-  .ai-page-title {
-    font-size: 17px;
-  }
-
-  .ai-intro {
-    padding: 12px;
-    font-size: 13px;
-    margin-bottom: 16px;
-    border-radius: var(--radius-sm);
-  }
-
-  .ai-departments {
-    gap: 10px;
-  }
-
-  .ai-dept-card {
-    padding: 14px;
-    border-radius: var(--radius-sm);
-  }
-
-  .ai-dept-card-head {
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .ai-dept-icon {
-    width: 38px;
-    height: 38px;
-    font-size: 18px;
-  }
-
-  .ai-dept-name {
-    font-size: 14px;
-  }
-
-  .ai-dept-subtitle {
-    font-size: 11px;
-  }
-
-  .ai-dept-desc {
-    font-size: 12px;
-    line-height: 1.4;
-    margin-bottom: 10px;
-  }
-
-  .ai-dept-capabilities {
-    gap: 4px;
-  }
-
-  .ai-cap-tag {
-    font-size: 10px;
-    padding: 3px 7px;
-  }
-
-  .ai-dept-footer {
-    margin-top: 12px;
-  }
-
-  .ai-dept-cta {
-    font-size: 12px;
-  }
-
-  .ai-dept-examples {
-    font-size: 10px;
-  }
-
-  /* Chat adjustments for very small screens */
-  .ai-chat-head {
-    padding: 10px 12px;
-    padding-top: max(10px, env(safe-area-inset-top));
-  }
-
-  .ai-chat-icon {
-    font-size: 22px;
-  }
-
-  .ai-chat-title {
-    font-size: 14px;
-  }
-
-  .ai-chat-dept {
-    font-size: 11px;
-  }
-
-  .ai-chat-close {
-    padding: 6px 10px;
-    font-size: 18px;
-  }
-
-  .ai-chat-quick {
-    padding: 8px 12px;
-  }
-
-  .ai-qp {
-    font-size: 11px;
-    padding: 6px 10px;
-  }
-
-  .ai-chat-messages {
-    padding: 10px 12px;
-    gap: 10px;
-  }
-
-  .ai-msg-user {
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-
-  .ai-msg-card {
-    padding: 10px 12px;
-  }
-
-  .ai-msg-card-title {
-    font-size: 13px;
-  }
-
-  .ai-msg-summary {
-    font-size: 13px;
-    line-height: 1.5;
-  }
-
-  .ai-msg-insight {
-    font-size: 12px;
-    padding-left: 8px;
-  }
-
-  .ai-msg-warning {
-    font-size: 12px;
-  }
-
-  .ai-msg-dp-item {
-    font-size: 11px;
-  }
-
-  .ai-chat-input-bar {
-    padding: 8px 12px;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
-    gap: 6px;
-  }
-
-  .ai-chat-input {
-    padding: 10px 12px;
-    font-size: 16px;
-  }
-}
-
-/* ==========================================================================
-   TOUCH IMPROVEMENTS
-   ========================================================================== */
-@media (pointer: coarse) {
-  .ai-dept-card:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
-  .ai-dept-card:active {
-    border-color: var(--accent);
-    background: var(--surface-2);
-  }
-
-  .ai-qp:active {
-    border-color: var(--accent);
-    background: rgba(108,99,255,.25);
-  }
-
-  .ai-msg-action:active {
-    background: rgba(108,99,255,.3);
-  }
-
-  .ai-chat-close:active {
-    background: var(--surface-3);
-    color: var(--ink);
-  }
-}
-
-/* ==========================================================================
-   LANDSCAPE PHONE
-   ========================================================================== */
-@media (max-height: 500px) and (orientation: landscape) {
-  .ai-chat-modal {
-    height: 100%;
-    height: 100dvh;
-    border-radius: 0;
-  }
-
-  .ai-chat-backdrop {
-    padding: 0;
-  }
-
-  .ai-chat-head {
-    padding: 8px 16px;
-  }
-
-  .ai-chat-quick {
-    padding: 6px 16px;
-  }
-
-  .ai-chat-messages {
-    padding: 8px 16px;
-  }
-
-  .ai-chat-input-bar {
-    padding: 8px 16px;
-  }
+/* Responsive */
+@media (max-width: 600px) {
+  .ai-page { padding: 12px 14px 40px; }
+  .ai-departments { grid-template-columns: 1fr; }
+  .ai-chat-modal { max-width: 100%; height: 90vh; }
+  .ai-page-title { font-size: 18px; }
 }

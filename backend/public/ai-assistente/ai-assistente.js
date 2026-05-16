@@ -198,171 +198,171 @@
       ],
       examples: [
         "Quanti ordini pizza ci sono in coda?",
-        "Quali ingredienti stanno finendo?",
-        "Impasto disponibile per oggi?",
-        "Proponi una pizza speciale",
+        "Ingredienti in esaurimento?",
+        "Suggerisci una pizza speciale oggi",
+        "Ottimizzazione forno attuale",
       ],
     },
     {
-      id: "bookings",
+      id: "prenotazioni",
       name: "AI Prenotazioni",
-      subtitle: "Gestione prenotazioni",
+      subtitle: "Ospiti e booking",
       icon: "📅",
       color: "var(--cyan)",
       colorBg: "var(--cyan-bg)",
-      description: "Visualizza e ottimizza prenotazioni, coperti previsti, orari di punta e no-show.",
+      description: "Analizza prenotazioni, prevedi picchi, identifica overbooking e ottimizza l'accoglienza.",
       capabilities: [
-        "Prenotazioni oggi",
-        "Coperti previsti",
-        "Tavoli disponibili",
+        "Prenotazioni del giorno",
+        "Coperti attesi",
+        "Picchi orari",
         "No-show storici",
-        "Orari di punta",
-        "Prenotazioni confermate",
-        "Richieste speciali",
-        "Ottimizzazione turni"
+        "Overbooking alert",
+        "Allestimento sala",
+        "Preparazione gruppi",
+        "Conferme da inviare"
       ],
       examples: [
         "Quante prenotazioni ci sono oggi?",
-        "Coperti previsti per stasera",
-        "Tavoli ancora disponibili",
-        "Ci sono richieste speciali?",
+        "Orari di punta previsti",
+        "Rischio overbooking?",
+        "Preparativi per il gruppo più grande",
       ],
     },
     {
-      id: "suppliers",
+      id: "fornitori",
       name: "AI Fornitori",
-      subtitle: "Acquisti e rapporti",
-      icon: "🤝",
-      color: "var(--amber)",
-      colorBg: "var(--amber-bg)",
-      description: "Gestisci rapporti con i fornitori, ordini, fatture, confronta prezzi e valuta puntualità.",
+      subtitle: "Acquisti e ordini",
+      icon: "🚛",
+      color: "var(--teal)",
+      colorBg: "var(--teal-bg)",
+      description: "Ottimizza gli acquisti: analisi fornitori, lead time, consegne in ritardo e ordini urgenti.",
       capabilities: [
-        "Ordini aperti",
-        "Fatture in sospeso",
-        "Confronto prezzi",
-        "Puntualità consegne",
-        "Fornitori alternativi",
-        "Scadenza contratti",
-        "Top fornitori",
-        "Criticità forniture"
+        "Lista acquisti oggi",
+        "Fornitori in ritardo",
+        "Prezzi anomali",
+        "Ordini urgenti",
+        "Consegne recenti",
+        "Consumo storico",
+        "Lead time fornitori",
+        "Costi confronto"
       ],
       examples: [
-        "Ordini aperti ai fornitori",
-        "Fatture in sospeso",
-        "Confronta prezzi per un prodotto",
-        "Quali fornitori consegnano in ritardo?",
+        "Lista acquisti da fare oggi",
+        "Fornitori con consegne in ritardo",
+        "Prodotti con costo aumentato",
+        "Priorità ordini urgenti",
       ],
     },
     {
       id: "haccp",
       name: "AI HACCP",
       subtitle: "Sicurezza alimentare",
-      icon: "🧪",
-      color: "var(--green)",
-      colorBg: "var(--green-bg)",
-      description: "Monitora controlli HACCP, temperature, scadenze e genera report di conformità.",
+      icon: "🛡️",
+      color: "var(--red)",
+      colorBg: "var(--red-bg)",
+      description: "Monitora sicurezza alimentare: temperature, scadenze, non conformità e piani correttivi.",
       capabilities: [
-        "Controlli scaduti",
-        "Temperature fuori norma",
-        "Scadenze prodotti",
+        "Controlli temperature",
+        "Prodotti zona critica",
         "Non conformità",
-        "Registro pulizie",
-        "CCP attivi",
-        "Report conformità",
-        "Azioni correttive"
+        "Scadenze igieniche",
+        "Azioni correttive",
+        "Piani di pulizia",
+        "Prodotti da smaltire",
+        "Registrazioni mancanti"
       ],
       examples: [
-        "Controlli HACCP scaduti",
-        "Ci sono temperature fuori norma?",
-        "Prodotti in scadenza oggi",
-        "Genera report conformità",
+        "Controlli temperature da registrare",
+        "Prodotti in zona critica",
+        "Non conformità rilevate",
+        "Prossime scadenze igieniche",
       ],
     },
     {
-      id: "shifts",
+      id: "turni",
       name: "AI Turni",
-      subtitle: "Pianificazione personale",
+      subtitle: "Pianificazione staff",
       icon: "📋",
       color: "var(--blue)",
       colorBg: "var(--blue-bg)",
-      description: "Analizza turni, coperture, straordinari e suggerisci ottimizzazioni per il personale.",
+      description: "Ottimizza la pianificazione turni: copertura reparti, costi personale e conflitti.",
       capabilities: [
-        "Turni di oggi",
-        "Coperture mancanti",
-        "Straordinari",
-        "Ferie e assenze",
+        "Copertura reparti",
+        "Ore programmate",
         "Costo personale",
+        "Sotto-organico",
+        "Conflitti turni",
+        "Assenze non coperte",
         "Ottimizzazione turni",
-        "Disponibilità staff",
-        "Conflitti turno"
+        "Storico presenze"
       ],
       examples: [
-        "Chi è in turno oggi?",
-        "Ci sono coperture mancanti?",
-        "Straordinari di questa settimana",
-        "Ottimizza i turni della settimana",
+        "Chi manca nei turni questa settimana?",
+        "Costo del personale stimato",
+        "Reparti sotto organico",
+        "Ottimizza i turni di domani",
       ],
     },
     {
-      id: "archive",
+      id: "archivio",
       name: "AI Archivio",
-      subtitle: "Storico e report",
-      icon: "📁",
-      color: "var(--muted)",
-      colorBg: "rgba(139,144,165,.12)",
-      description: "Analizza dati storici: incassi, fatture, comande, confronti periodi e trend.",
+      subtitle: "Analisi storica",
+      icon: "📈",
+      color: "var(--accent)",
+      colorBg: "var(--accent-bg)",
+      description: "Analizza trend storici: vendite, piatti top, confronti periodi e pattern stagionali.",
       capabilities: [
-        "Incassi mensili",
-        "Confronto periodi",
         "Trend vendite",
-        "Fatture emesse",
-        "Comande archiviate",
+        "Confronto periodi",
+        "Giorni di punta",
         "Piatti più venduti",
-        "Marginalità storica",
-        "Report esportabili"
+        "Pattern stagionali",
+        "Anomalie storiche",
+        "Andamento coperti",
+        "Performance menu"
       ],
       examples: [
-        "Incassi ultimo mese",
-        "Confronta questa settimana con la precedente",
-        "Trend vendite degli ultimi 3 mesi",
-        "Piatti più venduti questo mese",
+        "Trend vendite ultimo mese",
+        "Confronto con settimana scorsa",
+        "Giorni di punta storici",
+        "Piatti più venduti nel periodo",
       ],
     },
     {
-      id: "takeaway",
+      id: "asporto",
       name: "AI Asporto",
-      subtitle: "Ordini asporto",
-      icon: "🥡",
+      subtitle: "Delivery e take-away",
+      icon: "🛵",
       color: "var(--orange)",
       colorBg: "var(--orange-bg)",
-      description: "Gestisci ordini asporto, orari di ritiro, preparazioni e analisi trend delivery.",
+      description: "Analizza ordini asporto, tempi di preparazione, fasce orarie di punta e promozioni.",
       capabilities: [
-        "Ordini asporto aperti",
-        "Orari di ritiro",
+        "Ordini in coda",
         "Tempi preparazione",
-        "Trend asporto",
-        "Piatti più ordinati",
-        "Ritardi preparazione",
-        "Packaging necessario",
-        "Fasce orarie di punta"
+        "Fasce orarie punta",
+        "Ritardi da risolvere",
+        "Prodotti top asporto",
+        "Packaging",
+        "Promozioni take-away",
+        "Volume giornaliero"
       ],
       examples: [
         "Ordini asporto in coda",
-        "Prossimi ritiri",
-        "Quali piatti vanno di più in asporto?",
-        "Ci sono ritardi nelle preparazioni?",
+        "Tempi di attesa stimati",
+        "Prodotti più richiesti per asporto",
+        "Suggerisci promozione take-away",
       ],
     },
     {
       id: "catering",
       name: "AI Catering",
       subtitle: "Eventi e banchetti",
-      icon: "🎉",
+      icon: "🎪",
       color: "var(--pink)",
       colorBg: "var(--pink-bg)",
-      description: "Pianifica eventi catering con lista acquisti, prep list, timeline produzione e budget.",
+      description: "Pianifica eventi catering: liste acquisti, prep list, timeline e criticità organizzative.",
       capabilities: [
-        "Prossimi eventi",
+        "Eventi pianificati",
         "Coperti e menu",
         "Liste acquisti",
         "Prep list evento",
@@ -391,6 +391,7 @@
 
   function $(id) { return document.getElementById(id); }
 
+  // Check AI status
   async function checkAiStatus() {
     try {
       const r = await fetch("/api/ai/usage", { credentials: "same-origin" });
@@ -407,6 +408,7 @@
     }
   }
 
+  // Render department cards
   function renderDepartments() {
     const container = $("ai-departments");
     container.innerHTML = DEPARTMENTS.map((d) => `
@@ -437,6 +439,7 @@
     });
   }
 
+  // Open chat for department
   function openChat(dept) {
     activeDept = dept;
     messages = [];
@@ -447,20 +450,13 @@
     $("ai-chat-dept").textContent = dept.subtitle;
     $("ai-chat-backdrop").style.display = "flex";
 
-    document.body.style.overflow = "hidden";
-
     renderQuickPrompts();
     renderMessages();
-
-    const isMobile = window.innerWidth <= 680;
-    if (!isMobile) {
-      setTimeout(() => $("ai-chat-input").focus(), 150);
-    }
+    setTimeout(() => $("ai-chat-input").focus(), 150);
   }
 
   function closeChat() {
     $("ai-chat-backdrop").style.display = "none";
-    document.body.style.overflow = "";
     activeDept = null;
     messages = [];
   }
@@ -473,13 +469,6 @@
     ).join("");
     container.querySelectorAll(".ai-qp").forEach((btn) => {
       btn.addEventListener("click", () => sendMessage(btn.dataset.q));
-    });
-  }
-
-  function scrollToBottom() {
-    const container = $("ai-chat-messages");
-    requestAnimationFrame(() => {
-      container.scrollTop = container.scrollHeight;
     });
   }
 
@@ -504,8 +493,7 @@
       if (m.role === "error") return `<div class="ai-msg-error">${esc(m.content)}</div>`;
       return renderAssistant(m);
     }).join("");
-
-    scrollToBottom();
+    container.scrollTop = container.scrollHeight;
 
     container.querySelectorAll(".ai-msg-action").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -555,13 +543,11 @@
     if (!q || isLoading || !activeDept) return;
 
     isLoading = true;
-    const sendBtn = $("ai-chat-send");
-    const input = $("ai-chat-input");
-    sendBtn.disabled = true;
+    $("ai-chat-send").disabled = true;
     messages.push({ role: "user", content: q });
     messages.push({ role: "thinking" });
     renderMessages();
-    input.value = "";
+    $("ai-chat-input").value = "";
 
     try {
       const resp = await fetch(`/api/ai/${encodeURIComponent(activeDept.id)}/query`, {
@@ -586,38 +572,32 @@
       messages.push({ role: "error", content: err.message || "Errore AI" });
     } finally {
       isLoading = false;
-      sendBtn.disabled = false;
+      $("ai-chat-send").disabled = false;
       renderMessages();
     }
   }
 
+  // Init
   function init() {
     checkAiStatus();
     renderDepartments();
 
     $("ai-chat-close").addEventListener("click", closeChat);
-
     $("ai-chat-backdrop").addEventListener("mousedown", (e) => {
       if (e.target === $("ai-chat-backdrop")) closeChat();
     });
-    $("ai-chat-backdrop").addEventListener("touchstart", (e) => {
-      if (e.target === $("ai-chat-backdrop")) closeChat();
-    }, { passive: true });
 
     const input = $("ai-chat-input");
     const sendBtn = $("ai-chat-send");
-
     input.addEventListener("input", () => {
       sendBtn.disabled = !input.value.trim() || isLoading;
     });
-
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && input.value.trim()) {
         e.preventDefault();
         sendMessage(input.value);
       }
     });
-
     sendBtn.addEventListener("click", () => {
       if (input.value.trim()) sendMessage(input.value);
     });
@@ -625,19 +605,6 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && activeDept) closeChat();
     });
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", () => {
-        if (!activeDept) return;
-        const modal = $("ai-chat-modal");
-        if (window.innerWidth <= 680) {
-          modal.style.height = window.visualViewport.height + "px";
-        } else {
-          modal.style.height = "";
-        }
-        scrollToBottom();
-      });
-    }
   }
 
   if (document.readyState === "loading") {
