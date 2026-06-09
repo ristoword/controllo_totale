@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const asyncHandler = require("../utils/asyncHandler");
 const licenseController = require("../controllers/license.controller");
+const { requireAuth } = require("../middleware/requireAuth.middleware");
+const { requireRole } = require("../middleware/requireRole.middleware");
 
 // GET /api/licenses
 router.get("/", asyncHandler(licenseController.getLicense));
@@ -17,8 +19,8 @@ router.post("/complete-activation", asyncHandler(licenseController.completeActiv
 // POST /api/licenses/activate
 router.post("/activate", asyncHandler(licenseController.activateLicense));
 
-// POST /api/licenses/deactivate
-router.post("/deactivate", asyncHandler(licenseController.deactivateLicense));
+// POST /api/licenses/deactivate (owner only)
+router.post("/deactivate", requireAuth, requireRole("owner"), asyncHandler(licenseController.deactivateLicense));
 
 // GET /api/licenses/status
 router.get("/status", asyncHandler(licenseController.getStatus));
