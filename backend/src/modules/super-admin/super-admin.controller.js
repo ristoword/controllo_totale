@@ -288,3 +288,22 @@ exports.apiUpdatePartner = async (req, res) => {
   return res.json(result);
 };
 
+exports.apiCreateResellerAccount = async (req, res) => {
+  const resellerRepository = require("../reseller/reseller.repository");
+  const body = req.body || {};
+  const result = await resellerRepository.createAccount({
+    username: body.username,
+    password: body.password,
+    partnerCode: body.partnerCode,
+    displayName: body.displayName,
+  });
+  if (!result.ok) return res.status(400).json(result);
+  return res.json(result);
+};
+
+exports.apiListResellerAccounts = async (req, res) => {
+  const resellerRepository = require("../reseller/reseller.repository");
+  const accounts = resellerRepository.listAccounts();
+  return res.json({ ok: true, accounts });
+};
+

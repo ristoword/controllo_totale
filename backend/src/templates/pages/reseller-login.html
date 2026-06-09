@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rivenditore - Login</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <style>
+      :root{--bg:#0b0f19;--card:#111827;--text:#e5e7eb;--muted:#9ca3af;--primary:#8b5cf6;--border:rgba(255,255,255,.12)}
+      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center}
+      .wrap{max-width:420px;width:100%;padding:24px 16px}
+      .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 24px}
+      .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+      .logo-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(139,92,246,.3),rgba(59,130,246,.3));display:flex;align-items:center;justify-content:center}
+      .logo-icon svg{width:22px;height:22px;stroke:#c4b5fd;fill:none;stroke-width:2}
+      h1{margin:0;font-size:20px;font-weight:900}
+      .subtitle{font-size:13px;color:var(--muted);margin-top:2px}
+      label{display:block;margin:16px 0 6px;font-size:12px;color:var(--muted);font-weight:600}
+      input{width:100%;box-sizing:border-box;background:transparent;border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 14px;font-size:14px;outline:none;transition:border-color .2s}
+      input:focus{border-color:var(--primary)}
+      .btn{margin-top:20px;width:100%;border-radius:12px;padding:13px 14px;border:none;background:var(--primary);color:white;font-weight:800;font-size:14px;cursor:pointer;transition:opacity .2s}
+      .btn:hover{opacity:.9}
+      .btn:disabled{opacity:.5;cursor:not-allowed}
+      .err{margin-top:14px;color:#f87171;font-weight:700;font-size:13px;display:none}
+      .footer{margin-top:16px;text-align:center;font-size:11px;color:var(--muted)}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div class="logo-row">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+          </div>
+          <div>
+            <h1>Area Rivenditore</h1>
+            <div class="subtitle">Pannello controllo licenze</div>
+          </div>
+        </div>
+
+        <form id="login-form">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+          <button class="btn" type="submit" id="btn-login">Accedi</button>
+        </form>
+
+        <div id="error-msg" class="err"></div>
+
+        <div class="footer">
+          Accesso riservato ai rivenditori autorizzati.<br/>
+          Contatta l'amministratore per credenziali.
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      "use strict";
+      var form = document.getElementById("login-form");
+      var errEl = document.getElementById("error-msg");
+      var btn = document.getElementById("btn-login");
+
+      form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        errEl.style.display = "none";
+        btn.disabled = true;
+        btn.textContent = "Accesso...";
+
+        var username = document.getElementById("username").value.trim();
+        var password = document.getElementById("password").value;
+
+        try {
+          var res = await fetch("/api/reseller/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ username: username, password: password }),
+          });
+          var data = await res.json().catch(function() { return null; });
+
+          if (!res.ok || !data || !data.ok) {
+            errEl.textContent = (data && data.error) || "Credenziali non valide";
+            errEl.style.display = "block";
+            btn.disabled = false;
+            btn.textContent = "Accedi";
+            return;
+          }
+
+          window.location.href = "/reseller-dashboard";
+        } catch (err) {
+          errEl.textContent = "Errore di connessione";
+          errEl.style.display = "block";
+          btn.disabled = false;
+          btn.textContent = "Accedi";
+        }
+      });
+    })();
+    </script>
+  </body>
+</html>

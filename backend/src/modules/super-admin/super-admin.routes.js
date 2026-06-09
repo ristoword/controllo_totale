@@ -57,5 +57,9 @@ router.post("/api/super-admin/indonesia/license/unassign", requireSuperAdmin, su
 router.get("/api/super-admin/partners", requireSuperAdmin, superAdminController.apiGetPartners);
 router.post("/api/super-admin/partners/update", requireSuperAdmin, superAdminController.apiUpdatePartner);
 
+// Reseller account management (Super Admin creates reseller credentials)
+router.post("/api/super-admin/reseller/create-account", requireSuperAdmin, superAdminController.apiCreateResellerAccount);
+router.get("/api/super-admin/reseller/accounts", requireSuperAdmin, superAdminController.apiListResellerAccounts);
+
 module.exports = router;
 

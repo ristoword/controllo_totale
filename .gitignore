@@ -13,6 +13,13 @@ yarn-error.log*
 # Super Admin: credenziali e sessioni (generati in locale)
 backend/data/super-admin/
 
+# Reseller: account e sessioni (generati da Super Admin)
+backend/data/resellers/
+
+# Tenant data (runtime, managed by app)
+backend/data/tenants/
+backend/data/system-maintenance.json
+
 # Sessioni express-session (file store in produzione)
 backend/data/sessions/
 

@@ -120,6 +120,13 @@ try {
   console.warn("super-admin.routes non trovato (ok se non ancora creato):", e.message);
 }
 
+try {
+  const resellerRouter = require("./modules/reseller/reseller.routes");
+  app.use(resellerRouter);
+} catch (e) {
+  console.warn("reseller.routes non trovato (ok se non ancora creato):", e.message);
+}
+
 // =======================
 //  MAINTENANCE MODE (public site only)
 // =======================
