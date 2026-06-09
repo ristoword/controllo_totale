@@ -229,3 +229,62 @@ exports.apiPostResetUserPassword = async (req, res) => {
   return res.json(result);
 };
 
+// ─── Indonesia / Partner ─────────────────────────────────────────────────────
+
+exports.getSuperAdminIndonesiaPage = (req, res) => {
+  const mustChange = !!req.superAdmin?.mustChangePassword;
+  if (mustChange) return res.redirect("/super-admin-change-password");
+  res.sendFile(htmlPath("super-admin-indonesia.html"));
+};
+
+exports.apiGetIndonesiaDashboard = async (req, res) => {
+  const result = await superAdminService.apiGetIndonesiaDashboard();
+  if (!result.ok) return res.status(400).json(result);
+  return res.json(result);
+};
+
+exports.apiCreateIndonesiaLicense = async (req, res) => {
+  const body = req.body || {};
+  const result = await superAdminService.apiCreateIndonesiaLicense({
+    restaurantId: body.restaurantId,
+    plan: body.plan,
+    days: body.days,
+  });
+  if (!result.ok) return res.status(400).json(result);
+  return res.json(result);
+};
+
+exports.apiAssignLicenseToPartner = async (req, res) => {
+  const body = req.body || {};
+  const result = await superAdminService.apiAssignLicenseToPartner({
+    restaurantId: body.restaurantId,
+    partnerCode: body.partnerCode,
+  });
+  if (!result.ok) return res.status(400).json(result);
+  return res.json(result);
+};
+
+exports.apiUnassignLicenseFromPartner = async (req, res) => {
+  const body = req.body || {};
+  const result = await superAdminService.apiUnassignLicenseFromPartner({
+    restaurantId: body.restaurantId,
+  });
+  if (!result.ok) return res.status(400).json(result);
+  return res.json(result);
+};
+
+exports.apiGetPartners = async (req, res) => {
+  const result = await superAdminService.apiGetPartners();
+  return res.json(result);
+};
+
+exports.apiUpdatePartner = async (req, res) => {
+  const body = req.body || {};
+  const result = await superAdminService.apiUpdatePartner({
+    code: body.code,
+    updates: body.updates || body,
+  });
+  if (!result.ok) return res.status(400).json(result);
+  return res.json(result);
+};
+

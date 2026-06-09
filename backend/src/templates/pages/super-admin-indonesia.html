@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Super Admin - Controllo Vendite Indonesia</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <style>
+      :root{--bg:#0b0f19;--card:#111827;--text:#e5e7eb;--muted:#9ca3af;--primary:#3b82f6;--border:rgba(255,255,255,.12);--danger:#ef4444;--ok:#22c55e;--accent:#8b5cf6;--emerald:#10b981;--amber:#f59e0b}
+      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--text)}
+      *{box-sizing:border-box}
+      .wrap{max-width:1200px;margin:0 auto;padding:24px 16px 60px}
+      .header{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px}
+      .header h1{font-size:24px;font-weight:900;margin:0}
+      .header .subtitle{font-size:13px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px}
+      .header .subtitle svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+      .btn{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:12px;padding:10px 16px;cursor:pointer;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:8px;transition:all .15s}
+      .btn:hover{background:rgba(255,255,255,.06)}
+      .btn:disabled{opacity:.5;cursor:not-allowed}
+      .btn.primary{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.5);color:#93c5fd}
+      .btn.primary:hover{background:rgba(59,130,246,.35)}
+      .btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5}
+      .btn.back{background:rgba(255,255,255,.04);font-size:12px;padding:8px 12px}
+      .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+      .spin{animation:spin 1s linear infinite}
+      @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+      .error-box{display:none;align-items:center;gap:12px;border-radius:12px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);padding:12px 16px;font-size:13px;color:#fca5a5;margin-bottom:20px}
+      .error-box.visible{display:flex}
+      .error-box svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+
+      .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+      @media(max-width:768px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+      .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px}
+      .stat-card .stat-label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:600}
+      .stat-card .stat-label svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+      .stat-card .stat-value{font-size:28px;font-weight:900;margin-top:8px;font-variant-numeric:tabular-nums}
+      .stat-card .stat-value.emerald{color:var(--emerald)}
+      .stat-card .stat-value.red{color:var(--danger)}
+      .stat-card .stat-value.accent{color:var(--accent)}
+
+      .pricing-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+      .pricing-badge{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;font-size:13px}
+      .pricing-badge svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+      .pricing-badge .label{color:var(--muted)}
+      .pricing-badge .val{font-weight:800}
+      .pricing-badge .val.emerald{color:var(--emerald)}
+
+      .table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px}
+      .table-header{border-bottom:1px solid var(--border);padding:16px 20px}
+      .table-header h2{margin:0;font-size:15px;font-weight:800}
+      .table-header p{margin:4px 0 0;font-size:12px;color:var(--muted)}
+      .table-wrap{overflow-x:auto}
+      table{width:100%;border-collapse:collapse}
+      thead tr{background:rgba(255,255,255,.03)}
+      th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--border)}
+      th.right{text-align:right}
+      th.center{text-align:center}
+      td{padding:12px 16px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--border);vertical-align:middle}
+      td.name{color:var(--text);font-weight:600}
+      td.right{text-align:right;font-variant-numeric:tabular-nums}
+      td.center{text-align:center}
+      td.commission{color:var(--emerald);font-weight:700;font-variant-numeric:tabular-nums}
+      tbody tr:hover{background:rgba(255,255,255,.025)}
+      tfoot tr{border-top:2px solid var(--border);background:rgba(255,255,255,.03)}
+      tfoot td{font-weight:800;color:var(--text)}
+      tfoot td.commission{color:var(--emerald)}
+
+      .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}
+      .badge.active{background:rgba(16,185,129,.12);color:#6ee7b7;border-color:rgba(16,185,129,.3)}
+      .badge.trial{background:rgba(245,158,11,.12);color:#fcd34d;border-color:rgba(245,158,11,.3)}
+      .badge.expired,.badge.suspended{background:rgba(239,68,68,.12);color:#fca5a5;border-color:rgba(239,68,68,.3)}
+
+      .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--muted)}
+      .empty-state svg{width:48px;height:48px;stroke:currentColor;fill:none;stroke-width:1.5;opacity:.3;margin-bottom:12px}
+      .empty-state p{margin:4px 0;font-size:13px}
+      .empty-state .sub{font-size:11px;opacity:.7}
+
+      .loading-state{display:flex;align-items:center;justify-content:center;padding:60px;color:var(--muted);font-size:13px;gap:8px}
+      .loading-state svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+
+      .actions-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px}
+      .actions-section h2{margin:0 0 12px;font-size:15px;font-weight:800}
+      .actions-section .form-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+      .actions-section label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+      .actions-section input,.actions-section select{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:9px 12px;font-size:13px;outline:none;width:100%}
+      .actions-section .field{flex:1;min-width:140px}
+      .actions-section .msg{font-size:12px;color:var(--muted);margin-top:8px}
+      .actions-section .msg.ok{color:var(--ok)}
+      .actions-section .msg.err{color:var(--danger)}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <a href="/super-admin-dashboard" class="btn back">
+            <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Dashboard
+          </a>
+          <h1 style="margin-top:12px">Controllo Vendite</h1>
+          <div class="subtitle" id="partner-subtitle">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span id="partner-info">Caricamento...</span>
+          </div>
+        </div>
+        <button type="button" class="btn" id="btn-refresh">
+          <svg id="refresh-icon" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Aggiorna
+        </button>
+      </div>
+
+      <!-- Error -->
+      <div class="error-box" id="error-box">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="error-msg"></span>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="stats-grid" style="display:none">
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Clienti totali
+          </div>
+          <div class="stat-value" id="stat-total">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg viewBox="0 0 24 24" style="color:var(--emerald)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Licenze attive
+          </div>
+          <div class="stat-value emerald" id="stat-active">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg viewBox="0 0 24 24" style="color:var(--danger)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Scadute / Sospese
+          </div>
+          <div class="stat-value red" id="stat-expired">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg viewBox="0 0 24 24" style="color:var(--accent)"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Commissioni attive
+          </div>
+          <div class="stat-value accent" id="stat-commission">€ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Pricing badges -->
+      <div class="pricing-row" id="pricing-row" style="display:none">
+        <div class="pricing-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="label">Prezzo vendita:</span>
+          <span class="val" id="price-sale">—</span>
+        </div>
+        <div class="pricing-badge">
+          <svg viewBox="0 0 24 24" style="color:var(--emerald)"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span class="label">Tua commissione/licenza:</span>
+          <span class="val emerald" id="price-commission">—</span>
+        </div>
+      </div>
+
+      <!-- Create new license for Indonesia -->
+      <div class="actions-section">
+        <h2>Crea nuova licenza Indonesia</h2>
+        <div class="form-row">
+          <div class="field">
+            <label>Restaurant ID / Tenant</label>
+            <input type="text" id="new-tenant-id" placeholder="es. ristorante-jakarta" />
+          </div>
+          <div class="field">
+            <label>Piano</label>
+            <input type="text" id="new-plan" placeholder="controllo_totale_pro" value="controllo_totale_pro" />
+          </div>
+          <div class="field" style="max-width:100px">
+            <label>Giorni</label>
+            <input type="number" id="new-days" min="1" value="365" />
+          </div>
+          <div>
+            <button type="button" class="btn primary" id="btn-create-license">Crea licenza</button>
+          </div>
+        </div>
+        <div class="msg" id="create-msg"></div>
+      </div>
+
+      <!-- Assign existing license -->
+      <div class="actions-section">
+        <h2>Assegna licenza esistente a Indonesia</h2>
+        <div class="form-row">
+          <div class="field">
+            <label>Restaurant ID (licenza esistente)</label>
+            <input type="text" id="assign-tenant-id" placeholder="es. baia-verde" />
+          </div>
+          <div>
+            <button type="button" class="btn primary" id="btn-assign">Assegna</button>
+          </div>
+          <div>
+            <button type="button" class="btn danger" id="btn-unassign">Rimuovi da partner</button>
+          </div>
+        </div>
+        <div class="msg" id="assign-msg"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-header">
+          <h2>Lista clienti Indonesia</h2>
+          <p>Ogni riga è un cliente attivato con licenza partner Indonesia.</p>
+        </div>
+
+        <div id="table-loading" class="loading-state">
+          <svg class="spin" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Caricamento…
+        </div>
+
+        <div id="table-empty" class="empty-state" style="display:none">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <p>Nessun cliente ancora registrato.</p>
+          <p class="sub">Le licenze attivate con il codice partner Indonesia appariranno qui.</p>
+        </div>
+
+        <div id="table-content" class="table-wrap" style="display:none">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Piano</th>
+                <th>Attivazione</th>
+                <th>Scadenza</th>
+                <th class="right">Prezzo</th>
+                <th class="right">Commissione</th>
+                <th class="center">Stato</th>
+              </tr>
+            </thead>
+            <tbody id="licenses-tbody"></tbody>
+            <tfoot id="licenses-tfoot" style="display:none">
+              <tr>
+                <td colspan="5" class="name">Totale commissioni licenze attive</td>
+                <td class="right commission" id="tfoot-total">€ 0,00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="/super-admin/js/super-admin-indonesia.js"></script>
+  </body>
+</html>

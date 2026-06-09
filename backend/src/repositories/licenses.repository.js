@@ -10,6 +10,7 @@ function impl() {
 
 module.exports = {
   readLicenses: (...a) => impl().readLicenses(...a),
+  writeLicenses: (...a) => impl().writeLicenses(...a),
   findByRestaurantId: (...a) => impl().findByRestaurantId(...a),
   findByActivationCode: (...a) => impl().findByActivationCode(...a),
   updateLicense: (...a) => impl().updateLicense(...a),

@@ -12,6 +12,7 @@ const sessionsRepository = require("../../repositories/sessions.repository");
 const paymentsRepository = require("../../repositories/payments.repository");
 const stripeMockRepository = require("../../stripe/stripeMock.repository");
 
+const restaurantsRepository = require("../../repositories/restaurants.repository");
 const maintenanceService = require("../system/maintenance.service");
 const superAdminRepository = require("./super-admin.repository");
 const gsCodesMirror = require("../../repositories/gsCodesMirror.repository");
@@ -24,6 +25,22 @@ const BCRYPT_USER_ROUNDS = 10;
 function normalizeTenantId(id) {
   const rid = id == null ? "" : String(id).trim();
   return rid || null;
+}
+
+async function ensureRestaurantExists(rid) {
+  if (!rid) return;
+  const existing = await restaurantsRepository.findById(rid);
+  if (existing) return existing;
+  return restaurantsRepository.create({
+    id: rid,
+    slug: rid,
+    restaurantName: rid,
+    plan: DEFAULT_PLAN_SLUG,
+    language: "it",
+    currency: "EUR",
+    country: "IT",
+    status: "active",
+  });
 }
 
 function nowIso() {
@@ -313,7 +330,6 @@ async function listAllLicensesDecorated() {
       restaurantId: l.restaurantId,
       plan: l.plan || "",
       status: l.status || "active",
-      // Super-admin API only: full activation code (no masking)
       activationCode: l.activationCode != null && l.activationCode !== "" ? String(l.activationCode) : null,
       suspicious: !!l.suspicious,
       suspiciousReason: l.suspiciousReason || null,
@@ -324,6 +340,8 @@ async function listAllLicensesDecorated() {
       source: l.source || "",
       onlyInTenantFile: !!l.onlyInTenantFile,
       revokedAt: l.revokedAt || null,
+      partnerCode: l.partnerCode || null,
+      billingCycle: l.billingCycle || null,
     }))
     .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime());
 }
@@ -446,6 +464,8 @@ async function apiCreateTempLicense({ restaurantId, plan, mode, expiresAt, exten
   const rid = normalizeTenantId(restaurantId);
   if (!rid) return { ok: false, error: "restaurantId_obbligatorio" };
 
+  await ensureRestaurantExists(rid);
+
   const type = String(mode || "emergency").toLowerCase();
   const activate = activateImmediately === true || type === "emergency";
 
@@ -554,27 +574,15 @@ async function apiRevokeLicense({ restaurantId, reason, suspicious }) {
 async function apiBlockCustomer({ restaurantId }) {
   const rid = normalizeTenantId(restaurantId);
   if (!rid) return { ok: false, error: "restaurantId_obbligatorio" };
-  const users = await usersRepository.readUsers();
-  const list = Array.isArray(users) ? users : [];
-  const next = list.map((u) => {
-    if (String(u.restaurantId || "").trim() === rid) return { ...u, is_active: false };
-    return u;
-  });
-  await usersRepository.writeUsers(next);
-  return { ok: true };
+  const affected = await usersRepository.setActiveByRestaurantId(rid, false);
+  return { ok: true, affected };
 }
 
 async function apiUnblockCustomer({ restaurantId }) {
   const rid = normalizeTenantId(restaurantId);
   if (!rid) return { ok: false, error: "restaurantId_obbligatorio" };
-  const users = await usersRepository.readUsers();
-  const list = Array.isArray(users) ? users : [];
-  const next = list.map((u) => {
-    if (String(u.restaurantId || "").trim() === rid) return { ...u, is_active: true };
-    return u;
-  });
-  await usersRepository.writeUsers(next);
-  return { ok: true };
+  const affected = await usersRepository.setActiveByRestaurantId(rid, true);
+  return { ok: true, affected };
 }
 
 async function apiForceLogoutCustomer({ restaurantId }) {
@@ -713,6 +721,173 @@ async function apiPostResetUserPassword({ userId, forceMustChange } = {}) {
   };
 }
 
+// ─── Indonesia / Partner Dashboard ───────────────────────────────────────────
+
+const PARTNERS_FILE = path.join(paths.DATA, "config", "partners.json");
+
+function readPartners() {
+  const raw = safeReadJson(PARTNERS_FILE, { partners: [] });
+  return Array.isArray(raw.partners) ? raw.partners : [];
+}
+
+function writePartners(partners) {
+  const dir = path.dirname(PARTNERS_FILE);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(PARTNERS_FILE, JSON.stringify({ partners }, null, 2), "utf8");
+}
+
+function getPartnerByCode(code) {
+  const list = readPartners();
+  return list.find((p) => p.code === code) || null;
+}
+
+async function apiGetIndonesiaDashboard() {
+  const partnerCode = "ID-INDO-01";
+  const partner = getPartnerByCode(partnerCode);
+  if (!partner) return { ok: false, error: "partner_non_trovato" };
+
+  const allLicenses = await listAllLicensesDecorated();
+  const partnerLicenses = allLicenses.filter(
+    (l) => l.partnerCode === partnerCode
+  );
+
+  const now = Date.now();
+  const rows = partnerLicenses.map((l) => {
+    const expMs = l.expiresAt ? new Date(l.expiresAt).getTime() : null;
+    let status = String(l.status || "active").toLowerCase();
+    if (status === "used") status = "active";
+    if (expMs && expMs <= now && status !== "expired") status = "expired";
+
+    return {
+      tenantId: l.restaurantId,
+      tenantName: l.restaurantId,
+      plan: l.plan || "",
+      billingCycle: l.billingCycle || "monthly",
+      status,
+      activatedAt: l.activatedAt || l.createdAt || nowIso(),
+      expiresAt: l.expiresAt || null,
+      licensePrice: partner.licensePrice,
+      commissionEuros: partner.commissionEuros,
+      partnerCountry: partner.country,
+    };
+  });
+
+  const activeRows = rows.filter((r) => r.status === "active");
+  const totalCommission = activeRows.length * (partner.commissionEuros || 0);
+
+  return {
+    ok: true,
+    data: {
+      partner: {
+        code: partner.code,
+        name: partner.name,
+        country: partner.country,
+        licensePrice: partner.licensePrice,
+        commissionEuros: partner.commissionEuros,
+      },
+      licenses: rows,
+      summary: {
+        total: rows.length,
+        active: activeRows.length,
+        expired: rows.filter((r) => r.status === "expired" || r.status === "suspended").length,
+        totalCommissionEuros: totalCommission,
+      },
+    },
+  };
+}
+
+async function apiAssignLicenseToPartner({ restaurantId, partnerCode }) {
+  const rid = normalizeTenantId(restaurantId);
+  if (!rid) return { ok: false, error: "restaurantId_obbligatorio" };
+  if (!partnerCode) return { ok: false, error: "partnerCode_obbligatorio" };
+
+  const partner = getPartnerByCode(partnerCode);
+  if (!partner) return { ok: false, error: "partner_non_trovato" };
+
+  const updated = await licensesRepository.updateLicense({
+    restaurantId: rid,
+    partnerCode,
+    updatedAt: nowIso(),
+  });
+
+  if (!updated) return { ok: false, error: "license_non_trovata" };
+  return { ok: true, updated };
+}
+
+async function apiUnassignLicenseFromPartner({ restaurantId }) {
+  const rid = normalizeTenantId(restaurantId);
+  if (!rid) return { ok: false, error: "restaurantId_obbligatorio" };
+
+  const updated = await licensesRepository.updateLicense({
+    restaurantId: rid,
+    partnerCode: null,
+    updatedAt: nowIso(),
+  });
+
+  if (!updated) return { ok: false, error: "license_non_trovata" };
+  return { ok: true, updated };
+}
+
+async function apiCreateIndonesiaLicense({ restaurantId, plan, days }) {
+  const rid = normalizeTenantId(restaurantId);
+  if (!rid) return { ok: false, error: "restaurantId_obbligatorio" };
+
+  await ensureRestaurantExists(rid);
+
+  const partnerCode = "ID-INDO-01";
+  const partner = getPartnerByCode(partnerCode);
+  if (!partner) return { ok: false, error: "partner_indonesia_non_configurato" };
+
+  const daysNum = toNumber(days, 30);
+  const now = Date.now();
+  const expiresAt = new Date(now + daysNum * 24 * 60 * 60 * 1000).toISOString();
+  const activationCode = createActivationCode("ID");
+
+  const payload = {
+    restaurantId: rid,
+    plan: plan || DEFAULT_PLAN_SLUG,
+    activationCode,
+    expiresAt,
+    status: "used",
+    activatedAt: nowIso(),
+    source: "super-admin:indonesia-partner",
+    partnerCode,
+    updatedAt: nowIso(),
+  };
+
+  const existing = await licensesRepository.findByRestaurantId(rid);
+
+  if (existing) {
+    await licensesRepository.updateLicense(payload);
+  } else {
+    payload.createdAt = nowIso();
+    await licensesRepository.create(payload);
+  }
+
+  upsertTenantLicenseFile({ tenantId: rid, licenseRecord: payload });
+
+  return { ok: true, license: payload };
+}
+
+async function apiGetPartners() {
+  return { ok: true, partners: readPartners() };
+}
+
+async function apiUpdatePartner({ code, updates }) {
+  if (!code) return { ok: false, error: "code_obbligatorio" };
+  const partners = readPartners();
+  const idx = partners.findIndex((p) => p.code === code);
+  if (idx === -1) return { ok: false, error: "partner_non_trovato" };
+
+  const allowed = ["name", "country", "licensePrice", "commissionEuros", "contactEmail", "active"];
+  for (const k of allowed) {
+    if (updates[k] !== undefined) partners[idx][k] = updates[k];
+  }
+  partners[idx].updatedAt = nowIso();
+  writePartners(partners);
+  return { ok: true, partner: partners[idx] };
+}
+
 module.exports = {
   // Dashboard data
   getSystemStatusForAdmin,
@@ -744,5 +919,13 @@ module.exports = {
   apiPostConsoleContact,
   apiGetConsoleUsers,
   apiPostResetUserPassword,
+
+  // Indonesia / Partner
+  apiGetIndonesiaDashboard,
+  apiAssignLicenseToPartner,
+  apiUnassignLicenseFromPartner,
+  apiCreateIndonesiaLicense,
+  apiGetPartners,
+  apiUpdatePartner,
 };
 

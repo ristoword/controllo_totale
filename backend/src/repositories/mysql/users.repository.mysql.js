@@ -339,6 +339,17 @@ async function setUserPassword(userId, hashedPassword, opts = {}) {
   return true;
 }
 
+async function setActiveByRestaurantId(restaurantId, active) {
+  const rid = String(restaurantId || "").trim();
+  if (!rid) return 0;
+  const pool = getPool();
+  const [result] = await pool.query(
+    "UPDATE users SET is_active = ?, updated_at = NOW(3) WHERE restaurant_id = ?",
+    [active ? 1 : 0, rid]
+  );
+  return result.affectedRows || 0;
+}
+
 module.exports = {
   readUsers,
   writeUsers,
@@ -350,6 +361,7 @@ module.exports = {
   updateUser,
   findOwnerByRestaurantId,
   setUserPassword,
+  setActiveByRestaurantId,
   ensureLeaveBalances,
   DEFAULT_LEAVE_BALANCES,
 };

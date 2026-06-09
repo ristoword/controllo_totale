@@ -1,0 +1,15 @@
+{
+  "partners": [
+    {
+      "code": "ID-INDO-01",
+      "name": "RistoWord Indonesia",
+      "country": "Indonesia",
+      "currency": "EUR",
+      "licensePrice": 89.00,
+      "commissionEuros": 25.00,
+      "contactEmail": "partner@ristoword.id",
+      "active": true,
+      "createdAt": "2026-01-15T00:00:00.000Z"
+    }
+  ]
+}

@@ -48,5 +48,14 @@ router.post("/api/super-admin/console/contacts", requireSuperAdmin, superAdminCo
 router.get("/api/super-admin/console/users", requireSuperAdmin, superAdminController.apiGetConsoleUsers);
 router.post("/api/super-admin/console/reset-password", requireSuperAdmin, superAdminController.apiPostResetUserPassword);
 
+// Indonesia / Partner
+router.get("/super-admin-indonesia", requireSuperAdmin, superAdminController.getSuperAdminIndonesiaPage);
+router.get("/api/super-admin/indonesia/dashboard", requireSuperAdmin, superAdminController.apiGetIndonesiaDashboard);
+router.post("/api/super-admin/indonesia/license/create", requireSuperAdmin, superAdminController.apiCreateIndonesiaLicense);
+router.post("/api/super-admin/indonesia/license/assign", requireSuperAdmin, superAdminController.apiAssignLicenseToPartner);
+router.post("/api/super-admin/indonesia/license/unassign", requireSuperAdmin, superAdminController.apiUnassignLicenseFromPartner);
+router.get("/api/super-admin/partners", requireSuperAdmin, superAdminController.apiGetPartners);
+router.post("/api/super-admin/partners/update", requireSuperAdmin, superAdminController.apiUpdatePartner);
+
 module.exports = router;
 

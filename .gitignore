@@ -19,3 +19,13 @@ backend/data/sessions/
 # Backup automatici e cartella accidentale nested
 backend/backups/
 backend/backend/
+
+# File temporanei e OS
+*.bak
+*.tmp
+*.orig
+Thumbs.db
+*.png
+*.jpg
+!backend/public/**/*.png
+!backend/public/**/*.jpg

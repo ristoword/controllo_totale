@@ -177,6 +177,22 @@ async function setUserPassword(userId, hashedPassword, opts = {}) {
   return true;
 }
 
+async function setActiveByRestaurantId(restaurantId, active) {
+  const rid = String(restaurantId || "").trim();
+  if (!rid) return 0;
+  const users = await readUsers();
+  let count = 0;
+  const next = users.map((u) => {
+    if (String(u.restaurantId || "").trim() === rid) {
+      count++;
+      return { ...u, is_active: !!active };
+    }
+    return u;
+  });
+  if (count > 0) await writeUsers(next);
+  return count;
+}
+
 module.exports = {
   readUsers,
   writeUsers,
@@ -188,6 +204,7 @@ module.exports = {
   updateUser,
   findOwnerByRestaurantId,
   setUserPassword,
+  setActiveByRestaurantId,
   ensureLeaveBalances,
   DEFAULT_LEAVE_BALANCES,
 };

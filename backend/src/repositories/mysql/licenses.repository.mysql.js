@@ -214,8 +214,13 @@ async function create(license) {
   return findByRestaurantId(record.restaurantId);
 }
 
+async function writeLicenses(_licenses) {
+  throw new Error("writeLicenses non supportato su MySQL: usa updateLicense/create");
+}
+
 module.exports = {
   readLicenses,
+  writeLicenses,
   findByRestaurantId,
   findByActivationCode,
   updateLicense,

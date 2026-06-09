@@ -26,4 +26,5 @@ module.exports = {
   updateUser: (...a) => impl().updateUser(...a),
   findOwnerByRestaurantId: (...a) => impl().findOwnerByRestaurantId(...a),
   setUserPassword: (...a) => impl().setUserPassword(...a),
+  setActiveByRestaurantId: (...a) => impl().setActiveByRestaurantId(...a),
 };
