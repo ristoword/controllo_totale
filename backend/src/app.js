@@ -123,6 +123,8 @@ try {
 try {
   const resellerRouter = require("./modules/reseller/reseller.routes");
   app.use(resellerRouter);
+  const resellerRepo = require("./modules/reseller/reseller.repository");
+  resellerRepo.seedFromEnv().catch((e) => console.warn("[Reseller] seed error:", e.message));
 } catch (e) {
   console.warn("reseller.routes non trovato (ok se non ancora creato):", e.message);
 }

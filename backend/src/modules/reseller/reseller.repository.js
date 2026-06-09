@@ -145,6 +145,24 @@ function listAccounts() {
   return list.map((a) => ({ id: a.id, username: a.username, partnerCode: a.partnerCode, displayName: a.displayName, active: a.active, createdAt: a.createdAt }));
 }
 
+async function seedFromEnv() {
+  const username = (process.env.RESELLER_SEED_USERNAME || "").trim();
+  const password = (process.env.RESELLER_SEED_PASSWORD || "").trim();
+  const partnerCode = (process.env.RESELLER_SEED_PARTNER_CODE || "").trim();
+  const displayName = (process.env.RESELLER_SEED_DISPLAY_NAME || partnerCode).trim();
+
+  if (!username || !password || !partnerCode) return;
+
+  const raw = readAccounts();
+  const list = Array.isArray(raw.accounts) ? raw.accounts : [];
+  if (list.find((a) => a.username === username.toLowerCase())) return;
+
+  const result = await createAccount({ username, password, partnerCode, displayName });
+  if (result.ok) {
+    console.log(`[Reseller] Account seed creato: ${username} (partner: ${partnerCode})`);
+  }
+}
+
 module.exports = {
   createAccount,
   verifyLogin,
@@ -154,4 +172,5 @@ module.exports = {
   deleteSessionToken,
   getAccountByPartnerCode,
   listAccounts,
+  seedFromEnv,
 };
