@@ -72,6 +72,14 @@ const menuApi = {
 // ============================================================
 //   LOAD / REFRESH
 // ============================================================
+
+function orderMatchesTable(order, tableRef) {
+  if (window.RW_TABLE_MATCH?.tablesMatch) {
+    return window.RW_TABLE_MATCH.tablesMatch(order.table, tableRef);
+  }
+  return String(order.table) === String(tableRef);
+}
+
 async function loadAll() {
   try {
     const [t, o] = await Promise.all([tablesApi.list(), ordersApi.listActive()]);
@@ -381,7 +389,7 @@ async function handleTableAction(actionId) {
   if (!t) return;
 
   const ordersForTable = activeOrders.filter((o) =>
-    String(o.table) === String(t.nome) && !["chiuso", "annullato"].includes(o.status)
+    orderMatchesTable(o, t.nome) && !["chiuso", "annullato"].includes(o.status)
   );
 
   switch (actionId) {
@@ -419,14 +427,29 @@ async function handleTableAction(actionId) {
       showModalFlash("Marcia eseguita.");
       break;
 
-    case "chiudi-tavolo":
+    case "chiudi-tavolo": {
+      let closed = 0;
       for (const order of ordersForTable) {
-        await ordersApi.patchStatus(order.id, "chiuso").catch(console.error);
+        try {
+          await ordersApi.patchStatus(order.id, "chiuso");
+          closed += 1;
+        } catch (err) {
+          console.error("chiudi ordine", order.id, err);
+        }
       }
       await tablesApi.patchStatus(t.id, "sporco").catch(console.error);
       await loadAll();
-      showModalFlash("Tavolo chiuso, da pulire.");
+      if (ordersForTable.length > 0 && closed === 0) {
+        showModalFlash("Errore: ordini non chiusi. Riprova o chiudi dalla Cassa.");
+      } else {
+        showModalFlash(
+          closed > 0
+            ? `Tavolo chiuso (${closed} ordini). Da pulire.`
+            : "Tavolo chiuso, da pulire."
+        );
+      }
       break;
+    }
 
     case "cancella-tavolo":
       for (const order of ordersForTable) {
@@ -839,7 +862,7 @@ async function handleRemoveTable() {
   if (!candidate) return;
 
   const ordersOnTable = activeOrders.filter((o) =>
-    String(o.table) === String(candidate.nome) && !["chiuso", "annullato"].includes(o.status)
+    orderMatchesTable(o, candidate.nome) && !["chiuso", "annullato"].includes(o.status)
   );
   if (ordersOnTable.length > 0) {
     showMgmtError(`${candidate.nome} ha ordini attivi: chiudili prima di rimuoverlo.`);

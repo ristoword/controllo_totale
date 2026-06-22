@@ -5,6 +5,7 @@ const dayOpenRepository = require("../repositories/day-open.repository");
 const paymentsService = require("../service/payments.service");
 const ordersService = require("../service/orders.service");
 const { broadcastOrders, broadcastSupervisorSyncFromData } = require("../service/websocket.service");
+const { tablesMatch } = require("../utils/tableMatch");
 
 // =============================
 // HELPERS
@@ -177,7 +178,18 @@ async function createPayment(req, res) {
     }
   }
 
-  const orderIds = Array.isArray(payload.orderIds) ? payload.orderIds.map(String) : [];
+  let orderIds = Array.isArray(payload.orderIds) ? payload.orderIds.map(String) : [];
+  const tableRef = normalizeString(payload.table, "");
+
+  if (orderIds.length === 0 && tableRef) {
+    const allOrders = await ordersRepository.getAllOrders();
+    for (const o of allOrders) {
+      const st = String(o.status || "").toLowerCase();
+      if (["chiuso", "annullato", "closed", "cancelled"].includes(st)) continue;
+      if (tablesMatch(o.table, tableRef)) orderIds.push(String(o.id));
+    }
+  }
+
   if (orderIds.length > 0) {
     const allOrders = await ordersRepository.getAllOrders();
     for (const oid of orderIds) {

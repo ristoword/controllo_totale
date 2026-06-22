@@ -951,11 +951,18 @@ async function createPaymentRecord(payload) {
   return await res.json();
 }
 
+function tableKey(value) {
+  if (window.RW_TABLE_MATCH?.normalizeTableKey) {
+    return window.RW_TABLE_MATCH.normalizeTableKey(value) || String(value ?? "-");
+  }
+  return String(value ?? "-");
+}
+
 function groupOrdersByTable(orders) {
   const byTable = new Map();
   for (const o of orders) {
     if (o.status === "chiuso" || o.status === "annullato") continue;
-    const table = o.table ?? "-";
+    const table = tableKey(o.table ?? "-");
     if (!byTable.has(table)) byTable.set(table, []);
     byTable.get(table).push(o);
   }
