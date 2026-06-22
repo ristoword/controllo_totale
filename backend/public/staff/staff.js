@@ -255,7 +255,6 @@
     }
 
     if (!tbody) return;
-    const withAccounts = staffList.filter((u) => u.username);
     tbody.innerHTML = "";
     if (!withAccounts.length) {
       tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Nessun account creato.</td></tr>';

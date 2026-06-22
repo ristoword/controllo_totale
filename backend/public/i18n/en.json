@@ -791,6 +791,7 @@
   "sala_course_degree": " course",
   "sala_flash_opened": "Table opened.",
   "sala_flash_free": "Table free.",
+  "sala_confirm_free_with_orders": "There are {n} active orders on this table. Cancel them and free the table?",
   "sala_flash_bill": "Bill requested.",
   "sala_flash_marcia": "Course fired.",
   "sala_flash_close_error": "Error: orders not closed. Retry or close from Cash Register.",

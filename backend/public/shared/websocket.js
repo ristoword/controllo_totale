@@ -30,6 +30,11 @@
             new CustomEvent("rw:orders-update", { detail: { orders: data.orders } })
           );
         }
+        if (data.type === "sala_note") {
+          window.dispatchEvent(
+            new CustomEvent("rw:sala-note", { detail: data })
+          );
+        }
         if (data.type === "supervisor_sync") {
           window.dispatchEvent(
             new CustomEvent("rw:supervisor-sync", {

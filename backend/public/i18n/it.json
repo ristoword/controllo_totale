@@ -791,6 +791,7 @@
   "sala_course_degree": "° corso",
   "sala_flash_opened": "Tavolo aperto.",
   "sala_flash_free": "Tavolo libero.",
+  "sala_confirm_free_with_orders": "Ci sono {n} ordini attivi su questo tavolo. Vuoi annullarli e liberare il tavolo?",
   "sala_flash_bill": "Conto richiesto.",
   "sala_flash_marcia": "Marcia eseguita.",
   "sala_flash_close_error": "Errore: ordini non chiusi. Riprova o chiudi dalla Cassa.",

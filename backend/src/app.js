@@ -188,7 +188,7 @@ try {
 const ROLES_ALL = ["owner", "sala", "cucina", "cassa"];
 const ROLES_ORDERS = ["owner", "sala", "cucina", "cassa", "supervisor"];
 const ROLES_MENU = ["owner", "sala", "cucina", "cassa", "supervisor"];
-const ROLES_PAYMENTS = ["owner", "cassa"];
+const ROLES_PAYMENTS = ["owner", "cassa", "supervisor"];
 const ROLES_REPORTS = ["owner", "sala", "cucina", "cassa"];
 const ROLES_CLOSURES = ["owner", "cassa", "supervisor"];
 const ROLES_ARCHIVE = ["owner", "supervisor", "cassa", "magazzino", "cucina", "sala"];
@@ -591,13 +591,6 @@ try {
   console.warn("license.routes non trovato (ok se non ancora creato)");
 }
 
-// SESSIONS (Staff access)
-try {
-  const sessionsRouter = require("./routes/sessions.routes");
-  app.use("/api/sessions", requireAuth, requireRole(ROLES_ALL), sessionsRouter);
-} catch (e) {
-  console.warn("sessions.routes non trovato (ok se non ancora creato)");
-}
 
 // RECIPES – /api/recipes
 try {

@@ -36,6 +36,79 @@ function extractPizzaItems(order) {
 }
 
 // =============================
+//   COURSE-STATE GUARDS
+// =============================
+
+function getSortedCourseNums(order) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const set = new Set();
+  for (const it of items) {
+    const c = Number(it && it.course);
+    const cn = Number.isFinite(c) && c >= 1 ? Math.floor(c) : 1;
+    set.add(cn);
+  }
+  return [...set].sort((a, b) => a - b);
+}
+
+function getOrderCourseState(order, cn) {
+  const cs = order && order.courseStates;
+  const hasStructured = cs && typeof cs === "object" && Object.keys(cs).length > 0;
+  if (hasStructured) {
+    const v = cs[String(cn)] ?? cs[cn];
+    if (v != null && v !== "") return String(v).toLowerCase();
+    return "queued";
+  }
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return null;
+  const ac = Number(order.activeCourse) >= 1 ? Math.floor(Number(order.activeCourse)) : nums[0];
+  const ost = String(order.status || "").toLowerCase();
+  if (cn < ac) return "servito";
+  if (cn === ac) {
+    if (ost === "in_preparazione" || ost === "pronto" || ost === "in_attesa") return ost;
+    if (ost === "servito") return "servito";
+    return "in_attesa";
+  }
+  return "queued";
+}
+
+function getDisplayState(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return String(order.status || "in_attesa").toLowerCase();
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return "servito";
+  const st = String(getOrderCourseState(order, current) || "in_attesa").toLowerCase();
+  if (st === "queued") return "in_attesa";
+  return st;
+}
+
+function canUseInPrep(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return false;
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return false;
+  const st = String(getOrderCourseState(order, current) || "in_attesa").toLowerCase();
+  return st === "in_attesa" || st === "queued";
+}
+
+function canUsePronto(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return false;
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return false;
+  return String(getOrderCourseState(order, current) || "").toLowerCase() === "in_preparazione";
+}
+
+function canUseServito(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return false;
+  const lastN = nums[nums.length - 1];
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return false;
+  if (current !== lastN) return false;
+  return String(getOrderCourseState(order, current) || "").toLowerCase() === "pronto";
+}
+
+// =============================
 //   API ORDINI
 // =============================
 
@@ -146,6 +219,10 @@ function renderKdsColumns(orders) {
         ? "IN ATTESA"
         : (order.status || "").toUpperCase();
 
+    const dPrep = canUseInPrep(order) ? "" : " disabled";
+    const dReady = canUsePronto(order) ? "" : " disabled";
+    const dServed = canUseServito(order) ? "" : " disabled";
+
     div.innerHTML = `
       <div class="order-title">Tavolo ${order.table ?? "-"}</div>
       <div class="order-meta">
@@ -162,17 +239,17 @@ function renderKdsColumns(orders) {
       <div class="order-actions">
         <button class="btn-xs warning" data-action="set-status" data-status="in_preparazione" data-id="${
           order.id
-        }">
+        }"${dPrep}>
           PREP.
         </button>
         <button class="btn-xs success" data-action="set-status" data-status="pronto" data-id="${
           order.id
-        }">
+        }"${dReady}>
           PRONTA
         </button>
         <button class="btn-xs info" data-action="set-status" data-status="servito" data-id="${
           order.id
-        }">
+        }"${dServed}>
           SERVITA
         </button>
       </div>
@@ -180,6 +257,7 @@ function renderKdsColumns(orders) {
 
     div.querySelectorAll("[data-action='set-status']").forEach((btn) => {
       btn.addEventListener("click", async () => {
+        if (btn.disabled) return;
         const id = btn.getAttribute("data-id");
         const status = btn.getAttribute("data-status");
         try {
@@ -187,16 +265,16 @@ function renderKdsColumns(orders) {
           await loadAndRenderKds();
         } catch (err) {
           console.error(err);
-          alert("Errore cambio stato pizza.");
+          alert(err.message || "Errore cambio stato pizza.");
+          try { await loadAndRenderKds(); } catch (_) {}
         }
       });
     });
 
-    if (order.status === "in_attesa") {
-      colPending.appendChild(div);
-    } else if (order.status === "in_preparazione") {
+    const ds = getDisplayState(order);
+    if (ds === "in_preparazione") {
       colPrep.appendChild(div);
-    } else if (order.status === "pronto" || order.status === "servito") {
+    } else if (ds === "pronto") {
       colReady.appendChild(div);
     } else {
       colPending.appendChild(div);

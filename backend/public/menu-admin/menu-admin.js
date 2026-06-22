@@ -2,6 +2,8 @@
 //  MENU-ADMIN – wired to /api/menu
 // =============================
 
+let editingItemId = null;
+
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, {
     headers: { "Content-Type": "application/json" },
@@ -111,11 +113,27 @@ async function renderMenuList() {
         <div class="menu-price">${priceStr}</div>
         <div class="menu-status ${statusClass}">${statusLabel}</div>
         <div class="menu-actions">
+          <button class="edit" data-id="${it.id}">Modifica</button>
           <button class="toggle" data-id="${it.id}">${it.active !== false ? "Disattiva" : "Attiva"}</button>
           <button class="delete" data-id="${it.id}">Elimina</button>
         </div>
       `;
       listEl.appendChild(row);
+    });
+
+    listEl.querySelectorAll("button.edit").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        try {
+          const items = await loadMenuItems();
+          const it = items.find((x) => String(x.id) === String(id));
+          if (!it) return;
+          populateFormForEdit(it);
+        } catch (err) {
+          console.error(err);
+          alert("Errore: " + (err.message || "Caricamento fallito"));
+        }
+      });
     });
 
     listEl.querySelectorAll("button.toggle").forEach((btn) => {
@@ -163,6 +181,12 @@ async function renderMenuList() {
 // =============================
 
 function clearForm() {
+  editingItemId = null;
+  const btnAdd = document.getElementById("btn-add-item");
+  if (btnAdd) btnAdd.textContent = "Aggiungi al menu";
+  const formTitle = document.querySelector(".left .card-header h2");
+  if (formTitle) formTitle.textContent = "Nuovo piatto / bevanda";
+
   document.getElementById("field-name").value = "";
   document.getElementById("field-category").value = "";
   document.getElementById("field-area").value = "cucina";
@@ -174,6 +198,33 @@ function clearForm() {
   if (linkedSel) linkedSel.value = "";
   const recipeIdInput = document.getElementById("field-recipe-id");
   if (recipeIdInput) recipeIdInput.value = "";
+}
+
+function populateFormForEdit(item) {
+  editingItemId = item.id;
+  document.getElementById("field-name").value = item.name || "";
+  document.getElementById("field-category").value = item.category || "";
+  document.getElementById("field-area").value = item.area || "cucina";
+  document.getElementById("field-price").value = item.price != null ? item.price : "";
+  document.getElementById("field-code").value = item.code || "";
+  document.getElementById("field-active").value = item.active !== false ? "true" : "false";
+  document.getElementById("field-notes").value = item.notes || "";
+
+  const linkedSel = document.getElementById("field-linked-recipe");
+  if (linkedSel) linkedSel.value = item.recipeId || "";
+  const recipeIdInput = document.getElementById("field-recipe-id");
+  if (recipeIdInput) recipeIdInput.value = item.recipeId || "";
+
+  const btnAdd = document.getElementById("btn-add-item");
+  if (btnAdd) btnAdd.textContent = "Salva modifiche";
+  const formTitle = document.querySelector(".left .card-header h2");
+  if (formTitle) formTitle.textContent = "Modifica piatto / bevanda";
+
+  if (item.recipeId) {
+    loadRecipeIntoFoodCost(item.recipeId);
+  }
+
+  document.querySelector(".left .card")?.scrollIntoView({ behavior: "smooth" });
 }
 
 function setupForm() {
@@ -254,7 +305,7 @@ function setupForm() {
 
         const recipeId = recipeIdForDish || null;
 
-        await createMenuItem({
+        const dishPayload = {
           name,
           category: category || "Generale",
           area,
@@ -262,11 +313,15 @@ function setupForm() {
           code: code || null,
           notes: notes || null,
           active: activeStr === "true",
-          // Collega il piatto a una ricetta esistente per food cost / scarico magazzino.
           recipeId,
-          // Food cost avanzato (opzionale – il backend calcola i derivati)
           ...(fcPayload || {}),
-        });
+        };
+
+        if (editingItemId) {
+          await updateMenuItem(editingItemId, dishPayload);
+        } else {
+          await createMenuItem(dishPayload);
+        }
         clearForm();
         await renderMenuList();
       } catch (err) {

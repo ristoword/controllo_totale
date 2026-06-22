@@ -221,7 +221,8 @@ function renderActiveOrders() {
       return `<span class="course-badge ${cls}">${cn}${t("sala_course_degree")} <span style="opacity:.7">${lbl}</span></span>`;
     }).join("");
 
-    const isLastCourse = courseNums.indexOf(order.activeCourse) >= courseNums.length - 1;
+    const activeState = (order.courseStates && order.courseStates[String(order.activeCourse)]) || "queued";
+    const marciaDisabled = activeState === "servito";
 
     return `
       <div class="order-card">
@@ -230,7 +231,7 @@ function renderActiveOrders() {
           <span class="order-meta">${escHtml(order.waiter || "—")} · ${order.covers || "—"}p</span>
         </div>
         <div class="course-badges">${badgesHtml}</div>
-        <button class="marcia-btn" data-order-id="${escHtml(order.id)}" ${isLastCourse ? "disabled" : ""}>
+        <button class="marcia-btn" data-order-id="${escHtml(order.id)}" ${marciaDisabled ? "disabled" : ""}>
           ${t("sala_marcia")}
         </button>
       </div>`;
@@ -260,12 +261,16 @@ async function handleMarcia(order) {
 
   try {
     if (currentState === "queued" || currentState === "in_attesa") {
-      await ordersApi.patchActiveCourse(order.id, currentCourse);
-    } else if (currentState === "pronto" || currentState === "in_preparazione") {
-      if (!isLastCourse) {
-        await ordersApi.patchStatus(order.id, "servito");
-      } else {
-        await ordersApi.patchStatus(order.id, "servito");
+      await ordersApi.patchStatus(order.id, "in_preparazione");
+    } else if (currentState === "in_preparazione") {
+      await ordersApi.patchStatus(order.id, "pronto");
+    } else if (currentState === "pronto" && isLastCourse) {
+      await ordersApi.patchStatus(order.id, "servito");
+    } else if (currentState === "pronto" && !isLastCourse) {
+      const idx = courseNums.indexOf(currentCourse);
+      const nextCourse = idx >= 0 && idx < courseNums.length - 1 ? courseNums[idx + 1] : null;
+      if (nextCourse) {
+        await ordersApi.patchActiveCourse(order.id, nextCourse);
       }
     }
     await loadAll();
@@ -440,6 +445,12 @@ async function handleTableAction(actionId) {
       break;
 
     case "tavolo-libero":
+      if (ordersForTable.length > 0) {
+        if (!confirm(t("sala_confirm_free_with_orders", { n: ordersForTable.length }))) break;
+        for (const order of ordersForTable) {
+          await ordersApi.patchStatus(order.id, "annullato").catch(console.error);
+        }
+      }
       await tablesApi.patchStatus(table.id, "libero").catch(console.error);
       await loadAll();
       showModalFlash(t("sala_flash_free"));
@@ -928,10 +939,14 @@ function escHtml(str) {
 // ============================================================
 //   WEBSOCKET REFRESH
 // ============================================================
-document.addEventListener("ws:orders-update", async () => {
+window.addEventListener("rw:orders-update", async (ev) => {
   try {
-    const o = await ordersApi.listActive();
-    activeOrders = Array.isArray(o) ? o : [];
+    if (ev.detail && ev.detail.orders) {
+      activeOrders = Array.isArray(ev.detail.orders) ? ev.detail.orders : [];
+    } else {
+      const o = await ordersApi.listActive();
+      activeOrders = Array.isArray(o) ? o : [];
+    }
     renderActiveOrders();
     renderKpis();
   } catch (_) {}

@@ -23,14 +23,100 @@ function createElement(tag, className, html) {
 }
 
 // =============================
+//  COURSE-STATE GUARDS
+// =============================
+
+function getSortedCourseNums(order) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const set = new Set();
+  for (const it of items) {
+    const c = Number(it && it.course);
+    const cn = Number.isFinite(c) && c >= 1 ? Math.floor(c) : 1;
+    set.add(cn);
+  }
+  return [...set].sort((a, b) => a - b);
+}
+
+function getOrderCourseState(order, cn) {
+  const cs = order && order.courseStates;
+  const hasStructured = cs && typeof cs === "object" && Object.keys(cs).length > 0;
+  if (hasStructured) {
+    const v = cs[String(cn)] ?? cs[cn];
+    if (v != null && v !== "") return String(v).toLowerCase();
+    return "queued";
+  }
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return null;
+  const ac = Number(order.activeCourse) >= 1 ? Math.floor(Number(order.activeCourse)) : nums[0];
+  const ost = String(order.status || "").toLowerCase();
+  if (cn < ac) return "servito";
+  if (cn === ac) {
+    if (ost === "in_preparazione" || ost === "pronto" || ost === "in_attesa") return ost;
+    if (ost === "servito") return "servito";
+    return "in_attesa";
+  }
+  return "queued";
+}
+
+function getDisplayState(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return String(order.status || "in_attesa").toLowerCase();
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return "servito";
+  const st = String(getOrderCourseState(order, current) || "in_attesa").toLowerCase();
+  if (st === "queued") return "in_attesa";
+  return st;
+}
+
+function canUseInPrep(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return false;
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return false;
+  const st = String(getOrderCourseState(order, current) || "in_attesa").toLowerCase();
+  return st === "in_attesa" || st === "queued";
+}
+
+function canUsePronto(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return false;
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return false;
+  return String(getOrderCourseState(order, current) || "").toLowerCase() === "in_preparazione";
+}
+
+function canUseServito(order) {
+  const nums = getSortedCourseNums(order);
+  if (!nums.length) return false;
+  const lastN = nums[nums.length - 1];
+  const current = nums.find((n) => getOrderCourseState(order, n) !== "servito");
+  if (current == null) return false;
+  if (current !== lastN) return false;
+  return String(getOrderCourseState(order, current) || "").toLowerCase() === "pronto";
+}
+
+// =============================
 //  API ORDERS – filtro area "bar"
 // =============================
+
+function isBarOrder(order) {
+  if (order.area === "bar") return true;
+  if (Array.isArray(order.items)) {
+    return order.items.some((it) => it.area === "bar");
+  }
+  return false;
+}
+
+function extractBarItems(order) {
+  if (!Array.isArray(order.items)) return [];
+  return order.items.filter((it) => it.area === "bar");
+}
 
 async function fetchBarOrders() {
   const res = await fetch("/api/orders?active=true", { credentials: "same-origin" });
   if (!res.ok) throw new Error("Errore caricamento ordini bar");
   const all = await res.json();
-  return all.filter((o) => o.area === "bar");
+  return all.filter(isBarOrder);
 }
 
 async function setOrderStatus(id, status) {
@@ -83,9 +169,9 @@ function buildOrderCard(order) {
   header.appendChild(meta);
 
   const itemsDiv = createElement("div", "order-meta");
-  const items = order.items || [];
-  if (items.length) {
-    itemsDiv.innerHTML = items
+  const barItems = extractBarItems(order);
+  if (barItems.length) {
+    itemsDiv.innerHTML = barItems
       .map((i) => `${i.name} x${i.qty || 1}`)
       .join("<br>");
   } else {
@@ -124,15 +210,22 @@ function buildOrderCard(order) {
   const btnServ = createElement("button", "btn-xs info", "SERVITO");
   const btnCancel = createElement("button", "btn-xs danger", "ANNULLA");
 
-  btnPrep.addEventListener("click", () =>
-    handleStatusClick(order.id, "in_preparazione")
-  );
-  btnReady.addEventListener("click", () =>
-    handleStatusClick(order.id, "pronto")
-  );
-  btnServ.addEventListener("click", () =>
-    handleStatusClick(order.id, "servito")
-  );
+  if (!canUseInPrep(order)) btnPrep.disabled = true;
+  if (!canUsePronto(order)) btnReady.disabled = true;
+  if (!canUseServito(order)) btnServ.disabled = true;
+
+  btnPrep.addEventListener("click", () => {
+    if (!canUseInPrep(order)) return;
+    handleStatusClick(order.id, "in_preparazione");
+  });
+  btnReady.addEventListener("click", () => {
+    if (!canUsePronto(order)) return;
+    handleStatusClick(order.id, "pronto");
+  });
+  btnServ.addEventListener("click", () => {
+    if (!canUseServito(order)) return;
+    handleStatusClick(order.id, "servito");
+  });
   btnCancel.addEventListener("click", () =>
     handleStatusClick(order.id, "annullato")
   );
@@ -166,7 +259,7 @@ function renderBarOrders(orders) {
   colPrep.innerHTML = "";
   colReady.innerHTML = "";
 
-  const barOrders = Array.isArray(orders) ? orders.filter((o) => o.area === "bar") : [];
+  const barOrders = Array.isArray(orders) ? orders.filter(isBarOrder) : [];
 
   // KPI
   const prepCount = barOrders.filter((o) => o.status === "in_preparazione").length;
@@ -187,9 +280,10 @@ function renderBarOrders(orders) {
 
   visible.forEach((order) => {
     const card = buildOrderCard(order);
-    if (order.status === "pronto") {
+    const ds = getDisplayState(order);
+    if (ds === "pronto") {
       colReady.appendChild(card);
-    } else if (order.status === "in_preparazione") {
+    } else if (ds === "in_preparazione") {
       colPrep.appendChild(card);
     } else {
       colPending.appendChild(card);

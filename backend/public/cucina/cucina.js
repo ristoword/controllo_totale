@@ -23,6 +23,15 @@ let haccpEntries = [];
 let recipes = [];
 let shifts = [];
 
+function isCucinaItem(item) {
+  return !item.area || item.area === "cucina";
+}
+
+function isCucinaOrder(order) {
+  const items = Array.isArray(order.items) ? order.items : [];
+  return items.some(isCucinaItem);
+}
+
 // =======================================
 //   UTILITÀ GENERICHE
 // =======================================
@@ -285,7 +294,7 @@ function getOrderCourseState(order, cn) {
 }
 
 function buildCourseBlocksHtml(order) {
-  const items = Array.isArray(order.items) ? order.items : [];
+  const items = (Array.isArray(order.items) ? order.items : []).filter(isCucinaItem);
   const activeCourse = Number(order.activeCourse) >= 1 ? Number(order.activeCourse) : 1;
   const byCourse = new Map();
   items.forEach((i) => {
@@ -491,7 +500,7 @@ function renderKdsColumns(orders) {
 async function loadAndRenderOrders() {
   try {
     const orders = await fetchOrders();
-    ordersCache = orders || [];
+    ordersCache = (orders || []).filter(isCucinaOrder);
     renderKpi(ordersCache);
     renderKdsColumns(ordersCache);
   } catch (err) {
@@ -508,10 +517,19 @@ function initKds() {
 
   window.addEventListener("rw:orders-update", (ev) => {
     if (ev.detail?.orders) {
-      ordersCache = ev.detail.orders;
+      ordersCache = ev.detail.orders.filter(isCucinaOrder);
       renderKpi(ordersCache);
       renderKdsColumns(ordersCache);
     }
+  });
+
+  window.addEventListener("rw:sala-note", (ev) => {
+    const note = ev.detail || {};
+    const table = note.table || "?";
+    const dept = note.department || "";
+    const text = note.text || "";
+    if (dept && dept !== "cucina") return;
+    showKdsToast(`Nota da sala — Tavolo ${table}: ${text}`);
   });
 
   loadAndRenderOrders();
@@ -717,6 +735,29 @@ function escapeHtml(s) {
   const div = document.createElement("div");
   div.textContent = String(s);
   return div.innerHTML;
+}
+
+function showKdsToast(message, duration = 6000) {
+  let container = document.getElementById("kds-toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "kds-toast-container";
+    container.style.cssText =
+      "position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;";
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement("div");
+  toast.style.cssText =
+    "background:#1e293b;color:#f8fafc;padding:12px 20px;border-radius:8px;font-size:14px;" +
+    "box-shadow:0 4px 12px rgba(0,0,0,.3);border-left:4px solid #f59e0b;pointer-events:auto;" +
+    "animation:kds-toast-in .3s ease;max-width:400px;word-break:break-word;";
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity .3s ease";
+    setTimeout(() => toast.remove(), 350);
+  }, duration);
 }
 
 async function loadRecipesAndRender() {
