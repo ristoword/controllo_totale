@@ -1,3 +1,14 @@
 {
-  "entries": []
+  "entries": [
+    {
+      "id": "seed-default-storno",
+      "date": "2026-06-22",
+      "amount": 5,
+      "reason": "Storno demo",
+      "operator": "demo",
+      "tableRef": "1",
+      "createdAt": "2026-06-22T20:24:25.298Z",
+      "_seed": true
+    }
+  ]
 }

@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "seed-default-catering",
+    "title": "Evento demo",
+    "clientName": "Cliente Demo",
+    "eventDate": "2026-06-22",
+    "guestCount": 40,
+    "menuType": "custom",
+    "sections": [],
+    "status": "draft",
+    "_seed": true
+  }
+]

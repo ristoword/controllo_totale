@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "seed-baia-verde-haccp",
+    "type": "fridge",
+    "value": 3.5,
+    "unit": "°C",
+    "date": "2026-06-22",
+    "time": "09:00",
+    "operator": "seed-baia-verde-staff",
+    "_seed": true
+  }
+]

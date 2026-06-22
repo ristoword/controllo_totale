@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "id": "seed-default-staffreq",
+    "staffId": "seed-default-staff",
+    "type": "uniform",
+    "status": "pending",
+    "message": "Richiesta divisa demo",
+    "createdAt": "2026-06-22T20:24:25.298Z",
+    "_seed": true
+  }
+]

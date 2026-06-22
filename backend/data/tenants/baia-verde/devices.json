@@ -1,3 +1,13 @@
 {
-  "devices": []
+  "devices": [
+    {
+      "id": "seed-baia-verde-device",
+      "name": "Stampante cucina",
+      "type": "kitchen_printer",
+      "department": "cucina",
+      "connectionType": "network",
+      "isActive": true,
+      "_seed": true
+    }
+  ]
 }

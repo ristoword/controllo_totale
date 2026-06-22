@@ -1,1 +1,18 @@
-[]
+{
+  "recipes": [
+    {
+      "id": "seed-baia-verde-recipe",
+      "name": "Risotto demo",
+      "category": "Primi",
+      "yieldPortions": 1,
+      "ingredients": [
+        {
+          "name": "Riso",
+          "quantity": 0.08,
+          "unit": "kg"
+        }
+      ],
+      "_seed": true
+    }
+  ]
+}

@@ -1,3 +1,16 @@
 {
-  "shifts": []
+  "shifts": [
+    {
+      "id": 9593,
+      "opened_at": "2026-06-22T20:24:24.652Z",
+      "closed_at": "2026-06-22T20:24:24.652Z",
+      "opening_float": 100,
+      "cash_total": 33,
+      "card_total": 0,
+      "other_total": 0,
+      "status": "closed",
+      "operator": "demo",
+      "_seed": true
+    }
+  ]
 }

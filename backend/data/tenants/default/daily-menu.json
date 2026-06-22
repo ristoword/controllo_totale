@@ -1,5 +1,14 @@
 {
-  "menuActive": false,
-  "updatedAt": null,
-  "dishes": []
+  "menuActive": true,
+  "updatedAt": "2026-06-22T20:24:25.298Z",
+  "dishes": [
+    {
+      "id": 1,
+      "name": "Piatto del giorno",
+      "category": "primo",
+      "price": 14,
+      "active": true,
+      "_seed": true
+    }
+  ]
 }

@@ -1,3 +1,12 @@
 {
-  "routes": []
+  "routes": [
+    {
+      "id": "seed-baia-verde-route",
+      "eventType": "order_ticket_kitchen",
+      "department": "cucina",
+      "deviceId": "seed-baia-verde-device",
+      "isActive": true,
+      "_seed": true
+    }
+  ]
 }

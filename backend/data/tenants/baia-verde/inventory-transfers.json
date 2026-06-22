@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "seed-baia-verde-transfer",
+    "productName": "Farina 00",
+    "quantity": 2,
+    "unit": "kg",
+    "fromWarehouse": "magazzino",
+    "toWarehouse": "cucina",
+    "status": "completed",
+    "createdAt": "2026-06-22T20:24:24.652Z",
+    "_seed": true
+  }
+]

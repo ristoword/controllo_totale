@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "seed-default-stockmv",
+    "type": "deduction",
+    "itemName": "Farina 00",
+    "quantity": 1,
+    "unit": "kg",
+    "before": 25,
+    "after": 24,
+    "note": "Movimento demo",
+    "createdAt": "2026-06-22T20:24:25.298Z",
+    "_seed": true
+  }
+]

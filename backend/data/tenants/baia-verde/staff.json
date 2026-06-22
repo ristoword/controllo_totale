@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "id": "seed-baia-verde-staff",
+    "name": "Mario",
+    "surname": "Demo",
+    "role": "cameriere",
+    "department": "sala",
+    "roleType": "operational",
+    "active": true,
+    "personal": {
+      "name": "Mario",
+      "surname": "Demo",
+      "email": "demo.baiaverde@demo.local",
+      "hireDate": "2026-06-22"
+    },
+    "work": {
+      "department": "sala",
+      "role": "cameriere",
+      "weeklyHours": 40
+    },
+    "_seed": true
+  }
+]

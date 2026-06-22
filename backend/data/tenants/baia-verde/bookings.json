@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "seed-baia-verde-booking",
+    "name": "Rossi",
+    "phone": "+39 333 1112222",
+    "people": 4,
+    "date": "2026-06-22",
+    "time": "20:30",
+    "status": "nuova",
+    "notes": "Tavolo finestra (demo)",
+    "_seed": true
+  }
+]

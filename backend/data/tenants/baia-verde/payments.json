@@ -1,1 +1,25 @@
-[]
+[
+  {
+    "id": "seed-baia-verde-payment",
+    "table": "1",
+    "orderIds": [
+      "929593"
+    ],
+    "subtotal": 30,
+    "discountAmount": 0,
+    "discountType": "none",
+    "vatPercent": 10,
+    "vatAmount": 3,
+    "total": 33,
+    "paymentMethod": "cash",
+    "amountReceived": 40,
+    "changeAmount": 7,
+    "covers": 2,
+    "operator": "demo",
+    "status": "closed",
+    "createdAt": "2026-06-22T20:24:24.652Z",
+    "updatedAt": "2026-06-22T20:24:24.652Z",
+    "closedAt": "2026-06-22T20:24:24.652Z",
+    "_seed": true
+  }
+]

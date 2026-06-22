@@ -1,3 +1,16 @@
 {
-  "shifts": []
+  "shifts": [
+    {
+      "id": "seed-baia-verde-posshift",
+      "opened_at": "2026-06-22T20:24:24.652Z",
+      "closed_at": "2026-06-22T20:24:24.652Z",
+      "operator": "Demo",
+      "opening_float": 100,
+      "cash_total": 50,
+      "card_total": 0,
+      "other_total": 0,
+      "status": "closed",
+      "_seed": true
+    }
+  ]
 }

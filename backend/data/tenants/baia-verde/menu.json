@@ -1,1 +1,56 @@
-[]
+[
+  {
+    "id": 101,
+    "name": "Carpaccio di manzo",
+    "category": "Antipasti",
+    "price": 14,
+    "area": "cucina",
+    "active": true,
+    "_seed": true
+  },
+  {
+    "id": 102,
+    "name": "Bruschetta al pomodoro",
+    "category": "Antipasti",
+    "price": 8,
+    "area": "cucina",
+    "active": true,
+    "_seed": true
+  },
+  {
+    "id": 103,
+    "name": "Spaghetti alle vongole",
+    "category": "Primi",
+    "price": 16,
+    "area": "cucina",
+    "active": true,
+    "_seed": true
+  },
+  {
+    "id": 104,
+    "name": "Risotto ai funghi",
+    "category": "Primi",
+    "price": 15,
+    "area": "cucina",
+    "active": true,
+    "_seed": true
+  },
+  {
+    "id": 105,
+    "name": "Tagliata di manzo",
+    "category": "Secondi",
+    "price": 24,
+    "area": "cucina",
+    "active": true,
+    "_seed": true
+  },
+  {
+    "id": 106,
+    "name": "Branzino al forno",
+    "category": "Secondi",
+    "price": 22,
+    "area": "cucina",
+    "active": true,
+    "_seed": true
+  }
+]

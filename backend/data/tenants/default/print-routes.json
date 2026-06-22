@@ -1,1 +1,12 @@
-[]
+{
+  "routes": [
+    {
+      "id": "seed-default-route",
+      "eventType": "order_ticket_kitchen",
+      "department": "cucina",
+      "deviceId": "seed-default-device",
+      "isActive": true,
+      "_seed": true
+    }
+  ]
+}

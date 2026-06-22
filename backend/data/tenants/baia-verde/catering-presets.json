@@ -1,3 +1,13 @@
-{
-  "presets": []
-}
+[
+  {
+    "id": "seed-baia-verde-preset",
+    "name": "Menu finger food",
+    "guestRange": "30-50",
+    "pricePerGuest": 35,
+    "courses": [
+      "Antipasti",
+      "Dolce"
+    ],
+    "_seed": true
+  }
+]

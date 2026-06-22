@@ -243,6 +243,8 @@ async function migrateUsers(conn, dryRun) {
       u.name != null ? String(u.name) : "",
       u.surname != null ? String(u.surname) : "",
       u.email != null ? String(u.email).trim() : null,
+      u.phone != null ? String(u.phone).trim() : null,
+      u.address != null ? String(u.address).trim() : null,
       String(u.role || "staff"),
       restaurantId || null,
       u.is_active !== false ? 1 : 0,
@@ -260,12 +262,13 @@ async function migrateUsers(conn, dryRun) {
     }
     await conn.query(
       `INSERT INTO users (
-        id, username, password_hash, name, surname, email, role, restaurant_id, is_active, must_change_password,
+        id, username, password_hash, name, surname, email, phone, address, role, restaurant_id, is_active, must_change_password,
         hourly_rate, employment_type, leave_balances, created_at, updated_at
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON DUPLICATE KEY UPDATE
         username=VALUES(username), password_hash=VALUES(password_hash), name=VALUES(name), surname=VALUES(surname),
-        email=VALUES(email), role=VALUES(role), restaurant_id=VALUES(restaurant_id), is_active=VALUES(is_active),
+        email=VALUES(email), phone=VALUES(phone), address=VALUES(address), role=VALUES(role),
+        restaurant_id=VALUES(restaurant_id), is_active=VALUES(is_active),
         must_change_password=VALUES(must_change_password), hourly_rate=VALUES(hourly_rate),
         employment_type=VALUES(employment_type), leave_balances=VALUES(leave_balances), updated_at=VALUES(updated_at)`,
       row
@@ -837,6 +840,53 @@ async function migrateTenantModuleData(conn, dryRun, moduleKey, fileName) {
 }
 
 
+async function migrateDayOpenStatus(conn, dryRun) {
+  const tenantsDir = path.join(paths.DATA, "tenants");
+  if (!fs.existsSync(tenantsDir)) return;
+  const dirs = fs.readdirSync(tenantsDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+  let total = 0;
+  for (const dir of dirs) {
+    const fp = path.join(tenantsDir, path.basename(dir), "day_open.json");
+    if (!fs.existsSync(fp)) continue;
+    const data = safeReadJson(fp, null);
+    if (!data || !data.businessDate) continue;
+    const rid = path.basename(dir);
+    await ensureRestaurantStub(conn, rid, dryRun);
+    if (dryRun) { console.info(`[migrate][dry-run] day-open tenant "${rid}"`); total += 1; continue; }
+    await conn.query(
+      `INSERT INTO day_open_status (restaurant_id, business_date, opened_at, opened_by)
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE business_date = VALUES(business_date), opened_at = VALUES(opened_at), opened_by = VALUES(opened_by)`,
+      [rid, data.businessDate, toDateOrNull(data.openedAt) || new Date(), data.openedBy || null]
+    );
+    total += 1;
+  }
+  console.info(`[migrate] day-open: ${total} tenant processati${dryRun ? " (dry-run)" : ""}`);
+}
+
+async function migrateArchiveStore(conn, dryRun) {
+  const tenantsDir = path.join(paths.DATA, "tenants");
+  if (!fs.existsSync(tenantsDir)) return;
+  const dirs = fs.readdirSync(tenantsDir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+  let total = 0;
+  for (const dir of dirs) {
+    const fp = path.join(tenantsDir, path.basename(dir), "archive-store.json");
+    if (!fs.existsSync(fp)) continue;
+    const payload = safeReadJson(fp, {});
+    const rid = path.basename(dir);
+    await ensureRestaurantStub(conn, rid, dryRun);
+    if (dryRun) { console.info(`[migrate][dry-run] archive-store tenant "${rid}"`); total += 1; continue; }
+    await conn.query(
+      `INSERT INTO tenant_module_data (restaurant_id, module_key, payload_json, updated_at)
+       VALUES (?, 'archive_store', CAST(? AS JSON), NOW(3))
+       ON DUPLICATE KEY UPDATE payload_json = VALUES(payload_json), updated_at = NOW(3)`,
+      [rid, JSON.stringify(payload)]
+    );
+    total += 1;
+  }
+  console.info(`[migrate] archive-store: ${total} tenant processati${dryRun ? " (dry-run)" : ""}`);
+}
+
 async function migrateGlobalModuleData(conn, dryRun, moduleKey, fileName) {
   const fp = path.join(paths.DATA, fileName);
   if (!fs.existsSync(fp)) {
@@ -940,6 +990,10 @@ async function runStep(step, dryRun) {
       await migrateGlobalModuleData(conn, dryRun, "partners", "config/partners.json");
     } else if (step === "gs-codes-mirror") {
       await migrateGlobalModuleData(conn, dryRun, "gs-codes-mirror", "gs-codes-mirror.json");
+    } else if (step === "day-open") {
+      await migrateDayOpenStatus(conn, dryRun);
+    } else if (step === "archive-store") {
+      await migrateArchiveStore(conn, dryRun);
     } else {
       throw new Error(`step sconosciuto: ${step}`);
     }
@@ -1004,6 +1058,8 @@ async function main() {
     "resellers",
     "partners",
     "gs-codes-mirror",
+    "day-open",
+    "archive-store",
   ];
   let steps;
   if (step === "all") {

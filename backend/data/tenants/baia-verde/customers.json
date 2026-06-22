@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "seed-baia-verde-customer",
+    "name": "Anna",
+    "surname": "Demo",
+    "phone": "+39 340 0000001",
+    "email": "cliente@baiaverde.local",
+    "category": "habitue",
+    "visits": 1,
+    "totalSpent": 48,
+    "lastVisit": "2026-06-22",
+    "_seed": true
+  }
+]

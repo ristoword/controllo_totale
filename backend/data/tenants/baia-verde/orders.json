@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": 929593,
+    "table": 1,
+    "covers": 2,
+    "area": "sala",
+    "waiter": "Mario Demo",
+    "status": "chiuso",
+    "createdAt": "2026-06-22T20:24:24.652Z",
+    "updatedAt": "2026-06-22T20:24:24.652Z",
+    "items": [
+      {
+        "name": "Risotto ai funghi",
+        "qty": 2,
+        "area": "cucina",
+        "category": "Primi",
+        "price": 15
+      }
+    ],
+    "_seed": true
+  }
+]

@@ -20,12 +20,15 @@ function shouldAttemptPing() {
 
 /**
  * Prova SELECT 1 sul pool; in caso di errore logga un warning e l'app continua.
- * Chiude il pool dopo il ping così non restano connessioni aperte se non usi ancora MySQL in app.
+ * Se USE_MYSQL_DATABASE=true il pool resta aperto perché l'app lo usa per tutto.
  */
 async function maybePingMysqlOnStart() {
   if (!shouldAttemptPing()) {
     return;
   }
+
+  const { useMysqlPersistence } = require("../config/mysqlPersistence");
+  const keepOpen = useMysqlPersistence();
 
   try {
     const { getPool, closePool } = require("./mysql-pool");
@@ -33,17 +36,19 @@ async function maybePingMysqlOnStart() {
     const [rows] = await pool.query("SELECT 1 AS ok");
     const row = rows && rows[0];
     // eslint-disable-next-line no-console
-    console.log("[MySQL] Ping avvio OK (solo verifica; persistenza resta JSON).", row);
-    await closePool();
+    console.log("[MySQL] Ping avvio OK" + (keepOpen ? " (pool attivo per persistenza MySQL)" : " (solo verifica)") + ".", row);
+    if (!keepOpen) await closePool();
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
     // eslint-disable-next-line no-console
-    console.warn("[MySQL] Ping avvio fallito — server attivo comunque (JSON):", msg);
-    try {
-      const { closePool } = require("./mysql-pool");
-      await closePool();
-    } catch (_) {
-      /* ignore */
+    console.warn("[MySQL] Ping avvio fallito — server attivo comunque:", msg);
+    if (!keepOpen) {
+      try {
+        const { closePool } = require("./mysql-pool");
+        await closePool();
+      } catch (_) {
+        /* ignore */
+      }
     }
   }
 }

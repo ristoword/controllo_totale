@@ -1,3 +1,15 @@
 {
-  "reports": []
+  "reports": [
+    {
+      "id": "seed-default-report",
+      "type": "daily",
+      "date": "2026-06-22",
+      "title": "Report demo",
+      "revenue": 33,
+      "covers": 2,
+      "note": "Report giornaliero demo",
+      "createdAt": "2026-06-22T20:24:25.298Z",
+      "_seed": true
+    }
+  ]
 }

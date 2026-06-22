@@ -1,3 +1,11 @@
 {
-  "tables": []
+  "tables": [
+    {
+      "id": 1,
+      "label": "Tavolo 1",
+      "createdAt": "2026-06-22T20:24:24.652Z",
+      "updatedAt": "2026-06-22T20:24:24.652Z",
+      "_seed": true
+    }
+  ]
 }

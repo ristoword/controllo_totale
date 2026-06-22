@@ -1,1 +1,13 @@
-[]
+{
+  "devices": [
+    {
+      "id": "seed-default-device",
+      "name": "Stampante cucina",
+      "type": "kitchen_printer",
+      "department": "cucina",
+      "connectionType": "network",
+      "isActive": true,
+      "_seed": true
+    }
+  ]
+}

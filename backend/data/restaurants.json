@@ -1,26 +1,6 @@
 {
   "restaurants": [
     {
-      "id": "risto1",
-      "slug": "risto1",
-      "restaurantName": "Controllo Totale Demo",
-      "companyName": "Controllo Totale Demo",
-      "vatNumber": "",
-      "address": "",
-      "city": "",
-      "postalCode": "",
-      "country": "IT",
-      "adminEmail": "",
-      "phone": "",
-      "contactName": "",
-      "plan": "pro",
-      "language": "it",
-      "currency": "EUR",
-      "status": "active",
-      "tablesCount": 20,
-      "createdAt": "2026-03-16T00:00:00.000Z"
-    },
-    {
       "id": "baia-verde",
       "slug": "baia-verde",
       "restaurantName": "Hotel Baia Verde",
@@ -30,6 +10,18 @@
       "country": "IT",
       "adminEmail": "costantinolaudani1@gmail.com",
       "contactName": "Costantino Laudani",
+      "plan": "pro",
+      "status": "active",
+      "language": "it",
+      "currency": "EUR",
+      "createdAt": "2026-03-16T00:00:00.000Z"
+    },
+    {
+      "id": "default",
+      "slug": "default",
+      "restaurantName": "Controllo Totale HQ",
+      "companyName": "Controllo Totale",
+      "country": "IT",
       "plan": "pro",
       "status": "active",
       "language": "it",
