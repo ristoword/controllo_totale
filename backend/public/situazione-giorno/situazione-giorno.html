@@ -4,51 +4,78 @@
   <meta charset="UTF-8" />
   <title>CONTROLLO TOTALE – Situazione del Giorno</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/shared/module-page.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
   <link rel="stylesheet" href="situazione-giorno.css" />
 </head>
 <body>
   <div class="layout">
     <header class="topbar">
-      <div>
-        <h1>Situazione del Giorno</h1>
+      <div class="topbar-left">
+        <h1>CONTROLLO TOTALE – Situazione del Giorno</h1>
         <p class="subtitle">Briefing operativo con dati live dal gestionale</p>
-        <div class="live-badge" id="live-badge">● Dati live — <span id="live-time">—</span></div>
+        <div class="live-badge" id="live-badge">
+          <span class="live-dot"></span>
+          Dati live — <span id="live-time">—</span>
+        </div>
       </div>
-      <div class="actions">
+      <div class="topbar-right">
         <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
         <button class="btn ghost" id="btn-refresh" type="button">Aggiorna</button>
         <button class="btn primary" id="btn-speak" type="button">Ascolta briefing</button>
-        <button class="btn" id="btn-voice" type="button">🎤 Risto, situazione</button>
+        <button class="btn ghost" id="btn-voice" type="button">🎤 Risto, situazione</button>
       </div>
     </header>
 
-    <div class="stats" id="stats-grid">
-      <div class="stat"><span class="label">Prenotazioni</span><span class="value" id="k-bookings">0</span></div>
-      <div class="stat"><span class="label">Coperti previsti</span><span class="value" id="k-covers">0</span></div>
-      <div class="stat"><span class="label">Staff in servizio</span><span class="value" id="k-staff">0</span></div>
-      <div class="stat warn"><span class="label">Ordini in ritardo</span><span class="value" id="k-late">0</span></div>
-      <div class="stat ok"><span class="label">Incasso oggi</span><span class="value" id="k-revenue">€ 0</span></div>
-      <div class="stat"><span class="label">Sotto scorta</span><span class="value" id="k-stock">0</span></div>
+    <div class="kpi-row" id="stats-grid">
+      <div class="chip"><span class="chip-label">Prenotazioni</span><span class="chip-value" id="k-bookings">0</span></div>
+      <div class="chip"><span class="chip-label">Coperti previsti</span><span class="chip-value" id="k-covers">0</span></div>
+      <div class="chip"><span class="chip-label">Staff in servizio</span><span class="chip-value" id="k-staff">0</span></div>
+      <div class="chip warn"><span class="chip-label">Ordini in ritardo</span><span class="chip-value" id="k-late">0</span></div>
+      <div class="chip ok"><span class="chip-label">Incasso oggi</span><span class="chip-value" id="k-revenue">€ 0</span></div>
+      <div class="chip warn"><span class="chip-label">Sotto scorta</span><span class="chip-value" id="k-stock">0</span></div>
     </div>
 
-    <section class="card">
-      <h2>Narrativa operativa</h2>
-      <p class="narrative" id="narrative">Caricamento briefing...</p>
-      <p class="hint">Dati letti in tempo reale dal gestionale — nessun dato demo.</p>
-    </section>
+    <main class="main">
+      <article class="card">
+        <header class="card-header">
+          <h2>Narrativa operativa</h2>
+          <p>Sintesi della giornata in corso</p>
+        </header>
+        <div class="card-body">
+          <p class="narrative" id="narrative">Caricamento briefing...</p>
+          <p class="hint">Dati letti in tempo reale dal gestionale — nessun dato demo.</p>
+        </div>
+      </article>
 
-    <div class="grid-2">
-      <section class="card">
-        <h2>Prenotazioni oggi</h2>
-        <table><thead><tr><th>Ora</th><th>Cliente</th><th>Coperti</th><th>Tavolo</th></tr></thead>
-        <tbody id="bookings-tbody"></tbody></table>
-      </section>
-      <section class="card">
-        <h2>Magazzino critico</h2>
-        <table><thead><tr><th>Prodotto</th><th>Giacenza</th><th>Soglia</th></tr></thead>
-        <tbody id="stock-tbody"></tbody></table>
-      </section>
-    </div>
+      <div class="two-col">
+        <article class="card">
+          <header class="card-header">
+            <h2>Prenotazioni oggi</h2>
+            <p>Arrivi previsti e coperti</p>
+          </header>
+          <div class="card-body tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Ora</th><th>Cliente</th><th>Coperti</th><th>Tavolo</th></tr></thead>
+              <tbody id="bookings-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card">
+          <header class="card-header">
+            <h2>Magazzino critico</h2>
+            <p>Prodotti sotto soglia minima</p>
+          </header>
+          <div class="card-body tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Prodotto</th><th>Giacenza</th><th>Soglia</th></tr></thead>
+              <tbody id="stock-tbody"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </main>
   </div>
   <script src="situazione-giorno.js"></script>
 </body>

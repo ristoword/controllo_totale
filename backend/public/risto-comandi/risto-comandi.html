@@ -4,46 +4,67 @@
   <meta charset="UTF-8" />
   <title>CONTROLLO TOTALE – Risto Comandi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/shared/module-page.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
   <link rel="stylesheet" href="risto-comandi.css" />
 </head>
 <body>
   <div class="layout">
     <header class="topbar">
-      <div>
-        <h1>Risto Comandi</h1>
+      <div class="topbar-left">
+        <h1>CONTROLLO TOTALE – Risto Comandi</h1>
         <p class="subtitle">Assistente vocale operativo — esegue azioni reali nel gestionale</p>
       </div>
-      <div class="actions">
+      <div class="topbar-right">
         <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
+        <a href="/situazione-giorno" class="btn ghost">Situazione</a>
         <button class="btn danger" id="btn-mic" type="button">🎤 Parla</button>
       </div>
     </header>
 
-    <div class="grid-2">
-      <section class="card chat-card">
-        <div class="chat-log" id="chat-log"></div>
-        <form id="chat-form" class="chat-form">
-          <input id="chat-input" placeholder="Scrivi un comando o parla..." autocomplete="off" />
-          <button class="btn primary" type="submit">Invia</button>
-        </form>
-      </section>
-      <section class="card">
-        <h2>Comandi rapidi</h2>
-        <div class="quick-cmds">
-          <button class="btn ghost quick" data-cmd="Situazione attuale di oggi">Situazione oggi</button>
-          <button class="btn ghost quick" data-cmd="Cerca prodotti sotto scorta in magazzino">Scorte basse</button>
-          <button class="btn ghost quick" data-cmd="Riepilogo incasso e ordini di oggi">Incasso oggi</button>
-          <button class="btn ghost quick" data-cmd="Mostra briefing operativo completo">Briefing</button>
+    <main class="main two-col">
+      <article class="card chat-card">
+        <header class="card-header">
+          <h2>Chat operativa</h2>
+          <p>Scrivi o parla — Risto esegue comandi nel gestionale</p>
+        </header>
+        <div class="card-body" style="display:flex;flex-direction:column;flex:1">
+          <div class="chat-log" id="chat-log"></div>
+          <form id="chat-form" class="chat-form">
+            <input id="chat-input" placeholder="Scrivi un comando o parla..." autocomplete="off" />
+            <button class="btn primary" type="submit">Invia</button>
+          </form>
         </div>
-        <h2 style="margin-top:16px">Capacità</h2>
-        <ul class="caps">
-          <li>Magazzino: cerca e aggiorna stock</li>
-          <li>Cantina: aggiungi vino, giacenza</li>
-          <li>Briefing giornata completo</li>
-          <li>Riepilogo vendite e ordini</li>
-        </ul>
-      </section>
-    </div>
+      </article>
+
+      <article class="card">
+        <header class="card-header">
+          <h2>Comandi rapidi</h2>
+          <p>Azioni frequenti con un click</p>
+        </header>
+        <div class="card-body">
+          <div class="quick-cmds">
+            <button class="btn ghost quick" data-cmd="Situazione attuale di oggi">Situazione oggi</button>
+            <button class="btn ghost quick" data-cmd="Cerca prodotti sotto scorta in magazzino">Scorte basse</button>
+            <button class="btn ghost quick" data-cmd="Riepilogo incasso e ordini di oggi">Incasso oggi</button>
+            <button class="btn ghost quick" data-cmd="Mostra briefing operativo completo">Briefing</button>
+          </div>
+        </div>
+
+        <header class="card-header" style="border-top:1px solid var(--border)">
+          <h2>Capacità</h2>
+          <p>Tool operativi disponibili</p>
+        </header>
+        <div class="card-body">
+          <ul class="caps">
+            <li>Magazzino: cerca e aggiorna stock</li>
+            <li>Cantina: aggiungi vino, giacenza</li>
+            <li>Briefing giornata completo</li>
+            <li>Riepilogo vendite e ordini</li>
+          </ul>
+        </div>
+      </article>
+    </main>
   </div>
   <script src="risto-comandi.js"></script>
 </body>

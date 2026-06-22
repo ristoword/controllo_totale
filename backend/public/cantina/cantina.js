@@ -29,12 +29,12 @@
       var w = wines[i];
       var tr = document.createElement("tr");
       tr.innerHTML =
-        "<td><strong>" + (w.producer || "") + "</strong><br><span style='color:var(--muted)'>" + w.name + (w.vintage ? " " + w.vintage : "") + "</span></td>" +
-        "<td><span class='badge " + w.color + "'>" + w.color + "</span></td>" +
-        "<td>" + (w.stock || 0) + "</td>" +
-        "<td>" + euro(w.salePrice) + "</td>" +
-        "<td>" + margin(w) + "%</td>" +
-        "<td class='row-actions'><button class='btn ghost' data-edit='" + w.id + "'>Mod</button><button class='btn ghost' data-del='" + w.id + "'>Del</button></td>";
+        '<td class="name"><strong>' + (w.producer || "") + '</strong><br><span style="font-size:11px;color:var(--text-muted)">' + w.name + (w.vintage ? " " + w.vintage : "") + "</span></td>" +
+        '<td><span class="badge ' + w.color + '">' + w.color + "</span></td>" +
+        '<td class="num">' + (w.stock || 0) + "</td>" +
+        '<td class="num">' + euro(w.salePrice) + "</td>" +
+        '<td class="num ' + (margin(w) >= 55 ? "cantina-margin-ok" : "cantina-margin-low") + '">' + margin(w) + "%</td>" +
+        '<td class="actions"><button class="btn ghost small" data-edit="' + w.id + '">Mod</button><button class="btn ghost small" data-del="' + w.id + '">Del</button></td>';
       tbody.appendChild(tr);
     }
     tbody.querySelectorAll("[data-edit]").forEach(function (btn) {

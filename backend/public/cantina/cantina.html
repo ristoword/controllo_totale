@@ -4,90 +4,107 @@
   <meta charset="UTF-8" />
   <title>CONTROLLO TOTALE – Cantina</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/shared/module-page.css" />
+  <link rel="stylesheet" href="/shared/print-layout.css" />
   <link rel="stylesheet" href="cantina.css" />
 </head>
 <body>
   <div class="layout">
     <header class="topbar">
-      <div>
+      <div class="topbar-left">
         <h1>CONTROLLO TOTALE – Cantina</h1>
         <p class="subtitle">Carta vini · Stock · Margini · AI insight</p>
       </div>
-      <div class="actions">
-        <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
+      <div class="topbar-right">
+        <a href="/dashboard/dashboard.html" class="btn ghost no-print">← Dashboard</a>
         <button class="btn ghost" id="btn-refresh" type="button">Aggiorna</button>
         <button class="btn primary" id="btn-ai" type="button">AI Cantina</button>
       </div>
     </header>
 
-    <div class="stats" id="stats-row">
-      <div class="stat"><span class="label">Vini in carta</span><span class="value" id="st-total">0</span></div>
-      <div class="stat"><span class="label">Bottiglie</span><span class="value" id="st-bottles">0</span></div>
-      <div class="stat warn"><span class="label">Sotto scorta</span><span class="value" id="st-low">0</span></div>
-      <div class="stat"><span class="label">Margine medio</span><span class="value" id="st-margin">0%</span></div>
+    <div class="kpi-row" id="stats-row">
+      <div class="chip"><span class="chip-label">Vini in carta</span><span class="chip-value" id="st-total">0</span></div>
+      <div class="chip"><span class="chip-label">Bottiglie</span><span class="chip-value" id="st-bottles">0</span></div>
+      <div class="chip warn"><span class="chip-label">Sotto scorta</span><span class="chip-value" id="st-low">0</span></div>
+      <div class="chip ok"><span class="chip-label">Margine medio</span><span class="chip-value" id="st-margin">0%</span></div>
     </div>
 
-    <div class="filters">
-      <input type="text" id="f-search" placeholder="Cerca vino, produttore..." />
-      <select id="f-color">
-        <option value="">Tutti i colori</option>
-        <option value="rosso">Rosso</option>
-        <option value="bianco">Bianco</option>
-        <option value="rose">Rosé</option>
-        <option value="bollicine">Bollicine</option>
-        <option value="passito">Passito</option>
-        <option value="orange">Orange</option>
-      </select>
-      <button class="btn primary" id="btn-new" type="button">+ Nuovo vino</button>
-    </div>
+    <main class="main">
+      <div class="filter-bar">
+        <input type="text" id="f-search" placeholder="Cerca vino, produttore..." />
+        <select id="f-color">
+          <option value="">Tutti i colori</option>
+          <option value="rosso">Rosso</option>
+          <option value="bianco">Bianco</option>
+          <option value="rose">Rosé</option>
+          <option value="bollicine">Bollicine</option>
+          <option value="passito">Passito</option>
+          <option value="orange">Orange</option>
+        </select>
+        <button class="btn primary" id="btn-new" type="button">+ Nuovo vino</button>
+      </div>
 
-    <div class="grid-2">
-      <section class="card">
-        <h2>Carta vini</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>Vino</th><th>Colore</th><th>Stock</th><th>Prezzo</th><th>Margine</th><th></th></tr>
-            </thead>
-            <tbody id="wines-tbody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card" id="form-card">
-        <h2 id="form-title">Nuovo vino</h2>
-        <form id="wine-form">
-          <input type="hidden" id="wine-id" />
-          <label>Produttore<input id="wine-producer" required /></label>
-          <label>Nome vino<input id="wine-name" required /></label>
-          <label>Annata<input type="number" id="wine-vintage" /></label>
-          <label>Colore
-            <select id="wine-color">
-              <option value="rosso">Rosso</option>
-              <option value="bianco">Bianco</option>
-              <option value="rose">Rosé</option>
-              <option value="bollicine">Bollicine</option>
-              <option value="passito">Passito</option>
-              <option value="orange">Orange</option>
-            </select>
-          </label>
-          <label>Paese<input id="wine-country" /></label>
-          <label>Prezzo acquisto €<input type="number" step="0.01" id="wine-buy" /></label>
-          <label>Prezzo vendita €<input type="number" step="0.01" id="wine-sale" /></label>
-          <label>Stock bottiglie<input type="number" id="wine-stock" min="0" value="0" /></label>
-          <label>Abbinamenti<textarea id="wine-pairings" rows="2"></textarea></label>
-          <div class="form-actions">
-            <button class="btn primary" type="submit">Salva</button>
-            <button class="btn ghost" type="button" id="btn-cancel">Annulla</button>
+      <div class="two-col">
+        <article class="card">
+          <header class="card-header">
+            <h2>Carta vini</h2>
+            <p>Elenco completo con giacenze e margini</p>
+          </header>
+          <div class="card-body tbl-wrap">
+            <table class="tbl">
+              <thead>
+                <tr><th>Vino</th><th>Colore</th><th>Stock</th><th>Prezzo</th><th>Margine</th><th></th></tr>
+              </thead>
+              <tbody id="wines-tbody"></tbody>
+            </table>
           </div>
-        </form>
-      </section>
-    </div>
+        </article>
 
-    <section class="card ai-panel" id="ai-panel" style="display:none">
-      <h2>AI Cantina – Insight</h2>
-      <pre id="ai-output" class="ai-output"></pre>
-    </section>
+        <article class="card" id="form-card">
+          <header class="card-header">
+            <h2 id="form-title">Nuovo vino</h2>
+            <p>Inserisci o modifica un vino in cantina</p>
+          </header>
+          <div class="card-body">
+            <form id="wine-form" class="form-grid">
+              <input type="hidden" id="wine-id" />
+              <label>Produttore<input id="wine-producer" required /></label>
+              <label>Nome vino<input id="wine-name" required /></label>
+              <label>Annata<input type="number" id="wine-vintage" /></label>
+              <label>Colore
+                <select id="wine-color">
+                  <option value="rosso">Rosso</option>
+                  <option value="bianco">Bianco</option>
+                  <option value="rose">Rosé</option>
+                  <option value="bollicine">Bollicine</option>
+                  <option value="passito">Passito</option>
+                  <option value="orange">Orange</option>
+                </select>
+              </label>
+              <label>Paese<input id="wine-country" /></label>
+              <label>Prezzo acquisto €<input type="number" step="0.01" id="wine-buy" /></label>
+              <label>Prezzo vendita €<input type="number" step="0.01" id="wine-sale" /></label>
+              <label>Stock bottiglie<input type="number" id="wine-stock" min="0" value="0" /></label>
+              <label class="full">Abbinamenti<textarea id="wine-pairings" rows="2"></textarea></label>
+              <div class="form-actions full">
+                <button class="btn ghost" type="button" id="btn-cancel">Annulla</button>
+                <button class="btn primary" type="submit">Salva</button>
+              </div>
+            </form>
+          </div>
+        </article>
+      </div>
+
+      <article class="card" id="ai-panel" style="display:none">
+        <header class="card-header">
+          <h2>AI Cantina – Insight</h2>
+          <p>Analisi margini, scorte e suggerimenti pricing</p>
+        </header>
+        <div class="card-body">
+          <pre id="ai-output" class="ai-output"></pre>
+        </div>
+      </article>
+    </main>
   </div>
   <script src="cantina.js"></script>
 </body>
