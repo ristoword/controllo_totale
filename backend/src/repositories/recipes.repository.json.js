@@ -359,6 +359,9 @@ async function getFoodCost(id, inventoryRepository) {
 module.exports = {
   VALID_UNITS,
   UNIT_ALIASES,
+  normalizeUnit,
+  normalizeIngredient,
+  validateRecipe,
   getAll,
   getAllRecipes,
   getById,

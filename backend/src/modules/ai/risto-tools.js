@@ -213,12 +213,12 @@ async function executeRistoTool(name, args) {
     }
     case "create_recipe": {
       const ingredients = Array.isArray(args.ingredients)
-        ? args.ingredients.map((ing) => recipesRepository.normalizeIngredient({
-            name: ing.name,
-            quantity: ing.quantity || 0,
-            unit: ing.unit || "g",
-            unitCost: ing.unitCost || 0,
-            wastePercent: ing.wastePercent || 0,
+        ? args.ingredients.map((ing) => ({
+            name: String(ing.name || "").trim(),
+            quantity: Number(ing.quantity) || 0,
+            unit: String(ing.unit || "g").trim(),
+            costPerUnit: Number(ing.unitCost) || 0,
+            wastagePercent: Number(ing.wastePercent) || 0,
           }))
         : [];
       const recipe = await recipesRepository.create({
