@@ -26,6 +26,10 @@
   --orange-bg: rgba(249,115,22,.12);
   --teal: #14b8a6;
   --teal-bg: rgba(20,184,166,.12);
+  --gold: #f5b800;
+  --gold-bg: rgba(245,184,0,.14);
+  --wine: #c084fc;
+  --wine-bg: rgba(192,132,252,.14);
   --radius: 12px;
   --radius-sm: 8px;
   --shadow: 0 4px 24px rgba(0,0,0,.3);
@@ -95,6 +99,164 @@ body {
   color: var(--muted);
 }
 .ai-intro strong { color: var(--ink); }
+
+/* Sections */
+.ai-section { margin-bottom: 36px; }
+.ai-section-head { margin-bottom: 16px; }
+.ai-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--ink);
+}
+.ai-section-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Module cards grid (Cantina, Situazione, Risto Comandi) */
+.ai-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.ai-module-card {
+  background: linear-gradient(145deg, var(--surface) 0%, #1e222c 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color .2s, transform .15s, box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-module-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--module-accent, var(--gold));
+  opacity: 0.85;
+}
+
+.ai-module-card:hover {
+  border-color: var(--module-accent, var(--gold));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.ai-module-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.ai-module-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  background: var(--module-bg, var(--gold-bg));
+}
+
+.ai-module-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.ai-module-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.ai-module-badge {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--module-bg, var(--gold-bg));
+  color: var(--module-accent, var(--gold));
+  border: 1px solid rgba(245,184,0,.25);
+}
+
+.ai-module-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+  flex: 1;
+}
+
+.ai-module-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ai-module-tag {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+
+.ai-module-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.ai-module-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: filter .15s, border-color .15s;
+}
+
+.ai-module-btn.primary {
+  background: var(--module-accent, var(--gold));
+  color: #111;
+}
+
+.ai-module-btn.primary:hover { filter: brightness(1.06); }
+
+.ai-module-btn.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.ai-module-btn.ghost:hover {
+  border-color: var(--module-accent, var(--gold));
+  color: var(--module-accent, var(--gold));
+}
 
 /* Department grid */
 .ai-departments {

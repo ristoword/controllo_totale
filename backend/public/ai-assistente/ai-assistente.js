@@ -2,7 +2,74 @@
 (function () {
   "use strict";
 
+  const MODULES = [
+    {
+      id: "cantina",
+      name: "Cantina",
+      subtitle: "Carta vini e margini",
+      icon: "🍷",
+      accent: "var(--wine)",
+      accentBg: "var(--wine-bg)",
+      badge: "Gestione",
+      href: "/cantina",
+      description: "Gestisci la carta vini: CRUD, stock bottiglie, margini acquisto/vendita e insight AI sulla cantina.",
+      features: ["Carta vini", "Stock bottiglie", "Margini %", "AI insight", "Filtri colore"],
+      chatDept: null,
+    },
+    {
+      id: "situazione-giorno",
+      name: "Situazione del Giorno",
+      subtitle: "Briefing operativo live",
+      icon: "📡",
+      accent: "var(--gold)",
+      accentBg: "var(--gold-bg)",
+      badge: "Oggi",
+      href: "/situazione-giorno",
+      description: "Briefing della giornata con dati reali: prenotazioni, staff, cucina, incasso e magazzino critico. TTS e voce.",
+      features: ["Dati live", "Prenotazioni", "Staff", "TTS briefing", "Magazzino critico"],
+      chatDept: null,
+    },
+    {
+      id: "risto-comandi",
+      name: "Risto Comandi",
+      subtitle: "Assistente vocale operativo",
+      icon: "🎤",
+      accent: "var(--green)",
+      accentBg: "var(--green-bg)",
+      badge: "Azioni reali",
+      href: "/risto-comandi",
+      description: "Parla o scrivi: Risto esegue azioni nel gestionale (stock, cantina, briefing) via AI con function calling.",
+      features: ["Voce STT", "Tool magazzino", "Tool cantina", "Briefing", "Chat operativa"],
+      chatDept: null,
+    },
+  ];
+
   const DEPARTMENTS = [
+    {
+      id: "cantina-ai",
+      name: "AI Cantina",
+      subtitle: "Consulenza carta vini",
+      icon: "🍾",
+      color: "var(--wine)",
+      colorBg: "var(--wine-bg)",
+      description: "Analisi margini, scorte sotto soglia, suggerimenti pricing e abbinamenti sulla carta vini reale.",
+      capabilities: [
+        "Margini per vino",
+        "Sotto scorta ≤3",
+        "Esauriti",
+        "Suggerimenti prezzo",
+        "Top margini",
+        "Abbinamenti",
+        "Analisi carta",
+        "Insight AI"
+      ],
+      examples: [
+        "Quali vini hanno margine basso?",
+        "Cosa è sotto scorta in cantina?",
+        "Suggerisci aumento prezzi",
+        "Riepilogo carta vini",
+      ],
+    },
     {
       id: "kitchen",
       name: "AI Cucina",
@@ -408,6 +475,31 @@
     }
   }
 
+  // Render operational module cards
+  function renderModules() {
+    const container = $("ai-modules");
+    if (!container) return;
+    container.innerHTML = MODULES.map((m) => `
+      <article class="ai-module-card" style="--module-accent:${m.accent};--module-bg:${m.accentBg}">
+        <div class="ai-module-card-head">
+          <div class="ai-module-icon">${m.icon}</div>
+          <div>
+            <div class="ai-module-name">${esc(m.name)}</div>
+            <div class="ai-module-subtitle">${esc(m.subtitle)}</div>
+            <span class="ai-module-badge">${esc(m.badge)}</span>
+          </div>
+        </div>
+        <div class="ai-module-desc">${esc(m.description)}</div>
+        <div class="ai-module-features">
+          ${m.features.map((f) => `<span class="ai-module-tag">${esc(f)}</span>`).join("")}
+        </div>
+        <div class="ai-module-actions">
+          <a class="ai-module-btn primary" href="${esc(m.href)}">Apri modulo →</a>
+        </div>
+      </article>
+    `).join("");
+  }
+
   // Render department cards
   function renderDepartments() {
     const container = $("ai-departments");
@@ -550,17 +642,33 @@
     $("ai-chat-input").value = "";
 
     try {
-      const resp = await fetch(`/api/ai/${encodeURIComponent(activeDept.id)}/query`, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, mode: "read" }),
-      });
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || err.message || `HTTP ${resp.status}`);
+      let result;
+      if (activeDept.id === "cantina-ai") {
+        const resp = await fetch("/api/ai/chat", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: q, context: "cantina", enableTools: false }),
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || err.message || `HTTP ${resp.status}`);
+        }
+        const data = await resp.json();
+        result = { summary: data.reply || data.answer || "Risposta ricevuta.", answer: data.reply };
+      } else {
+        const resp = await fetch(`/api/ai/${encodeURIComponent(activeDept.id)}/query`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q, mode: "read" }),
+        });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || err.message || `HTTP ${resp.status}`);
+        }
+        result = await resp.json();
       }
-      const result = await resp.json();
       messages = messages.filter((m) => m.role !== "thinking");
       messages.push({
         role: "assistant",
@@ -580,6 +688,7 @@
   // Init
   function init() {
     checkAiStatus();
+    renderModules();
     renderDepartments();
 
     $("ai-chat-close").addEventListener("click", closeChat);
