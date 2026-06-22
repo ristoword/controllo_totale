@@ -1,9 +1,11 @@
 const crypto = require("crypto");
+const path = require("path");
 const paths = require("../config/paths");
 const tenantContext = require("../context/tenantContext");
 const { safeReadJson, atomicWriteJson } = require("../utils/safeFileIO");
 
 const COLORS = new Set(["rosso", "bianco", "rose", "bollicine", "passito", "orange"]);
+const SEED_FILE = path.join(paths.DATA, "config", "cantina-seed.json");
 
 function getDataPath() {
   return paths.tenant(tenantContext.getRestaurantId(), "cantina.json");
@@ -42,8 +44,22 @@ function normalizeWine(input, existing) {
 }
 
 async function readAll() {
+  await seedIfEmpty();
   const raw = safeReadJson(getDataPath(), []);
   return Array.isArray(raw) ? raw : [];
+}
+
+async function seedIfEmpty() {
+  const filePath = getDataPath();
+  const existing = safeReadJson(filePath, null);
+  if (Array.isArray(existing) && existing.length > 0) return false;
+
+  const seed = safeReadJson(SEED_FILE, []);
+  if (!Array.isArray(seed) || seed.length === 0) return false;
+
+  const wines = seed.map((s) => normalizeWine(s));
+  atomicWriteJson(filePath, wines);
+  return true;
 }
 
 async function writeAll(list) {
@@ -109,4 +125,4 @@ async function adjustStock(id, delta) {
   return items[idx];
 }
 
-module.exports = { list, getById, create, update, remove, adjustStock, COLORS };
+module.exports = { list, getById, create, update, remove, adjustStock, seedIfEmpty, COLORS };

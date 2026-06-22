@@ -12,5 +12,6 @@ module.exports = {
   update: (...a) => impl().update(...a),
   remove: (...a) => impl().remove(...a),
   adjustStock: (...a) => impl().adjustStock(...a),
+  seedIfEmpty: (...a) => impl().seedIfEmpty(...a),
   COLORS: json.COLORS,
 };
