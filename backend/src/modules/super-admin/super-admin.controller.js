@@ -307,3 +307,10 @@ exports.apiListResellerAccounts = async (req, res) => {
   return res.json({ ok: true, accounts });
 };
 
+exports.apiGetOnlineUsers = async (req, res) => {
+  const result = await superAdminService.apiGetOnlineUsers({
+    thresholdMinutes: req.query.thresholdMinutes,
+  });
+  return res.json(result);
+};
+

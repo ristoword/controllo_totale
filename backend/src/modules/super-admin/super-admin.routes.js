@@ -60,6 +60,7 @@ router.post("/api/super-admin/partners/update", requireSuperAdmin, superAdminCon
 // Reseller account management (Super Admin creates reseller credentials)
 router.post("/api/super-admin/reseller/create-account", requireSuperAdmin, superAdminController.apiCreateResellerAccount);
 router.get("/api/super-admin/reseller/accounts", requireSuperAdmin, superAdminController.apiListResellerAccounts);
+router.get("/api/super-admin/online", requireSuperAdmin, superAdminController.apiGetOnlineUsers);
 
 module.exports = router;
 

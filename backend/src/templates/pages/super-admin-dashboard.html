@@ -82,6 +82,11 @@
             <a href="/cucina/food-cost.html" class="nav-link">Food cost</a>
             <a href="/pizzeria/pizzeria.html" class="nav-link">Pizzeria</a>
             <a href="/bar/bar.html" class="nav-link">Bar</a>
+            <a href="/cantina" class="nav-link">Cantina</a>
+            <a href="/situazione-giorno" class="nav-link">Situazione del Giorno</a>
+            <a href="/risto-comandi" class="nav-link">Risto Comandi</a>
+            <a href="/ai-assistente" class="nav-link">AI Assistente</a>
+            <a href="/reseller-login" class="nav-link secondary">Portale Rivenditore</a>
             <a href="/cassa/cassa.html" class="nav-link">Cassa</a>
             <a href="/cassa/chiusura.html" class="nav-link">Chiusura cassa</a>
             <a href="/magazzino/magazzino.html" class="nav-link">Magazzino</a>
@@ -350,6 +355,61 @@
             <button class="btn primary" id="sa-btn-save-stripe-config">Salva config</button>
           </div>
           <div id="sa-stripe-save-msg" class="muted" style="margin-top:10px"></div>
+        </div>
+      </section>
+
+      <!-- MONITOR LIVE -->
+      <section class="grid" style="margin-bottom:12px">
+        <div class="card section-wide">
+          <h2>7) Monitor Live — utenti online</h2>
+          <div class="row" style="margin-bottom:10px">
+            <button class="btn primary" id="sa-btn-refresh-online" type="button">Aggiorna monitor</button>
+            <span class="muted" id="sa-online-updated">—</span>
+          </div>
+          <div class="grid" style="margin-bottom:10px">
+            <div class="card section-4"><div class="k">Persone online</div><div class="v mono" id="kpi-online-users">—</div></div>
+            <div class="card section-4"><div class="k">Locali online</div><div class="v mono" id="kpi-online-tenants">—</div></div>
+            <div class="card section-4"><div class="k">Sessioni attive</div><div class="v mono" id="kpi-online-sessions">—</div></div>
+          </div>
+          <div style="overflow:auto;max-height:220px">
+            <table>
+              <thead><tr><th>Utente</th><th>Ruolo</th><th>Tenant</th><th>Reparto</th><th>Ultimo accesso</th></tr></thead>
+              <tbody id="sa-online-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEALER / RIVENDITORI -->
+      <section class="grid" style="margin-bottom:20px">
+        <div class="card section-wide">
+          <h2>8) Dealer / Rivenditori</h2>
+          <p class="muted">Gestione account rivenditori e partner commerciali.</p>
+          <div class="grid" style="margin-top:10px">
+            <div class="section-6">
+              <label>Username rivenditore</label>
+              <input id="sa-reseller-username" type="text" placeholder="es. indonesia1" />
+              <label>Password</label>
+              <input id="sa-reseller-password" type="password" />
+              <label>Partner code</label>
+              <input id="sa-reseller-partner" type="text" placeholder="ID-INDO-01" />
+              <label>Nome display</label>
+              <input id="sa-reseller-display" type="text" placeholder="RistoWord Indonesia" />
+              <button class="btn primary" id="sa-btn-create-reseller" type="button" style="margin-top:10px">Crea account rivenditore</button>
+              <div id="sa-reseller-msg" class="muted" style="margin-top:8px"></div>
+            </div>
+            <div class="section-6">
+              <div class="muted">Account rivenditori esistenti</div>
+              <div style="overflow:auto;max-height:200px;margin-top:8px">
+                <table>
+                  <thead><tr><th>Username</th><th>Partner</th><th>Attivo</th></tr></thead>
+                  <tbody id="sa-resellers-tbody"></tbody>
+                </table>
+              </div>
+              <a href="/reseller-login" class="btn" style="margin-top:10px;text-decoration:none;display:inline-block">Apri portale rivenditore</a>
+              <a href="/super-admin-indonesia" class="btn primary" style="margin-top:10px;text-decoration:none;display:inline-block">Controllo Vendite Indonesia</a>
+            </div>
+          </div>
         </div>
       </section>
     </div>

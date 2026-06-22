@@ -367,5 +367,53 @@ document.addEventListener("DOMContentLoaded", () => {
     $("sa-stripe-save-msg").textContent = "Config salvata (masked). Ricarico...";
     await loadAll();
   });
+
+  async function loadOnlineMonitor() {
+    const out = await getJson("/api/super-admin/online");
+    if (!out.ok || !out.data) return;
+    const d = out.data;
+    const s = d.summary || {};
+    $("kpi-online-users").textContent = String(s.totalOnline ?? "—");
+    $("kpi-online-tenants").textContent = String(s.tenantsOnline ?? "—");
+    $("kpi-online-sessions").textContent = String(s.activeSessions ?? "—");
+    $("sa-online-updated").textContent = "Aggiornato: " + new Date(d.serverTime || Date.now()).toLocaleTimeString("it-IT");
+    const tbody = $("sa-online-tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    for (const u of d.onlineUsers || []) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${u.name || u.username}</td><td>${u.role || "—"}</td><td class="mono">${u.tenantId}</td><td>${u.department || "—"}</td><td class="mono">${textOrDash(u.lastSeenAt)}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  async function loadResellers() {
+    const out = await getJson("/api/super-admin/reseller/accounts");
+    if (!out.ok) return;
+    const tbody = $("sa-resellers-tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    for (const a of out.data?.accounts || []) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="mono">${a.username}</td><td class="mono">${a.partnerCode}</td><td>${a.active ? "sì" : "no"}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  $("sa-btn-refresh-online")?.addEventListener("click", () => void loadOnlineMonitor());
+  $("sa-btn-create-reseller")?.addEventListener("click", async () => {
+    const out = await postJson("/api/super-admin/reseller/create-account", {
+      username: $("sa-reseller-username").value.trim(),
+      password: $("sa-reseller-password").value,
+      partnerCode: $("sa-reseller-partner").value.trim(),
+      displayName: $("sa-reseller-display").value.trim(),
+    });
+    $("sa-reseller-msg").textContent = out.ok ? "Account creato" : (out.data?.error || "Errore");
+    if (out.ok) await loadResellers();
+  });
+
+  loadOnlineMonitor();
+  loadResellers();
+  setInterval(() => void loadOnlineMonitor(), 30000);
 });
 

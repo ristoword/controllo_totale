@@ -226,6 +226,21 @@ app.get("/ai-assistente", requirePageAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/ai-assistente/ai-assistente.html"));
 });
 
+// Situazione del Giorno
+app.get("/situazione-giorno", requirePageAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/situazione-giorno/situazione-giorno.html"));
+});
+
+// Risto Comandi
+app.get("/risto-comandi", requirePageAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/risto-comandi/risto-comandi.html"));
+});
+
+// Cantina
+app.get("/cantina", requirePageAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/cantina/cantina.html"));
+});
+
 // QR table ordering: /qr/1, /qr/2, etc. (no auth – public QR)
 app.get("/qr", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/qr/index.html"));
@@ -237,6 +252,12 @@ app.get("/qr/:table", (req, res) => {
 // Super-admin JS assets (served before requirePageAuth)
 app.use(
   "/super-admin/js",
+  express.static(path.join(__dirname, "../src/public/js"))
+);
+
+// Reseller + shared module JS
+app.use(
+  "/js",
   express.static(path.join(__dirname, "../src/public/js"))
 );
 
@@ -464,6 +485,23 @@ try {
   app.use("/api/ai", requireAuth, requireRole(ROLES_ALL), aiRouter);
 } catch (e) {
   console.warn("ai.routes non trovato:", e.message);
+}
+
+// CANTINA – /api/cantina
+try {
+  const cantinaRouter = require("./routes/cantina.routes");
+  const ROLES_CANTINA = ["owner", "supervisor", "sala", "bar", "cassa"];
+  app.use("/api/cantina", requireAuth, requireRole(ROLES_CANTINA), cantinaRouter);
+} catch (e) {
+  console.warn("cantina.routes non trovato:", e.message);
+}
+
+// OPERATIONAL BRIEFING – /api/operational-briefing
+try {
+  const briefingRouter = require("./routes/operational-briefing.routes");
+  app.use("/api/operational-briefing", requireAuth, requireRole(ROLES_ALL), briefingRouter);
+} catch (e) {
+  console.warn("operational-briefing.routes non trovato:", e.message);
 }
 
 // AUTH (no auth middleware – login/logout)

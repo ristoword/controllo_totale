@@ -873,6 +873,48 @@ async function apiGetPartners() {
   return { ok: true, partners: readPartners() };
 }
 
+async function apiGetOnlineUsers({ thresholdMinutes = 15 } = {}) {
+  const threshold = Math.max(1, Math.min(60, Number(thresholdMinutes) || 15));
+  const tenants = getAllTenants();
+  const onlineUsers = [];
+  const tenantSet = new Set();
+
+  for (const tid of tenants) {
+    const sessions = await tenantContext.run(tid, async () => {
+      const list = await sessionsRepository.getActiveSessions();
+      return Array.isArray(list) ? list : [];
+    });
+
+    for (const s of sessions) {
+      const lastSeen = s.loginTime || s.createdAt || s.updatedAt;
+      onlineUsers.push({
+        sessionId: s.id,
+        userId: s.userId || s.staffId || null,
+        username: s.username || s.staffName || "—",
+        name: s.staffName || s.username || "—",
+        role: s.role || s.department || "staff",
+        tenantId: tid,
+        tenantName: tid,
+        lastSeenAt: lastSeen,
+        department: s.department || null,
+      });
+      tenantSet.add(tid);
+    }
+  }
+
+  return {
+    ok: true,
+    onlineUsers,
+    summary: {
+      totalOnline: onlineUsers.length,
+      tenantsOnline: tenantSet.size,
+      activeSessions: onlineUsers.length,
+      thresholdMinutes: threshold,
+    },
+    serverTime: nowIso(),
+  };
+}
+
 async function apiUpdatePartner({ code, updates }) {
   if (!code) return { ok: false, error: "code_obbligatorio" };
   const partners = readPartners();
@@ -927,5 +969,6 @@ module.exports = {
   apiCreateIndonesiaLicense,
   apiGetPartners,
   apiUpdatePartner,
+  apiGetOnlineUsers,
 };
 

@@ -8,6 +8,12 @@ router.get("/", asyncHandler(aiController.getGeneralSuggestion));
 // POST /api/ai/query – production OpenAI (structured JSON) – generic/global
 router.post("/query", asyncHandler(aiController.postQuery));
 
+// POST /api/ai/chat – Risto Comandi / AI chat con tool
+router.post("/chat", asyncHandler(aiController.postChat));
+
+// GET /api/ai/cantina – snapshot AI cantina
+router.get("/cantina", asyncHandler(require("../controllers/cantina.controller").aiSnapshot));
+
 // POST /api/ai/:department/query – AI Operating System per reparto (kitchen, supervisor, warehouse, cash, creative)
 router.post("/:department/query", asyncHandler(aiController.postDepartmentQuery));
 
