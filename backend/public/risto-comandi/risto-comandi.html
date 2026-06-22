@@ -4,64 +4,228 @@
   <meta charset="UTF-8" />
   <title data-i18n="risto_title">CONTROLLO TOTALE – Risto Comandi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/shared/module-page.css" />
-  <link rel="stylesheet" href="/shared/print-layout.css" />
+  <link rel="stylesheet" href="/shared/rw-shell.css" />
   <link rel="stylesheet" href="risto-comandi.css" />
 </head>
 <body>
-  <div class="layout">
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1 data-i18n="risto_title">CONTROLLO TOTALE – Risto Comandi</h1>
-        <p class="subtitle" data-i18n="risto_subtitle">Assistente vocale operativo · Azioni reali nel gestionale</p>
+  <div class="layout rw-layout">
+
+    <aside class="sidebar">
+      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="brand">
+        <div class="brand-logo">RW</div>
+        <div class="brand-text">
+          <div class="brand-title">RistoWord</div>
+          <div class="brand-subtitle" data-i18n="rw_tagline">Un tocco, un'azione. Niente stress.</div>
+        </div>
       </div>
-      <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" data-i18n="dashboard_back">← Dashboard</a>
-        <a href="/situazione-giorno" class="btn ghost" data-i18n="situazione_short">Situazione</a>
-        <button class="btn danger" id="btn-mic" type="button" data-i18n="risto_speak_btn">🎤 Parla</button>
+
+      <nav class="side-nav">
+        <div class="nav-section-label" data-i18n="nav_section_oggi">OGGI</div>
+
+        <a class="nav-item" href="/dashboard/dashboard.html">
+          <span class="nav-icon" aria-hidden="true">📊</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="nav_panoramica">Panoramica</span>
+            <span class="nav-hint" data-i18n="nav_panoramica_hint">Dashboard generale</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/ai-assistente">
+          <span class="nav-icon" aria-hidden="true">🤖</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="ai_assistente">AI Assistente</span>
+            <span class="nav-hint" data-i18n="nav_ai_hint">Supervisore intelligente</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/situazione-giorno">
+          <span class="nav-icon" aria-hidden="true">📋</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="situazione_giorno">Situazione del Giorno</span>
+            <span class="nav-hint" data-i18n="nav_situazione_hint">Briefing live della giornata</span>
+          </span>
+        </a>
+
+        <a class="nav-item active" href="/risto-comandi" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">🎤</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="risto_comandi">Risto Comandi</span>
+            <span class="nav-hint" data-i18n="nav_risto_hint">Comandi vocali operativi</span>
+          </span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="nav_section_operativita">OPERATIVITÀ</div>
+
+        <a class="nav-item" href="/sala/sala.html">
+          <span class="nav-icon" aria-hidden="true">🍽️</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="sala">Sala</span>
+            <span class="nav-hint" data-i18n="nav_sala_hint">Mappa tavoli e azioni</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/sala/sala-fullscreen.html">
+          <span class="nav-icon" aria-hidden="true">🖥️</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="sala_fullscreen">Sala Fullscreen</span>
+            <span class="nav-hint" data-i18n="nav_sala_fs_hint">Mappa a schermo intero</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/cucina/cucina.html">
+          <span class="nav-icon" aria-hidden="true">👨‍🍳</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="cucina">Cucina</span>
+            <span class="nav-hint" data-i18n="nav_cucina_hint">KDS, ricette, HACCP</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/pizzeria/pizzeria.html">
+          <span class="nav-icon" aria-hidden="true">🍕</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="pizzeria">Pizzeria</span>
+            <span class="nav-hint" data-i18n="nav_pizzeria_hint">KDS pizza e note</span>
+          </span>
+        </a>
+      </nav>
+
+      <div class="side-tip">
+        <span data-i18n="nav_ristoword_tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</span>
       </div>
-    </header>
+    </aside>
 
-    <main class="main two-col">
-      <article class="card chat-card">
-        <header class="card-header">
-          <h2 data-i18n="risto_chat">Chat operativa</h2>
-          <p data-i18n="risto_chat_sub">Scrivi o parla — Risto esegue comandi nel gestionale</p>
-        </header>
-        <div class="card-body" style="display:flex;flex-direction:column;flex:1">
-          <div class="chat-log" id="chat-log"></div>
-          <form id="chat-form" class="chat-form">
-            <input id="chat-input" data-i18n-placeholder="risto_placeholder" placeholder="Scrivi o parla: es. «stock sotto soglia», «briefing di oggi»..." autocomplete="off" />
-            <button class="btn primary" type="submit" data-i18n="risto_send">Invia</button>
-          </form>
-        </div>
-      </article>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-      <article class="card">
-        <header class="card-header">
-          <h2 data-i18n="risto_quick_cmds">Comandi rapidi</h2>
-          <p data-i18n="risto_quick_sub">Azioni frequenti con un click</p>
-        </header>
-        <div class="card-body">
-          <div class="quick-cmds">
-            <button class="btn ghost quick" data-cmd="Situazione attuale di oggi" data-i18n="risto_quick_today">Situazione oggi</button>
-            <button class="btn ghost quick" data-cmd="Cerca prodotti sotto scorta in magazzino" data-i18n="risto_quick_stock">Scorte basse</button>
-            <button class="btn ghost quick" data-cmd="Riepilogo incasso e ordini di oggi" data-i18n="risto_quick_revenue">Incasso oggi</button>
-            <button class="btn ghost quick" data-cmd="Mostra briefing operativo completo" data-i18n="risto_quick_briefing">Briefing</button>
-          </div>
+    <div class="main-col">
+      <header class="app-header">
+        <div>
+          <p class="greeting-title" id="rw-greeting">Ciao</p>
+          <p class="greeting-date" id="rw-date">—</p>
         </div>
+        <div class="global-search">
+          <span class="global-search-icon" aria-hidden="true">🔍</span>
+          <input type="search" id="global-search" data-i18n-placeholder="rw_search_placeholder" placeholder="Cerca ovunque: tavolo, cliente, piatto..." />
+        </div>
+        <div class="header-actions">
+          <div id="lang-selector"></div>
+          <button class="header-bell" type="button" aria-label="Notifiche">🔔</button>
+          <div class="user-avatar" id="rw-avatar" title="Account">?</div>
+        </div>
+      </header>
 
-        <header class="card-header" style="border-top:1px solid var(--border)">
-          <h2 data-i18n="risto_caps_title">Capacità</h2>
-          <p data-i18n="risto_caps_sub">Tool operativi disponibili</p>
+      <main class="main">
+        <header class="page-hero">
+          <h1 data-i18n="risto_comandi">Risto Comandi</h1>
+          <p data-i18n="risto_hero_sub">Parla o scrivi per gestire il ristorante con la voce</p>
         </header>
-        <div class="card-body">
-          <ul class="caps" id="risto-caps-list"></ul>
+
+        <div class="risto-grid">
+          <section class="assistant-card">
+            <div class="assistant-head">
+              <div class="assistant-avatar" aria-hidden="true">🤖</div>
+              <p class="assistant-welcome" id="assistant-welcome" data-i18n="risto_welcome_long">Ciao! Sono Risto. Il tuo assistente vocale operativo.</p>
+            </div>
+
+            <div class="quick-section">
+              <h2 data-i18n="risto_quick_cmds">COMANDI RAPIDI</h2>
+              <div class="quick-grid">
+                <button class="quick-tile" type="button" data-cmd="Situazione attuale di oggi">
+                  <span class="quick-icon">🏠</span>
+                  <span data-i18n="risto_quick_today">Situazione oggi</span>
+                </button>
+                <button class="quick-tile" type="button" data-cmd="Crea una ricetta per carbonara con ingredienti e food cost">
+                  <span class="quick-icon">📦</span>
+                  <span data-i18n="risto_quick_recipe">Crea ricetta</span>
+                </button>
+                <button class="quick-tile" type="button" data-cmd="Cerca prodotti sotto scorta in magazzino">
+                  <span class="quick-icon">🍸</span>
+                  <span data-i18n="risto_quick_stock">Controlla scorte</span>
+                </button>
+                <button class="quick-tile" type="button" data-cmd="Aggiungi un vino rosso in cantina">
+                  <span class="quick-icon">✅</span>
+                  <span data-i18n="risto_quick_wine">Aggiungi vino</span>
+                </button>
+                <button class="quick-tile" type="button" data-cmd="Mostra lista ordini attivi">
+                  <span class="quick-icon">📈</span>
+                  <span data-i18n="risto_quick_orders">Lista ordini</span>
+                </button>
+                <button class="quick-tile" type="button" data-cmd="Mostra briefing operativo completo">
+                  <span class="quick-icon">🍲</span>
+                  <span data-i18n="risto_quick_briefing">Riepilogo giornata</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="examples-section">
+              <h2 data-i18n="risto_examples_title">ESEMPI DI COMANDI VOCALI</h2>
+              <div class="examples-grid">
+                <p class="example" data-i18n="risto_example_1">«Risto crea una ricetta per la carbonara con uova, guanciale e pecorino»</p>
+                <p class="example" data-i18n="risto_example_2">«Risto aggiungi un Brunello di Montalcino 2018 in cantina a 45 euro»</p>
+                <p class="example" data-i18n="risto_example_3">«Risto quanta mozzarella abbiamo in magazzino?»</p>
+                <p class="example" data-i18n="risto_example_4">«Risto fammi il briefing di oggi»</p>
+              </div>
+            </div>
+
+            <div class="chat-section">
+              <div class="chat-log" id="chat-log" aria-live="polite"></div>
+              <form id="chat-form" class="chat-form">
+                <input id="chat-input" data-i18n-placeholder="risto_placeholder" placeholder="Scrivi o parla..." autocomplete="off" />
+                <button class="btn primary" type="submit" data-i18n="risto_send">Invia</button>
+                <button class="btn danger" id="btn-mic" type="button" data-i18n="risto_speak_btn">🎤 Parla</button>
+              </form>
+            </div>
+          </section>
+
+          <aside class="caps-panel">
+            <h2 data-i18n="risto_caps_panel">Cosa può fare Risto</h2>
+            <ul class="cap-list">
+              <li class="cap-item">
+                <span class="cap-icon">📖</span>
+                <div>
+                  <strong data-i18n="risto_cap_recipes_title">Ricette</strong>
+                  <p data-i18n="risto_cap_recipes_desc">Crea ricette, passaggi e calcolo food cost automatico.</p>
+                </div>
+              </li>
+              <li class="cap-item">
+                <span class="cap-icon">📦</span>
+                <div>
+                  <strong data-i18n="risto_cap_warehouse_title">Magazzino</strong>
+                  <p data-i18n="risto_cap_warehouse_desc">Carica/scarica merce, DDT, cerca giacenze.</p>
+                </div>
+              </li>
+              <li class="cap-item">
+                <span class="cap-icon">🍷</span>
+                <div>
+                  <strong data-i18n="risto_cap_cellar_title">Cantina</strong>
+                  <p data-i18n="risto_cap_cellar_desc">Aggiungere vini con tutti i dettagli, aggiornare stock bottiglie, controllare giacenze cantina.</p>
+                </div>
+              </li>
+              <li class="cap-item">
+                <span class="cap-icon">📋</span>
+                <div>
+                  <strong data-i18n="risto_cap_menu_title">Menu &amp; Briefing</strong>
+                  <p data-i18n="risto_cap_menu_desc">Gestione piatti del menu e riepilogo giornata (prenotazioni, staff, incasso).</p>
+                </div>
+              </li>
+            </ul>
+
+            <div class="tip-card">
+              <span class="tip-icon" aria-hidden="true">🎤</span>
+              <p data-i18n="risto_tip_mic">Premi Parla e pronuncia un comando — Risto esegue azioni reali nel gestionale.</p>
+            </div>
+          </aside>
         </div>
-      </article>
-    </main>
+      </main>
+    </div>
   </div>
+
   <script src="/js/i18n.js"></script>
-  <script src="risto-comandi.js"></script>
+  <script src="/shared/sidebar-mobile.js"></script>
+  <script src="/shared/rw-shell.js"></script>
+  <script src="risto-comandi.js?v=20260622"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-// backend/src/controllers/customers.controller.js
 const customersService = require("../service/customers.service");
+const customersAiService = require("../service/customers-ai.service");
 
 exports.list = async (req, res) => {
   const filters = {
@@ -29,4 +29,24 @@ exports.update = async (req, res) => {
     return res.status(404).json({ error: "Cliente non trovato" });
   }
   res.json(customer);
+};
+
+exports.remove = async (req, res) => {
+  const ok = await customersService.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: "Cliente non trovato" });
+  res.json({ ok: true });
+};
+
+exports.aiSnapshot = async (_req, res) => {
+  const snapshot = await customersAiService.buildSnapshot();
+  res.json(snapshot);
+};
+
+exports.aiInsights = async (req, res) => {
+  const body = req.body || {};
+  const data = await customersAiService.buildInsights({
+    locale: body.locale || "it",
+    enhance: body.enhance !== false,
+  });
+  res.json(data);
 };

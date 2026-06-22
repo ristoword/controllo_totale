@@ -2,332 +2,286 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>CONTROLLO TOTALE – Gestione Staff</title>
+  <title data-i18n="staff.title">CONTROLLO TOTALE – Staff</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/shared/rw-shell.css" />
   <link rel="stylesheet" href="staff.css" />
 </head>
 <body>
-  <div class="layout">
+  <div class="layout rw-layout staff-layout">
 
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Gestione Staff</h1>
-        <p class="subtitle">Dipendenti, accessi, badge, timbrature e richieste assenze</p>
+    <aside class="sidebar">
+      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
+      <div class="brand">
+        <div class="brand-logo">RW</div>
+        <div class="brand-text">
+          <div class="brand-title">RistoWord</div>
+          <div class="brand-subtitle" data-i18n="rw_tagline">Un tocco, un'azione. Niente stress.</div>
+        </div>
       </div>
-      <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
-        <button class="btn ghost" id="btn-refresh">Aggiorna</button>
-      </div>
-    </header>
+      <nav class="side-nav">
+        <div class="nav-section-label" data-i18n="nav_section_operativita">OPERATIVITÀ</div>
+        <a class="nav-item" href="/cucina/food-cost.html"><span class="nav-icon">📊</span><span class="nav-text"><span class="nav-label" data-i18n="food_cost">Food Cost</span><span class="nav-hint" data-i18n="food_cost_tip">Analisi costi ricette</span></span></a>
+        <a class="nav-item" href="/catering/catering.html"><span class="nav-icon">🎉</span><span class="nav-text"><span class="nav-label" data-i18n="catering">Catering</span><span class="nav-hint" data-i18n="catering">Eventi e banqueting</span></span></a>
+        <a class="nav-item" href="/cantina"><span class="nav-icon">🍷</span><span class="nav-text"><span class="nav-label" data-i18n="cantina">Cantina</span><span class="nav-hint" data-i18n="nav_cantina_hint">Carta vini</span></span></a>
+        <div class="nav-section-label" data-i18n="nav_section_persone">PERSONE</div>
+        <a class="nav-item active" href="/staff/staff.html" aria-current="page"><span class="nav-icon">👥</span><span class="nav-text"><span class="nav-label" data-i18n="staff">Staff</span><span class="nav-hint" data-i18n="staff.nav_hint">Dipendenti, turni, presenze</span></span></a>
+        <a class="nav-item" href="/turni/turni.html"><span class="nav-icon">📅</span><span class="nav-text"><span class="nav-label" data-i18n="turni">Turni</span><span class="nav-hint" data-i18n="turni_tip">Pianificazione turni</span></span></a>
+        <a class="nav-item" href="/staff-hr/index.html"><span class="nav-icon">📋</span><span class="nav-text"><span class="nav-label" data-i18n="staff_hr">Staff HR</span><span class="nav-hint" data-i18n="staff_hr_tip">Presenze e ferie</span></span></a>
+        <a class="nav-item" href="/staff/me/index.html"><span class="nav-icon">👤</span><span class="nav-text"><span class="nav-label" data-i18n="my_profile">Il mio profilo</span><span class="nav-hint" data-i18n="my_profile_tip">Profilo personale</span></span></a>
+        <a class="nav-item" href="/supervisor/customers/customers.html"><span class="nav-icon">🧑‍🤝‍🧑</span><span class="nav-text"><span class="nav-label" data-i18n="customers.nav_label">CRM Clienti</span><span class="nav-hint" data-i18n="customers.nav_hint">Anagrafica clienti</span></span></a>
+        <a class="nav-item" href="/supervisor/supervisor.html"><span class="nav-icon">📈</span><span class="nav-text"><span class="nav-label" data-i18n="supervisor">Supervisor</span><span class="nav-hint" data-i18n="customers.supervisor_hint">KPI e report</span></span></a>
+      </nav>
+      <div class="side-tip"><span data-i18n="nav_ristoword_tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</span></div>
+    </aside>
 
-    <!-- KPI ROW -->
-    <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="kpi-label">Totale</div>
-        <div class="kpi-value" id="kpi-total">0</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Attivi</div>
-        <div class="kpi-value accent" id="kpi-active">0</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">In ferie</div>
-        <div class="kpi-value" id="kpi-ferie" style="color:var(--blue)">0</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Malattia</div>
-        <div class="kpi-value danger" id="kpi-malattia">0</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Anomalie</div>
-        <div class="kpi-value warn" id="kpi-anomaly">0</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Ore/sett.</div>
-        <div class="kpi-value" id="kpi-hours">0</div>
-      </div>
-    </div>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-    <main class="main">
+    <div class="main-col">
+      <header class="app-header">
+        <div>
+          <p class="greeting-title" id="rw-greeting">Ciao</p>
+          <p class="greeting-date" id="rw-date">—</p>
+        </div>
+        <div class="global-search">
+          <span class="global-search-icon" aria-hidden="true">🔍</span>
+          <input type="search" id="staff-search" data-i18n-placeholder="rw_search_placeholder" placeholder="Cerca ovunque..." />
+        </div>
+        <div class="header-actions">
+          <div id="lang-selector"></div>
+          <button class="header-bell" type="button" aria-label="Notifiche">🔔</button>
+          <div class="user-avatar" id="rw-avatar">?</div>
+        </div>
+      </header>
 
-      <!-- LEFT COLUMN -->
-      <section class="left-column">
+      <main class="main staff-main">
+        <header class="staff-hero">
+          <div>
+            <h1 data-i18n="staff.title">Staff</h1>
+            <p data-i18n="staff.subtitle">Dipendenti, accessi, badge, timbrature e richieste assenze</p>
+          </div>
+          <button class="btn ghost" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
+        </header>
 
-        <!-- Add/Edit Employee Form -->
-        <article class="card" id="card-employee-form">
-          <header class="card-header">
-            <div>
-              <h2 id="form-title">Aggiungi dipendente</h2>
-              <p id="form-subtitle">Nuovo membro dello staff</p>
-            </div>
-            <button class="btn ghost small" id="btn-form-reset" style="display:none">Annulla modifica</button>
-          </header>
-          <div class="card-body">
-            <div class="form-grid">
-              <label>Nome <input type="text" id="field-name" placeholder="Es. Mario" /></label>
-              <label>Cognome <input type="text" id="field-surname" placeholder="Es. Rossi" /></label>
-              <label class="full">Ruolo
-                <select id="field-role">
-                  <optgroup label="Cucina">
-                    <option value="chef">Chef</option>
-                    <option value="sous_chef">Sous Chef</option>
-                    <option value="capopartita">Capopartita</option>
-                    <option value="demi_chef">Demi Chef</option>
-                    <option value="comis_cucina">Comis Cucina</option>
-                    <option value="lavapiatti">Lavapiatti</option>
-                    <option value="inserviente">Inserviente</option>
-                  </optgroup>
-                  <optgroup label="Sala">
-                    <option value="maitre">Maître</option>
-                    <option value="chef_de_rang">Chef de Rang</option>
-                    <option value="demi_chef_sala">Demi Chef Sala</option>
-                    <option value="comis_sala">Comis Sala</option>
-                    <option value="cameriere">Cameriere</option>
-                  </optgroup>
-                  <optgroup label="Bar">
-                    <option value="barman">Barman</option>
-                    <option value="bartender">Bartender</option>
-                    <option value="comis_bar">Comis Bar</option>
-                  </optgroup>
-                  <optgroup label="Pizzeria">
-                    <option value="capo_pizzaiolo">Capo Pizzaiolo</option>
-                    <option value="pizzaiolo">Pizzaiolo</option>
-                    <option value="comis_pizzeria">Comis Pizzeria</option>
-                  </optgroup>
-                  <optgroup label="Cassa">
-                    <option value="cassiere">Cassiere</option>
-                  </optgroup>
-                  <optgroup label="Gestione">
-                    <option value="supervisor">Supervisor</option>
-                    <option value="responsabile">Responsabile</option>
-                  </optgroup>
-                  <optgroup label="Magazzino">
-                    <option value="magazziniere">Magazziniere</option>
-                  </optgroup>
-                  <optgroup label="Altro">
-                    <option value="staff" selected>Staff</option>
-                  </optgroup>
-                </select>
-              </label>
-              <label>Telefono <input type="tel" id="field-phone" placeholder="+39 ..." /></label>
-              <label>Email <input type="email" id="field-email" placeholder="mario@email.it" /></label>
-              <label>Data assunzione <input type="date" id="field-hiredate" /></label>
-              <label>Stipendio (€/mese) <input type="number" id="field-salary" step="0.01" min="0" placeholder="0.00" /></label>
-              <label>Ore/settimana <input type="number" id="field-hours" step="0.5" min="0" placeholder="40" /></label>
-              <label class="full">Note <textarea id="field-notes" rows="2" placeholder="Note interne…"></textarea></label>
-              <div class="form-actions full">
-                <button class="btn primary" id="btn-save-staff">Aggiungi dipendente</button>
-              </div>
-            </div>
-            <div id="form-message" class="msg-bar" style="margin-top:10px"></div>
+        <div class="stat-pills">
+          <span class="stat-pill stat-blue"><span data-i18n="staff.total">TOTALE</span> <strong id="kpi-total">0</strong></span>
+          <span class="stat-pill stat-green"><span data-i18n="staff.active">ATTIVI</span> <strong id="kpi-active">0</strong></span>
+          <span class="stat-pill stat-red"><span data-i18n="staff.onLeave">IN FERIE</span> <strong id="kpi-ferie">0</strong></span>
+          <span class="stat-pill stat-yellow"><span data-i18n="staff.sick">MALATTIA</span> <strong id="kpi-malattia">0</strong></span>
+          <span class="stat-pill stat-purple"><span data-i18n="staff.anomalies">ANOMALIE</span> <strong id="kpi-anomaly">0</strong></span>
+          <span class="stat-pill stat-grey"><span data-i18n="staff.hoursWeek">ORE/SETT.</span> <strong id="kpi-hours">0</strong></span>
+        </div>
 
-            <!-- Link user account (edit mode only) -->
-            <div class="link-account-section" id="link-account-section" style="display:none">
-              <h3>Collega account utente</h3>
-              <div class="form-grid">
-                <label>Username <input type="text" id="link-username" placeholder="mario.rossi" autocomplete="off" /></label>
-                <label>Password <input type="password" id="link-password" placeholder="Min. 6 caratteri" autocomplete="new-password" /></label>
-                <div class="form-actions full">
-                  <button class="btn small" id="btn-link-account">Collega account</button>
+        <nav class="staff-tabs" id="staff-tabs">
+          <button type="button" class="staff-tab active" data-tab="dipendenti" data-i18n="staff.tab_employees">Dipendenti</button>
+          <button type="button" class="staff-tab" data-tab="accessi" data-i18n="staff.tab_access">Accessi</button>
+          <button type="button" class="staff-tab" data-tab="presenze" data-i18n="staff.tab_attendance">Presenze &amp; Assenze</button>
+        </nav>
+
+        <!-- TAB DIPENDENTI -->
+        <section class="staff-panel active" id="panel-dipendenti">
+          <div class="staff-grid-2">
+            <article class="card" id="card-employee-form">
+              <header class="card-header">
+                <div>
+                  <h2 id="form-title" data-i18n="staff.addEmployee">Aggiungi dipendente</h2>
+                  <p id="form-subtitle" data-i18n="staff.addEmployee_sub">Nuovo membro dello staff</p>
+                </div>
+                <button class="btn ghost small" id="btn-form-reset" style="display:none" data-i18n="cancel">Annulla</button>
+              </header>
+              <div class="card-body">
+                <div class="form-grid">
+                  <label><span data-i18n="staff.fullName">Nome</span><input type="text" id="field-name" placeholder="Mario" /></label>
+                  <label><span data-i18n="staff.lastName">Cognome</span><input type="text" id="field-surname" placeholder="Rossi" /></label>
+                  <label class="full"><span data-i18n="staff.role">Qualifica / Ruolo</span>
+                    <select id="field-role">
+                      <optgroup label="Cucina"><option value="chef">Chef</option><option value="sous_chef">Sous Chef</option><option value="cameriere">Cameriere</option></optgroup>
+                      <optgroup label="Sala"><option value="maitre">Maître</option><option value="chef_de_rang">Chef de Rang</option><option value="cameriere">Cameriere</option></optgroup>
+                      <optgroup label="Altro"><option value="staff" selected>Staff</option><option value="housekeeping">Housekeeping</option></optgroup>
+                    </select>
+                  </label>
+                  <label><span data-i18n="staff.phone">Telefono</span><input type="tel" id="field-phone" /></label>
+                  <label><span data-i18n="staff.email">Email</span><input type="email" id="field-email" /></label>
+                  <label><span data-i18n="staff.hireDate">Data assunzione</span><input type="date" id="field-hiredate" /></label>
+                  <label><span data-i18n="staff.salary">Stipendio €</span><input type="number" id="field-salary" step="0.01" min="0" /></label>
+                  <label><span data-i18n="staff.hoursPerWeek">Ore/settimana</span><input type="number" id="field-hours" step="0.5" min="0" value="40" /></label>
+                  <label class="full"><span data-i18n="staff.notes">Note</span><textarea id="field-notes" rows="3"></textarea></label>
+                  <div class="form-actions full">
+                    <button class="btn primary" id="btn-save-staff" type="button">💾 <span data-i18n="save">Salva</span></button>
+                  </div>
+                </div>
+                <div id="form-message" class="msg-bar"></div>
+                <div class="link-account-section" id="link-account-section" style="display:none">
+                  <h3 data-i18n="staff.linkAccount">Collega account utente</h3>
+                  <div class="form-grid">
+                    <label>Username <input type="text" id="link-username" autocomplete="off" /></label>
+                    <label>Password <input type="password" id="link-password" autocomplete="new-password" /></label>
+                    <div class="form-actions full"><button class="btn small" id="btn-link-account" type="button" data-i18n="staff.linkAccount_btn">Collega</button></div>
+                  </div>
+                  <div id="link-message" class="msg-bar"></div>
                 </div>
               </div>
-              <div id="link-message" class="msg-bar" style="margin-top:8px"></div>
+            </article>
+
+            <div class="staff-col-right">
+              <article class="card">
+                <header class="card-header">
+                  <div><h2 data-i18n="staff.employeeList">Elenco dipendenti</h2></div>
+                </header>
+                <div class="card-body">
+                  <div id="staff-message" class="msg-bar"></div>
+                  <div class="table-wrap">
+                    <table class="data-table">
+                      <thead><tr>
+                        <th data-i18n="staff.fullName">Nome</th>
+                        <th data-i18n="staff.role">Ruolo</th>
+                        <th data-i18n="staff.status">Stato</th>
+                        <th data-i18n="staff.hoursWeek">Ore/sett</th>
+                        <th data-i18n="edit">Modifica</th>
+                      </tr></thead>
+                      <tbody id="staff-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </article>
+
+              <article class="card">
+                <header class="card-header">
+                  <div><h2 data-i18n="staff.badge.title">Badge &amp; QR Code</h2><p data-i18n="staff.badge.sub">NFC e timbratura ingresso</p></div>
+                </header>
+                <div class="card-body badge-card">
+                  <div class="badge-preview">
+                    <div class="qr-placeholder" aria-hidden="true">▦</div>
+                    <div>
+                      <p class="muted" data-i18n="staff.badge.nfcLabel">Link NFC / timbratura</p>
+                      <p class="mono badge-link">https://ristoword.com/clock</p>
+                      <div class="qr-actions">
+                        <button class="btn ghost small" id="btn-nfc-tag" type="button" data-i18n="staff.badge.preview">Anteprima</button>
+                        <button class="btn ghost small" type="button" data-i18n="staff.badge.copyNfc">Copia NFC</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="qr-actions">
+                    <button class="btn primary small" id="btn-gen-qr" type="button">📱 <span data-i18n="staff.badge.generate">Genera QR</span></button>
+                    <button class="btn ghost small" id="btn-print-badges" type="button" data-i18n="staff.badge.printAll">Stampa tutti</button>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
-        </article>
+        </section>
 
-      </section>
-
-      <!-- RIGHT COLUMN -->
-      <section class="right-column">
-
-        <!-- Staff List Table -->
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <h2>Elenco dipendenti</h2>
-              <p>Staff attivo con stato e azioni</p>
-            </div>
-          </header>
-          <div class="card-body">
-            <div id="staff-message" class="msg-bar"></div>
-            <div class="table-wrap">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>Ruolo</th>
-                    <th>Stato</th>
-                    <th>Ore/sett</th>
-                    <th>Azioni</th>
-                  </tr>
-                </thead>
-                <tbody id="staff-tbody"></tbody>
-              </table>
-            </div>
-            <div id="saldi-panel" class="saldi-panel hidden">
-              <h3 class="saldi-title">Saldi assenze</h3>
-              <p id="saldi-user-name" class="saldi-user"></p>
-              <ul id="saldi-list" class="saldi-list"></ul>
-            </div>
-          </div>
-        </article>
-
-        <!-- QR Badges -->
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <h2>QR Badge</h2>
-              <p>Genera badge QR per il personale</p>
-            </div>
-          </header>
-          <div class="card-body">
-            <p style="font-size:13px;color:var(--text-soft)">Genera badge QR individuali o stampa tutti i badge. Funzionalità NFC tag disponibile per ingresso.</p>
-            <div class="qr-actions">
-              <button class="btn small" id="btn-gen-qr">Genera badge QR</button>
-              <button class="btn small" id="btn-nfc-tag">NFC ingresso</button>
-              <button class="btn small" id="btn-print-badges">Stampa tutti i badge</button>
-            </div>
-          </div>
-        </article>
-
-        <!-- Timbrature (Clock in/out) -->
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <h2>Timbrature</h2>
-              <p>Clock in/out del personale</p>
-            </div>
-            <div class="presenze-toolbar" style="margin:0">
-              <label>Data <input type="date" id="presenze-date" /></label>
-              <button class="btn ghost small" id="btn-presenze-refresh">Aggiorna</button>
-            </div>
-          </header>
-          <div class="card-body">
-            <div id="presenze-message" class="msg-bar"></div>
-            <div class="table-wrap">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Dipendente</th>
-                    <th>Stato turno</th>
-                    <th>Ore oggi</th>
-                    <th>Azioni</th>
-                  </tr>
-                </thead>
-                <tbody id="presenze-tbody"></tbody>
-              </table>
-            </div>
-            <div class="presenze-summary" id="presenze-summary"></div>
-          </div>
-        </article>
-
-        <!-- Richieste assenze -->
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <h2>Richieste assenze</h2>
-              <p>Ferie, permessi, malattia</p>
-            </div>
-          </header>
-          <div class="card-body">
-            <div class="filter-tabs" id="leave-tabs">
-              <button class="filter-tab active" data-status="">Tutti</button>
-              <button class="filter-tab" data-status="pending">In attesa</button>
-              <button class="filter-tab" data-status="approved">Approvata</button>
-              <button class="filter-tab" data-status="rejected">Rifiutata</button>
-            </div>
-            <div id="leave-message" class="msg-bar"></div>
-            <div class="table-wrap">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Dipendente</th>
-                    <th>Tipo</th>
-                    <th>Dal</th>
-                    <th>Al</th>
-                    <th>Stato</th>
-                    <th>Note</th>
-                    <th>Azioni</th>
-                  </tr>
-                </thead>
-                <tbody id="leave-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </article>
-
-        <!-- Staff per ruolo -->
-        <article class="card">
-          <header class="card-header">
-            <h2>Staff per ruolo</h2>
-          </header>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table class="data-table role-table" id="role-table">
-                <thead>
-                  <tr><th>Ruolo</th><th style="text-align:right">N. dipendenti</th></tr>
-                </thead>
-                <tbody id="role-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </article>
-
-        <!-- Accessi Staff -->
-        <article class="card">
-          <header class="card-header">
-            <div>
-              <h2>Accessi Staff</h2>
-              <p>Crea login per il personale</p>
-            </div>
-          </header>
-          <div class="card-body">
-            <div class="access-form" id="access-form">
-              <label>Nome <input type="text" id="acc-name" placeholder="Nome completo" /></label>
-              <label>Username <input type="text" id="acc-username" placeholder="mario.rossi" autocomplete="off" /></label>
-              <label>Password <input type="password" id="acc-password" placeholder="Min. 6 caratteri" autocomplete="new-password" /></label>
-              <label>Ruolo
-                <select id="acc-role">
-                  <option value="staff">Staff</option>
-                  <option value="sala">Sala</option>
-                  <option value="cucina">Cucina</option>
-                  <option value="bar">Bar</option>
-                  <option value="pizzeria">Pizzeria</option>
-                  <option value="cassa">Cassa</option>
-                  <option value="magazzino">Magazzino</option>
-                  <option value="supervisor">Supervisor</option>
-                </select>
-              </label>
-              <label class="full">Email <input type="email" id="acc-email" placeholder="email@esempio.it" /></label>
-              <div class="full" style="display:flex;gap:8px;justify-content:flex-end">
-                <button class="btn primary small" id="btn-create-access">Crea account</button>
+        <!-- TAB ACCESSI -->
+        <section class="staff-panel" id="panel-accessi">
+          <div class="staff-grid-2">
+            <article class="card">
+              <header class="card-header"><div><h2 data-i18n="staff.access.newAccess">Nuovo accesso</h2><p data-i18n="staff.access.desc">Crea login per il personale</p></div></header>
+              <div class="card-body">
+                <div class="access-form" id="access-form">
+                  <label><span data-i18n="staff.fullName">Nome</span><input type="text" id="acc-name" placeholder="Mario Rossi" /></label>
+                  <label><span data-i18n="staff.access.usernameLogin">Username login</span><input type="text" id="acc-username" autocomplete="off" placeholder="mario.rossi" /></label>
+                  <label><span data-i18n="staff.access.tempPassword">Password temporanea</span><input type="password" id="acc-password" autocomplete="new-password" data-i18n-placeholder="staff.access.minChars" placeholder="Min. 6 caratteri" /></label>
+                  <label class="full"><span data-i18n="staff.role">Ruolo</span>
+                    <select id="acc-role">
+                      <option value="sala">Sala</option><option value="cucina">Cucina</option><option value="bar">Bar</option>
+                      <option value="pizzeria">Pizzeria</option><option value="cassa">Cassa</option><option value="staff">Staff</option>
+                    </select>
+                  </label>
+                  <label class="full"><span data-i18n="staff.access.emailOptional">Email (opzionale)</span><input type="email" id="acc-email" placeholder="mario@email.it" /></label>
+                  <div class="full form-actions"><button class="btn primary" id="btn-create-access" type="button">🔑 <span data-i18n="staff.access.createAccess">Crea accesso</span></button></div>
+                </div>
+                <div id="access-message" class="msg-bar"></div>
               </div>
-            </div>
-            <div id="access-message" class="msg-bar" style="margin-top:10px"></div>
-            <div class="table-wrap" style="margin-top:14px">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>Username</th>
-                    <th>Ruolo</th>
-                    <th>Azioni</th>
-                  </tr>
-                </thead>
-                <tbody id="access-tbody"></tbody>
-              </table>
+            </article>
+            <article class="card">
+              <header class="card-header"><h2 data-i18n="staff.access.activeAccounts">Account attivi</h2></header>
+              <div class="card-body" id="access-cards"></div>
+              <div class="table-wrap" style="display:none"><table class="data-table"><tbody id="access-tbody"></tbody></table></div>
+            </article>
+          </div>
+        </section>
+
+        <!-- TAB PRESENZE -->
+        <section class="staff-panel" id="panel-presenze">
+          <div class="staff-grid-presenze">
+            <article class="card">
+              <header class="card-header"><div><h2 data-i18n="staff.absenceRequest">Richiesta assenza</h2><p data-i18n="staff.absenceRequestDesc">Ferie, permessi, malattia</p></div></header>
+              <div class="card-body sa-form">
+                <label><span data-i18n="staff.employee">Dipendente</span>
+                  <select id="leave-staff"><option value="" data-i18n="staff.filterAll">— Filtra —</option></select>
+                </label>
+                <label><span data-i18n="staff.type">Tipo</span>
+                  <select id="leave-type"><option value="ferie" data-i18n="staff.leaveType.ferie">Ferie</option><option value="permesso" data-i18n="staff.leaveType.permesso">Permesso</option><option value="malattia" data-i18n="staff.leaveType.malattia">Malattia</option></select>
+                </label>
+                <div class="form-grid">
+                  <label><span data-i18n="staff.from">Dal</span><input type="date" id="leave-from" /></label>
+                  <label><span data-i18n="staff.to">Al</span><input type="date" id="leave-to" /></label>
+                </div>
+                <label><span data-i18n="staff.notes">Note</span><textarea id="leave-notes" rows="2" placeholder="Motivazione..."></textarea></label>
+                <button class="btn primary" id="btn-leave-send" type="button">✈️ <span data-i18n="staff.send">Invia</span></button>
+                <div id="leave-form-msg" class="msg-bar"></div>
+              </div>
+            </article>
+
+            <div class="staff-col-stack">
+              <article class="card">
+                <header class="card-header">
+                  <div><h2 data-i18n="staff.realTimestamps">Timbrature in tempo reale</h2><p data-i18n="staff.realTimestampsDesc">Clock in/out del personale</p></div>
+                  <div class="presenze-toolbar">
+                    <label><span data-i18n="staff.date">Data</span><input type="date" id="presenze-date" /></label>
+                    <button class="btn ghost small" id="btn-presenze-refresh" type="button" data-i18n="refresh">Aggiorna</button>
+                  </div>
+                </header>
+                <div class="card-body">
+                  <div id="presenze-message" class="msg-bar"></div>
+                  <div class="table-wrap">
+                    <table class="data-table">
+                      <thead><tr><th data-i18n="staff.title">Dipendente</th><th data-i18n="staff.shiftStatus">Stato turno</th><th data-i18n="staff.hoursToday">Ore oggi</th><th data-i18n="edit">Azioni</th></tr></thead>
+                      <tbody id="presenze-tbody"></tbody>
+                    </table>
+                  </div>
+                  <div class="presenze-summary" id="presenze-summary"></div>
+                </div>
+              </article>
+
+              <article class="card">
+                <header class="card-header"><h2 data-i18n="staff.absenceRequests">Richieste assenze</h2></header>
+                <div class="card-body">
+                  <div class="filter-tabs" id="leave-tabs">
+                    <button class="filter-tab active" data-status="" data-i18n="staff.filterAll">Tutti</button>
+                    <button class="filter-tab" data-status="pending" data-i18n="staff.status_pending">In attesa</button>
+                    <button class="filter-tab" data-status="approved" data-i18n="staff.status_approved">Approvata</button>
+                    <button class="filter-tab" data-status="rejected" data-i18n="staff.status_rejected">Rifiutata</button>
+                  </div>
+                  <div id="leave-message" class="msg-bar"></div>
+                  <div class="table-wrap">
+                    <table class="data-table">
+                      <thead><tr><th data-i18n="staff.employee">Dipendente</th><th data-i18n="staff.type">Tipo</th><th data-i18n="staff.from">Dal</th><th data-i18n="staff.to">Al</th><th data-i18n="staff.status">Stato</th><th data-i18n="staff.notes">Note</th><th></th></tr></thead>
+                      <tbody id="leave-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </article>
+
+              <article class="card">
+                <header class="card-header"><h2 data-i18n="staff.byRole">Staff per ruolo</h2><span class="muted" id="role-hours-label"></span></header>
+                <div class="card-body">
+                  <div class="table-wrap">
+                    <table class="data-table role-table"><thead><tr><th data-i18n="staff.role">Ruolo</th><th data-i18n="staff.activeStatus">Attivi</th></tr></thead><tbody id="role-tbody"></tbody></table>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
-        </article>
-
-      </section>
-
-    </main>
+        </section>
+      </main>
+    </div>
   </div>
 
-  <script src="/shared/auth-guard.js" data-allowed-roles="owner"></script>
-  <script src="staff.js"></script>
   <script src="/js/i18n.js"></script>
+  <script src="/shared/sidebar-mobile.js"></script>
+  <script src="/shared/rw-shell.js"></script>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner"></script>
+  <script src="staff.js?v=20260622"></script>
 </body>
 </html>

@@ -1,10 +1,12 @@
-// Router: JSON (default) oppure MySQL se USE_MYSQL_DATABASE=true.
+// backend/src/repositories/customers.repository.js
 
 const { useMysqlPersistence } = require("../config/mysqlPersistence");
 const json = require("./customers.repository.json");
 const mysql = require("./mysql/customers.repository.mysql");
 
-function impl() { return useMysqlPersistence() ? mysql : json; }
+function impl() {
+  return useMysqlPersistence() ? mysql : json;
+}
 
 module.exports = {
   getAll: (...a) => impl().getAll(...a),
@@ -14,5 +16,7 @@ module.exports = {
   searchByNameOrPhone: (...a) => impl().searchByNameOrPhone(...a),
   create: (...a) => impl().create(...a),
   update: (...a) => impl().update(...a),
+  remove: (...a) => impl().remove(...a),
+  seedIfEmpty: (...a) => impl().seedIfEmpty(...a),
   buildCustomer: (...a) => impl().buildCustomer(...a),
 };

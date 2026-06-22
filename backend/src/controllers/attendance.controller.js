@@ -127,6 +127,7 @@ exports.meToday = async (req, res) => {
 };
 
 // POST /api/attendance/me/clock-in – dipendente: timbratura entrata
+// Owner/supervisor can pass { staffId } to clock in another employee.
 exports.clockIn = async (req, res) => {
   const user = req.session?.user;
   if (!user || !user.id) {
@@ -136,15 +137,31 @@ exports.clockIn = async (req, res) => {
   if (!restaurantId) {
     return res.status(403).json({ error: "Ristorante non in sessione." });
   }
-  const existingOpen = await attendanceRepository.findOpenShiftByUser(user.id, restaurantId);
-  if (existingOpen) {
-    return res.status(409).json({ error: "Hai già un turno aperto.", openShift: existingOpen });
+  const { notes, staffId } = req.body || {};
+
+  let targetId = user.id;
+  let targetUser = user;
+  if (staffId && String(staffId) !== String(user.id)) {
+    if (!["owner", "supervisor"].includes(user.role)) {
+      return res.status(403).json({ error: "Solo owner/supervisor possono registrare presenze per altri dipendenti." });
+    }
+    const found = await usersRepository.findById(staffId);
+    if (!found || found.restaurantId !== restaurantId) {
+      return res.status(404).json({ error: "Dipendente non trovato." });
+    }
+    targetId = staffId;
+    targetUser = found;
   }
-  const { notes } = req.body || {};
+
+  const existingOpen = await attendanceRepository.findOpenShiftByUser(targetId, restaurantId);
+  if (existingOpen) {
+    return res.status(409).json({ error: "Turno già aperto per questo dipendente.", openShift: existingOpen });
+  }
+
   const record = await attendanceRepository.createShift(restaurantId, {
-    userId: user.id,
-    name: user.name || user.username || "",
-    role: user.role || "",
+    userId: targetId,
+    name: [targetUser.name, targetUser.surname].filter(Boolean).join(" ") || targetUser.username || "",
+    role: targetUser.role || "",
     clockInAt: new Date().toISOString(),
     notes: notes || "",
   });
@@ -168,6 +185,10 @@ exports.clockOut = async (req, res) => {
   if (staffId && String(staffId) !== String(user.id)) {
     if (!["owner", "supervisor"].includes(user.role)) {
       return res.status(403).json({ error: "Solo owner/supervisor possono registrare presenze per altri dipendenti." });
+    }
+    const found = await usersRepository.findById(staffId);
+    if (!found || found.restaurantId !== restaurantId) {
+      return res.status(404).json({ error: "Dipendente non trovato." });
     }
     targetId = staffId;
   }

@@ -1,420 +1,330 @@
 <!doctype html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Super Admin - Dashboard</title>
-    <meta name="robots" content="noindex,nofollow" />
-    <style>
-      :root{--bg:#0b0f19;--card:#111827;--text:#e5e7eb;--muted:#9ca3af;--primary:#3b82f6;--border:rgba(255,255,255,.12);--danger:#ef4444;--ok:#22c55e}
-      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--text)}
-      .wrap{max-width:1180px;margin:22px auto;padding:0 16px 40px}
-      .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
-      .brand{display:flex;gap:12px;align-items:center}
-      .pill{background:rgba(255,255,255,.06);border:1px solid var(--border);padding:8px 10px;border-radius:999px;font-size:12px;color:var(--muted)}
-      .btn{border:1px solid var(--border);background:transparent;color:var(--text);border-radius:12px;padding:10px 12px;cursor:pointer;font-weight:900;text-decoration:none;display:inline-block}
-      .btn.primary{background:rgba(59,130,246,.25);border-color:rgba(59,130,246,.6)}
-      .btn.danger{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5)}
-      .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-      .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
-      .card h2{margin:0 0 10px;font-size:15px}
-      .k{color:var(--muted);font-size:12px;margin-bottom:2px}
-      .v{font-weight:950;font-size:18px}
-      .muted{color:var(--muted);font-size:12px;line-height:1.5}
-      table{width:100%;border-collapse:collapse}
-      th,td{border-top:1px solid var(--border);padding:8px 6px;text-align:left;vertical-align:top;font-size:12px;color:var(--muted)}
-      th{color:var(--text)}
-      .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-      .section-wide{grid-column:span 12}
-      .section-6{grid-column:span 6}
-      .section-4{grid-column:span 4}
-      .section-3{grid-column:span 3}
-      .section-8{grid-column:span 8}
-      @media(max-width:900px){.section-6,.section-4,.section-3,.section-8{grid-column:span 12}}
-      input,select,textarea{width:100%;box-sizing:border-box;background:transparent;border:1px solid var(--border);color:var(--text);border-radius:12px;padding:10px 12px;font-size:13px;outline:none}
-      textarea{min-height:80px;resize:vertical}
-      label{display:block;margin:10px 0 6px;font-size:12px;color:var(--muted)}
-      .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-      .right{margin-left:auto}
-      .nav-menu{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-      .nav-link{display:inline-block;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(59,130,246,.12);color:var(--primary);text-decoration:none;font-weight:700;font-size:13px}
-      .nav-link:hover{background:rgba(59,130,246,.25);border-color:rgba(59,130,246,.5)}
-      .nav-link.secondary{background:rgba(255,255,255,.06);color:var(--text)}
-      .nav-link.secondary:hover{background:rgba(255,255,255,.1)}
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="topbar">
-        <div class="brand">
-          <div>
-            <div style="font-weight:950;font-size:18px;">Super Admin Dashboard</div>
-            <div class="muted">Privato per proprietario e manutentore</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center">
-          <div class="pill" id="sa-working-tenant">Tenant attivo: —</div>
-          <div class="pill">No client flow • No license dependency</div>
-          <a class="btn" href="/super-admin-console" style="text-decoration:none;font-size:12px" title="Solo super-admin"
-            >Console avanzata</a
-          >
-          <button class="btn" id="sa-btn-logout">Logout</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Super Admin — RistoWord</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="stylesheet" href="/shared/rw-shell.css" />
+  <link rel="stylesheet" href="/shared/super-admin.css" />
+</head>
+<body>
+  <div class="layout rw-layout sa-layout">
+
+    <aside class="sidebar">
+      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="brand">
+        <div class="brand-logo">RW</div>
+        <div class="brand-text">
+          <div class="brand-title">RistoWord</div>
+          <div class="brand-subtitle">Un tocco, un'azione. Niente stress.</div>
         </div>
       </div>
+      <nav class="side-nav" id="sa-side-nav">
+        <button type="button" class="sa-nav-item" data-tab="licenses"><span class="nav-icon">🔑</span><span class="nav-text"><span class="nav-label">Licenze</span><span class="nav-hint">Gestione licenze e abbonamenti</span></span></button>
+        <button type="button" class="sa-nav-item" data-tab="monitor"><span class="nav-icon">📡</span><span class="nav-text"><span class="nav-label">Sessioni</span><span class="nav-hint">Sessioni attive e revoca</span></span></button>
+        <div class="nav-section-label">INTEGRAZIONI</div>
+        <button type="button" class="sa-nav-item" data-tab="system"><span class="nav-icon">💳</span><span class="nav-text"><span class="nav-label">Stripe</span><span class="nav-hint">Pagamenti e abbonamenti online</span></span></button>
+        <button type="button" class="sa-nav-item" data-tab="email"><span class="nav-icon">✉️</span><span class="nav-text"><span class="nav-label">Email / SMTP</span><span class="nav-hint">Impostazioni SMTP e template tenant</span></span></button>
+        <div class="nav-section-label">PARTNER</div>
+        <button type="button" class="sa-nav-item" data-tab="dealer"><span class="nav-icon">🤝</span><span class="nav-text"><span class="nav-label">Controllo Vendite</span><span class="nav-hint">Licenze attive e commissioni</span></span></button>
+        <div class="nav-section-label">ADMIN</div>
+        <button type="button" class="sa-nav-item active" data-tab="dashboard"><span class="nav-icon">⚙️</span><span class="nav-text"><span class="nav-label">Super Admin</span><span class="nav-hint">Tenant, licenze e sistema</span></span></button>
+        <a class="nav-item" href="/dev-access"><span class="nav-icon">🔧</span><span class="nav-text"><span class="nav-label">Dev Access</span><span class="nav-hint">Bridge emergenza e diagnostica</span></span></a>
+      </nav>
+      <div class="side-tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</div>
+    </aside>
 
-      <!-- Menu super-admin – tutte le pagine -->
-      <section class="grid" style="margin-bottom:20px">
-        <div class="card section-wide">
-          <h2>Menu Controllo Totale – collegamento alle pagine</h2>
-          <p class="muted" style="margin:0 0 8px">
-            Le pagine usano il <strong>tenant attivo</strong> (vedi pill in alto): impostalo dalla tabella licenze/clienti con <strong>Entra</strong> o aprendo Supervisor/Cassa da lì.
-            Usa Indietro o torna a <a href="/super-admin-dashboard" class="nav-link" style="padding:4px 8px;font-size:12px">Super Admin</a>.
-          </p>
-          <div class="nav-menu">
-            <a href="/" class="nav-link">Home / Dashboard</a>
-            <a href="/login/login.html" class="nav-link secondary">Login</a>
-            <a href="/change-password" class="nav-link secondary">Cambio password</a>
-            <a href="/owner-activate" class="nav-link secondary">Owner activate</a>
-            <a href="/license/license.html" class="nav-link secondary">Licenza</a>
-            <a href="/setup/setup.html" class="nav-link secondary">Setup</a>
-            <a href="/sala/sala.html" class="nav-link">Sala</a>
-            <a href="/cucina/cucina.html" class="nav-link">Cucina</a>
-            <a href="/cucina/food-cost.html" class="nav-link">Food cost</a>
-            <a href="/pizzeria/pizzeria.html" class="nav-link">Pizzeria</a>
-            <a href="/bar/bar.html" class="nav-link">Bar</a>
-            <a href="/cantina" class="nav-link">Cantina</a>
-            <a href="/situazione-giorno" class="nav-link">Situazione del Giorno</a>
-            <a href="/risto-comandi" class="nav-link">Risto Comandi</a>
-            <a href="/ai-assistente" class="nav-link">AI Assistente</a>
-            <a href="/reseller-login" class="nav-link secondary">Portale Rivenditore</a>
-            <a href="/cassa/cassa.html" class="nav-link">Cassa</a>
-            <a href="/cassa/chiusura.html" class="nav-link">Chiusura cassa</a>
-            <a href="/magazzino/magazzino.html" class="nav-link">Magazzino</a>
-            <a href="/magazzino/attrezzature.html" class="nav-link">Attrezzature</a>
-            <a href="/qr-tables/qr-tables.html" class="nav-link">QR Tavoli</a>
-            <a href="/catering/catering.html" class="nav-link">Catering</a>
-            <a href="/prenotazioni/prenotazioni.html" class="nav-link">Prenotazioni</a>
-            <a href="/asporto/asporto.html" class="nav-link">Asporto</a>
-            <a href="/supervisor/supervisor.html" class="nav-link">Supervisor</a>
-            <a href="/supervisor/staff/staff.html" class="nav-link">Supervisor Staff</a>
-            <a href="/supervisor/customers/customers.html" class="nav-link">Supervisor Customers</a>
-            <a href="/hardware/hardware.html" class="nav-link">Hardware / Stampa</a>
-            <a href="/menu-admin/menu-admin.html" class="nav-link">Menu Admin</a>
-            <a href="/daily-menu/daily-menu.html" class="nav-link">Menu del Giorno</a>
-            <a href="/staff/staff.html" class="nav-link">Staff</a>
-            <a href="/qr" class="nav-link secondary">QR Ordini (pubblico)</a>
-            <a href="/qr-generator.html" class="nav-link secondary">QR Generator</a>
-            <a href="/dev-access" class="nav-link secondary">Dev Access (dashboard tecnica)</a>
-            <a href="/super-admin-indonesia" class="nav-link" style="background:rgba(139,92,246,.2);border-color:rgba(139,92,246,.5);color:#c4b5fd">🇮🇩 Controllo Vendite Indonesia</a>
-          </div>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <div class="main-col">
+      <header class="app-header">
+        <div>
+          <p class="greeting-title" id="rw-greeting">Ciao</p>
+          <p class="greeting-date" id="rw-date">—</p>
         </div>
-      </section>
-
-      <!-- PANORAMICA GENERALE -->
-      <section class="grid" style="margin-bottom:12px">
-        <div class="card section-wide">
-          <h2>1) Panoramica Generale</h2>
-          <div class="grid">
-            <div class="card section-3">
-              <div class="k">Numero clienti</div>
-              <div class="v mono" id="kpi-customers">—</div>
-            </div>
-            <div class="card section-3">
-              <div class="k">Licenze attive</div>
-              <div class="v mono" id="kpi-licenses-active">—</div>
-            </div>
-            <div class="card section-3">
-              <div class="k">Licenze scadute</div>
-              <div class="v mono" id="kpi-licenses-expired">—</div>
-            </div>
-            <div class="card section-3">
-              <div class="k">Trial attivi</div>
-              <div class="v mono" id="kpi-trial-active">—</div>
-            </div>
-          </div>
-          <div class="grid" style="margin-top:12px">
-            <div class="card section-4">
-              <div class="k">Pagamenti riusciti</div>
-              <div class="v mono" id="kpi-payments-ok">—</div>
-            </div>
-            <div class="card section-4">
-              <div class="k">Pagamenti falliti</div>
-              <div class="v mono" id="kpi-payments-failed">—</div>
-            </div>
-            <div class="card section-4">
-              <div class="k">Supporti aperti</div>
-              <div class="v mono" id="kpi-support-open">—</div>
-            </div>
-          </div>
-          <div class="grid" style="margin-top:12px">
-            <div class="card section-6">
-              <div class="k">Abbonamenti mensili</div>
-              <div class="v mono" id="kpi-sub-monthly">—</div>
-            </div>
-            <div class="card section-6">
-              <div class="k">Abbonamenti annuali</div>
-              <div class="v mono" id="kpi-sub-annual">—</div>
-            </div>
-          </div>
-          <div class="muted" style="margin-top:10px;">
-            Stato manutenzione: <span class="mono" id="kpi-maintenance">—</span>
-          </div>
+        <div class="global-search">
+          <span class="global-search-icon" aria-hidden="true">🔍</span>
+          <input type="search" id="sa-global-search" placeholder="Cerca ovunque: tenant, cliente, licenza..." />
         </div>
-      </section>
+        <div class="header-actions">
+          <button class="header-bell" type="button" aria-label="Notifiche">🔔</button>
+          <div class="user-avatar" id="rw-avatar">SA</div>
+        </div>
+      </header>
 
-      <!-- CONTROLLO SISTEMA + MANUTENZIONE -->
-      <section class="grid" style="margin-bottom:12px">
-        <div class="card section-8">
-          <h2>8) Controllo Sistema</h2>
-          <div class="row">
-            <div class="muted">Server time</div><div class="mono" id="sys-time">—</div>
+      <main class="main">
+        <header class="sa-page-head">
+          <div>
+            <h1>Super Admin</h1>
+            <p>Pannello di controllo globale della piattaforma</p>
           </div>
-          <div class="row" style="margin-top:8px">
-            <div class="muted">Uptime</div><div class="mono" id="sys-uptime">—</div>
+          <div class="sa-head-actions">
+            <span class="sa-pill" id="sa-working-tenant">Tenant attivo: —</span>
+            <button class="btn outline-ai" id="btn-ai-assistant" type="button">✨ AI Assistant</button>
+            <button class="btn ghost" id="sa-btn-logout" type="button">Logout</button>
           </div>
-          <div class="row" style="margin-top:8px">
-            <div class="muted">Versione</div><div class="mono" id="sys-version">—</div>
+        </header>
+
+        <nav class="sa-tabs" id="sa-tabs">
+          <button type="button" class="sa-tab active" data-tab="dashboard">Dashboard</button>
+          <button type="button" class="sa-tab" data-tab="monitor">Monitor Live</button>
+          <button type="button" class="sa-tab" data-tab="tenants">Tenants</button>
+          <button type="button" class="sa-tab" data-tab="licenses">Licenze</button>
+          <button type="button" class="sa-tab" data-tab="dealer">Dealer / Reseller</button>
+          <button type="button" class="sa-tab" data-tab="groups">Gruppi Multi-locale</button>
+          <button type="button" class="sa-tab" data-tab="maintenance">Manutenzione</button>
+          <button type="button" class="sa-tab" data-tab="users">Accessi utenti</button>
+          <button type="button" class="sa-tab" data-tab="system">Sistema</button>
+        </nav>
+
+        <!-- DASHBOARD -->
+        <section class="sa-panel active" id="panel-dashboard">
+          <div class="sa-kpi-row">
+            <article class="sa-kpi"><span class="sa-kpi-icon orange">🏢</span><div><div class="sa-kpi-label">Tenants attivi</div><div class="sa-kpi-value" id="kpi-tenants-active">—</div></div></article>
+            <article class="sa-kpi"><span class="sa-kpi-icon red">🔑</span><div><div class="sa-kpi-label">Licenze attive</div><div class="sa-kpi-value" id="kpi-licenses-active">—</div></div></article>
+            <article class="sa-kpi"><span class="sa-kpi-icon blue">👥</span><div><div class="sa-kpi-label">Utenti totali</div><div class="sa-kpi-value" id="kpi-users-total">—</div></div></article>
+            <article class="sa-kpi"><span class="sa-kpi-icon green">🗄️</span><div><div class="sa-kpi-label">Database</div><div class="sa-kpi-value" id="kpi-database">Online</div></div></article>
+            <article class="sa-kpi"><span class="sa-kpi-icon yellow">⚡</span><div><div class="sa-kpi-label">Processo API</div><div class="sa-kpi-value" id="kpi-uptime">—</div></div></article>
           </div>
 
-          <div class="grid" style="margin-top:12px">
-            <div class="card section-6">
-              <div class="k">STRIPE - segreti presenti</div>
-              <div class="muted" id="stripe-presence">—</div>
+          <article class="sa-card">
+            <h2>Ultimi tenants registrati</h2>
+            <div class="sa-table-wrap">
+              <table class="sa-table">
+                <thead><tr><th>Nome</th><th>Piano</th><th>Stato</th><th>Creato il</th></tr></thead>
+                <tbody id="sa-recent-tenants"></tbody>
+              </table>
             </div>
-            <div class="card section-6">
-              <div class="k">Webhook mock</div>
-              <div class="muted" id="stripe-webhook-status">—</div>
-            </div>
-          </div>
-        </div>
-        <div class="card section-4">
-          <h2>9) Modalità Manutenzione</h2>
-          <div class="muted">Quando ON: blocco login clienti & checkout. Super Admin resta accessibile.</div>
-          <div style="margin-top:12px">
-            <label style="margin:0 0 8px">Interruttore</label>
-            <select id="sa-maintenance-toggle">
-              <option value="false">OFF</option>
-              <option value="true">ON</option>
-            </select>
-            <div style="margin-top:10px">
-              <button class="btn primary" id="sa-btn-save-maintenance">Salva</button>
-            </div>
-          </div>
-          <div id="sa-maintenance-msg" class="muted" style="margin-top:10px"></div>
-        </div>
-      </section>
+          </article>
 
-      <!-- GESTIONE CLIENTI -->
-      <section class="grid" style="margin-bottom:12px">
-        <div class="card section-6">
-          <h2>2) Gestione Clienti</h2>
-          <label>Cerca cliente</label>
-          <input id="sa-customers-search" type="text" placeholder="nome, telefono, email..." />
-          <div style="margin-top:10px" class="row">
-            <button class="btn primary" id="sa-btn-search-customers">Cerca</button>
-            <button class="btn" id="sa-btn-refresh-customers">Aggiorna</button>
-          </div>
-          <div style="overflow:auto;max-height:260px;margin-top:10px">
-            <table>
-              <thead>
-                <tr><th>tenant</th><th>nome</th><th>telefono</th><th>azioni</th></tr>
-              </thead>
-              <tbody id="sa-customers-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card section-6">
-          <h2>4) Gestione Accessi</h2>
-          <div class="muted">Lista utenti registrati (global) filtrabili per tenant dai pulsanti.</div>
-          <div style="overflow:auto;max-height:260px;margin-top:10px">
-            <table>
-              <thead>
-                <tr><th>utente</th><th>ruolo</th><th>tenant</th><th>attivo</th></tr>
-              </thead>
-              <tbody id="sa-users-tbody"></tbody>
-            </table>
-          </div>
-          <div class="muted" style="margin-top:10px">
-            Per bloccare/sbloccare e force-logout usa le azioni nella sezione Clienti.
-          </div>
-        </div>
-      </section>
-
-      <!-- GESTIONE LICENZE -->
-      <section class="grid" style="margin-bottom:12px">
-        <div class="card section-6">
-          <h2>3) Gestione Licenze</h2>
-          <div style="overflow:auto;max-height:280px">
-            <table>
-              <thead>
-                <tr><th>tenant</th><th>plan</th><th>status</th><th>scadenza</th><th>codice (completo)</th><th>azioni</th></tr>
-              </thead>
-              <tbody id="sa-licenses-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card section-6">
-          <h2>7) Supporto / Emergenza</h2>
-          <div class="muted">Crea licenza provvisoria e sblocca temporaneamente accesso (override via status "used" se activateImmediately=true).</div>
-
-          <label>restaurantId / tenant</label>
-          <input id="sa-license-tenant-id" type="text" placeholder="default, risto2, ..." />
-
-          <div class="grid" style="margin-top:10px">
-            <div class="section-6">
-              <label>plan</label>
-              <input id="sa-license-plan" type="text" placeholder="controllo_totale_pro" />
-            </div>
-            <div class="section-6">
-              <label>giorni</label>
-              <input id="sa-license-days" type="number" min="1" value="30" />
+          <div>
+            <h2 style="margin:0 0 10px;font-size:14px;color:var(--text-muted)">Controllo completo piattaforma</h2>
+            <div class="sa-quick-row">
+              <button type="button" class="sa-quick-card" data-goto="licenses">Licenze</button>
+              <button type="button" class="sa-quick-card" data-goto="tenants">Clienti (CRM)</button>
+              <button type="button" class="sa-quick-card" data-goto="email">Email / SMTP</button>
             </div>
           </div>
+        </section>
 
-          <label>Nota interna assistenza (opzionale)</label>
-          <textarea id="sa-support-note" placeholder="Cosa è successo? azione eseguita..."></textarea>
-
-          <div class="row" style="margin-top:10px">
-            <label style="margin:0;display:flex;gap:8px;align-items:center">
-              <input id="sa-license-activate-now" type="checkbox" checked />
-              activateImmediately
-            </label>
-          </div>
-
-          <div style="margin-top:10px" class="row">
-            <button class="btn primary" id="sa-btn-create-temp-license">Crea provvisoria</button>
-          </div>
-
-          <hr style="border:0;border-top:1px solid var(--border);margin:14px 0" />
-
-          <label>Disattiva / Revoca licenza</label>
-          <div class="grid" style="margin-top:6px">
-            <div class="section-8">
-              <input id="sa-license-revoke-tenant-id" type="text" placeholder="restaurantId..." />
+        <!-- MONITOR -->
+        <section class="sa-panel" id="panel-monitor">
+          <article class="sa-card">
+            <div class="sa-actions">
+              <button class="btn primary" id="sa-btn-refresh-online" type="button">Aggiorna monitor</button>
+              <span class="muted" id="sa-online-updated">—</span>
             </div>
-            <div class="section-4">
-              <button class="btn danger" id="sa-btn-revoke-license">Revoca</button>
+            <div class="sa-kpi-row" style="margin-top:12px">
+              <article class="sa-kpi"><div><div class="sa-kpi-label">Persone online</div><div class="sa-kpi-value" id="kpi-online-users">—</div></div></article>
+              <article class="sa-kpi"><div><div class="sa-kpi-label">Locali online</div><div class="sa-kpi-value" id="kpi-online-tenants">—</div></article>
+              <article class="sa-kpi"><div><div class="sa-kpi-label">Sessioni attive</div><div class="sa-kpi-value" id="kpi-online-sessions">—</div></article>
             </div>
-          </div>
-          <label>Motivo (opzionale)</label>
-          <input id="sa-license-revoke-reason" type="text" placeholder="sospetta/falsa/altro..." />
-          <label style="margin-top:10px;display:flex;gap:8px;align-items:center">
-            <input id="sa-license-revoke-suspicious" type="checkbox" />
-            Segna come sospetta/falsa
-          </label>
-        </div>
-      </section>
-
-      <!-- PAGAMENTI -->
-      <section class="grid" style="margin-bottom:12px">
-        <div class="card section-12">
-          <h2>5) Gestione Pagamenti</h2>
-          <div class="grid" style="margin-bottom:10px">
-            <div class="card section-4"><div class="k">Totale stripe session</div><div class="v mono" id="kpi-stripe-sessions">—</div></div>
-            <div class="card section-4"><div class="k">Pagamenti riusciti</div><div class="v mono" id="kpi-stripe-paid">—</div></div>
-            <div class="card section-4"><div class="k">Pagamenti falliti</div><div class="v mono" id="kpi-stripe-failed">—</div></div>
-          </div>
-          <div class="muted">Ultime Stripe session (mock checkout)</div>
-          <div style="overflow:auto;max-height:240px;margin-top:10px">
-            <table>
-              <thead>
-                <tr><th>session</th><th>tenant</th><th>plan</th><th>mode</th><th>status</th><th>created</th></tr>
-              </thead>
-              <tbody id="sa-payments-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- STRIPE / CONFIG -->
-      <section class="grid" style="margin-bottom:20px">
-        <div class="card section-6">
-          <h2>6) Stripe / Configurazione</h2>
-          <div class="muted">Mostra presenza chiavi (masked). Nessun valore completo viene restituito.</div>
-          <div class="grid" style="margin-top:12px">
-            <div class="card section-6"><div class="k">STRIPE_SECRET_KEY</div><div class="mono" id="stripe-secret-key">—</div></div>
-            <div class="card section-6"><div class="k">STRIPE_WEBHOOK_SECRET</div><div class="mono" id="stripe-webhook-secret">—</div></div>
-            <div class="card section-6"><div class="k">PRICE CT MONTHLY</div><div class="mono" id="stripe-price-monthly">—</div></div>
-            <div class="card section-6"><div class="k">PRICE CT ANNUAL</div><div class="mono" id="stripe-price-annual">—</div></div>
-          </div>
-        </div>
-        <div class="card section-6">
-          <h2>6b) Aggiorna valori (sicuro)</h2>
-          <div class="muted">Inserisci i valori completi solo lato admin. In uscita vengono sempre mostrati masked.</div>
-
-          <label>STRIPE_SECRET_KEY</label>
-          <input id="sa-stripe-secret-key-input" type="password" placeholder="incolla qui..." />
-          <label>STRIPE_WEBHOOK_SECRET</label>
-          <input id="sa-stripe-webhook-secret-input" type="password" placeholder="incolla qui..." />
-          <label>STRIPE_PRICE_CONTROLLO_TOTALE_MONTHLY</label>
-          <input id="sa-stripe-price-monthly-input" type="text" placeholder="price_..." />
-          <label>STRIPE_PRICE_CONTROLLO_TOTALE_ANNUAL</label>
-          <input id="sa-stripe-price-annual-input" type="text" placeholder="price_..." />
-
-          <div style="margin-top:12px" class="row">
-            <button class="btn primary" id="sa-btn-save-stripe-config">Salva config</button>
-          </div>
-          <div id="sa-stripe-save-msg" class="muted" style="margin-top:10px"></div>
-        </div>
-      </section>
-
-      <!-- MONITOR LIVE -->
-      <section class="grid" style="margin-bottom:12px">
-        <div class="card section-wide">
-          <h2>7) Monitor Live — utenti online</h2>
-          <div class="row" style="margin-bottom:10px">
-            <button class="btn primary" id="sa-btn-refresh-online" type="button">Aggiorna monitor</button>
-            <span class="muted" id="sa-online-updated">—</span>
-          </div>
-          <div class="grid" style="margin-bottom:10px">
-            <div class="card section-4"><div class="k">Persone online</div><div class="v mono" id="kpi-online-users">—</div></div>
-            <div class="card section-4"><div class="k">Locali online</div><div class="v mono" id="kpi-online-tenants">—</div></div>
-            <div class="card section-4"><div class="k">Sessioni attive</div><div class="v mono" id="kpi-online-sessions">—</div></div>
-          </div>
-          <div style="overflow:auto;max-height:220px">
-            <table>
-              <thead><tr><th>Utente</th><th>Ruolo</th><th>Tenant</th><th>Reparto</th><th>Ultimo accesso</th></tr></thead>
-              <tbody id="sa-online-tbody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- DEALER / RIVENDITORI -->
-      <section class="grid" style="margin-bottom:20px">
-        <div class="card section-wide">
-          <h2>8) Dealer / Rivenditori</h2>
-          <p class="muted">Gestione account rivenditori e partner commerciali.</p>
-          <div class="grid" style="margin-top:10px">
-            <div class="section-6">
-              <label>Username rivenditore</label>
-              <input id="sa-reseller-username" type="text" placeholder="es. indonesia1" />
-              <label>Password</label>
-              <input id="sa-reseller-password" type="password" />
-              <label>Partner code</label>
-              <input id="sa-reseller-partner" type="text" placeholder="ID-INDO-01" />
-              <label>Nome display</label>
-              <input id="sa-reseller-display" type="text" placeholder="RistoWord Indonesia" />
-              <button class="btn primary" id="sa-btn-create-reseller" type="button" style="margin-top:10px">Crea account rivenditore</button>
-              <div id="sa-reseller-msg" class="muted" style="margin-top:8px"></div>
+            <div class="sa-table-wrap" style="margin-top:12px">
+              <table class="sa-table"><thead><tr><th>Utente</th><th>Ruolo</th><th>Tenant</th><th>Reparto</th><th>Ultimo accesso</th></tr></thead><tbody id="sa-online-tbody"></tbody></table>
             </div>
-            <div class="section-6">
-              <div class="muted">Account rivenditori esistenti</div>
-              <div style="overflow:auto;max-height:200px;margin-top:8px">
-                <table>
-                  <thead><tr><th>Username</th><th>Partner</th><th>Attivo</th></tr></thead>
-                  <tbody id="sa-resellers-tbody"></tbody>
-                </table>
+          </article>
+        </section>
+
+        <!-- TENANTS -->
+        <section class="sa-panel" id="panel-tenants">
+          <div class="sa-grid-2">
+            <article class="sa-card">
+              <h2>Gestione tenants / clienti</h2>
+              <div class="sa-form">
+                <label>Cerca</label>
+                <input id="sa-customers-search" type="text" placeholder="nome, telefono, email..." />
+                <div class="sa-actions">
+                  <button class="btn primary" id="sa-btn-search-customers" type="button">Cerca</button>
+                  <button class="btn ghost" id="sa-btn-refresh-customers" type="button">Aggiorna</button>
+                </div>
               </div>
-              <a href="/reseller-login" class="btn" style="margin-top:10px;text-decoration:none;display:inline-block">Apri portale rivenditore</a>
-              <a href="/super-admin-indonesia" class="btn primary" style="margin-top:10px;text-decoration:none;display:inline-block">Controllo Vendite Indonesia</a>
-            </div>
+              <div class="sa-table-wrap" style="margin-top:12px;max-height:360px;overflow:auto">
+                <table class="sa-table"><thead><tr><th>Tenant</th><th>Nome</th><th>Telefono</th><th>Azioni</th></tr></thead><tbody id="sa-customers-tbody"></tbody></table>
+              </div>
+            </article>
+            <article class="sa-card">
+              <h2>Schede clienti cross-tenant</h2>
+              <div class="sa-form">
+                <input id="cust-q" type="search" placeholder="Cerca cliente..." />
+                <div class="sa-actions">
+                  <button class="btn primary" id="btn-cust-search" type="button">Cerca</button>
+                  <button class="btn ghost" id="btn-cust-refresh" type="button">Tutti</button>
+                </div>
+              </div>
+              <div class="sa-table-wrap" style="margin-top:12px;max-height:300px;overflow:auto">
+                <table class="sa-table"><thead><tr><th>Tenant</th><th>Nome</th><th></th></tr></thead><tbody id="cust-table"></tbody></table>
+              </div>
+            </article>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <!-- LICENZE -->
+        <section class="sa-panel" id="panel-licenses">
+          <div class="sa-grid-2">
+            <article class="sa-card">
+              <h2>Licenze</h2>
+              <div class="sa-table-wrap" style="max-height:380px;overflow:auto">
+                <table class="sa-table"><thead><tr><th>Tenant</th><th>Plan</th><th>Status</th><th>Scadenza</th><th>Azioni</th></tr></thead><tbody id="sa-licenses-tbody"></tbody></table>
+              </div>
+            </article>
+            <article class="sa-card">
+              <h2>Codici trial (mirror GS)</h2>
+              <div id="gs-kpi" class="sa-kpi-row" style="grid-template-columns:repeat(3,minmax(0,1fr))"></div>
+              <p class="muted" id="gs-meta"></p>
+              <div class="sa-actions">
+                <button class="btn primary" id="btn-gen-1" type="button">Genera 1</button>
+                <button class="btn primary" id="btn-gen-25" type="button">Genera 25</button>
+                <button class="btn ghost" id="btn-refresh-codes" type="button">Aggiorna</button>
+              </div>
+              <p class="muted" id="gs-gen-msg"></p>
+              <div class="sa-table-wrap" style="margin-top:10px;max-height:220px;overflow:auto">
+                <table class="sa-table"><thead><tr><th>Codice</th><th>Stato</th><th>Email</th></tr></thead><tbody id="gs-table-body"></tbody></table>
+              </div>
+            </article>
+          </div>
+          <article class="sa-card">
+            <h2>Emergenza — licenza provvisoria</h2>
+            <div class="sa-grid-2 sa-form">
+              <div>
+                <label>restaurantId</label><input id="sa-license-tenant-id" type="text" />
+                <label>plan</label><input id="sa-license-plan" type="text" placeholder="controllo_totale_pro" />
+                <label>giorni</label><input id="sa-license-days" type="number" min="1" value="30" />
+                <label><input id="sa-license-activate-now" type="checkbox" checked /> activateImmediately</label>
+                <button class="btn primary" id="sa-btn-create-temp-license" type="button" style="margin-top:10px">Crea provvisoria</button>
+              </div>
+              <div>
+                <label>Revoca tenant</label><input id="sa-license-revoke-tenant-id" type="text" />
+                <label>Motivo</label><input id="sa-license-revoke-reason" type="text" />
+                <label><input id="sa-license-revoke-suspicious" type="checkbox" /> Segna sospetta</label>
+                <button class="btn danger" id="sa-btn-revoke-license" type="button" style="margin-top:10px">Revoca licenza</button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- DEALER -->
+        <section class="sa-panel" id="panel-dealer">
+          <div class="sa-grid-2">
+            <article class="sa-card sa-form">
+              <h2>Crea account rivenditore</h2>
+              <label>Username</label><input id="sa-reseller-username" type="text" />
+              <label>Password</label><input id="sa-reseller-password" type="password" />
+              <label>Partner code</label><input id="sa-reseller-partner" type="text" />
+              <label>Nome display</label><input id="sa-reseller-display" type="text" />
+              <button class="btn primary" id="sa-btn-create-reseller" type="button">Crea account</button>
+              <p class="muted" id="sa-reseller-msg"></p>
+            </article>
+            <article class="sa-card">
+              <h2>Account rivenditori</h2>
+              <div class="sa-table-wrap"><table class="sa-table"><thead><tr><th>Username</th><th>Partner</th><th>Attivo</th></tr></thead><tbody id="sa-resellers-tbody"></tbody></table></div>
+              <div class="sa-actions" style="margin-top:12px">
+                <a class="btn ghost" href="/reseller-login">Portale rivenditore</a>
+                <a class="btn primary" href="/super-admin-indonesia">Controllo Vendite Indonesia</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- GRUPPI -->
+        <section class="sa-panel" id="panel-groups">
+          <article class="sa-card">
+            <h2>Gruppi Multi-locale</h2>
+            <p class="muted">Gestione catene e gruppi con più sedi. Collega più tenant sotto un unico gruppo per report consolidati e licenze bundle.</p>
+            <p class="muted" style="margin-top:12px">Modulo in preparazione — usa la tab Licenze per gestire i singoli tenant.</p>
+          </article>
+        </section>
+
+        <!-- MANUTENZIONE -->
+        <section class="sa-panel" id="panel-maintenance">
+          <article class="sa-card sa-form">
+            <h2>Modalità manutenzione</h2>
+            <p class="muted">Quando ON: blocco login clienti e checkout. Super Admin resta accessibile.</p>
+            <label>Stato</label>
+            <select id="sa-maintenance-toggle"><option value="false">OFF</option><option value="true">ON</option></select>
+            <button class="btn primary" id="sa-btn-save-maintenance" type="button">Salva</button>
+            <p class="muted" id="sa-maintenance-msg"></p>
+          </article>
+        </section>
+
+        <!-- UTENTI -->
+        <section class="sa-panel" id="panel-users">
+          <div class="sa-grid-2">
+            <article class="sa-card">
+              <h2>Accessi utenti (globale)</h2>
+              <div class="sa-table-wrap" style="max-height:320px;overflow:auto">
+                <table class="sa-table"><thead><tr><th>Utente</th><th>Ruolo</th><th>Tenant</th><th>Attivo</th></tr></thead><tbody id="sa-users-tbody"></tbody></table>
+              </div>
+            </article>
+            <article class="sa-card">
+              <h2>Gestione account (reset password)</h2>
+              <button class="btn ghost" id="btn-refresh-users" type="button">Aggiorna elenco</button>
+              <div class="sa-table-wrap" style="margin-top:10px;max-height:320px;overflow:auto">
+                <table class="sa-table"><thead><tr><th>Username</th><th>Ruolo</th><th>Tenant</th><th>Azioni</th></tr></thead><tbody id="users-table"></tbody></table>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- EMAIL -->
+        <section class="sa-panel" id="panel-email">
+          <div class="sa-grid-2">
+            <article class="sa-card sa-form">
+              <h2>Rubrica email piattaforma</h2>
+              <label>Email</label><input id="contact-email" type="email" />
+              <label>Categoria</label>
+              <select id="contact-cat"><option value="assistenza">Assistenza</option><option value="info">Info</option><option value="amministrazione">Amministrazione</option><option value="altro">Altro</option></select>
+              <label>Note</label><textarea id="contact-note" rows="2"></textarea>
+              <button class="btn primary" id="btn-contact-add" type="button">Salva contatto</button>
+              <p class="muted" id="contact-msg"></p>
+            </article>
+            <article class="sa-card">
+              <h2>Contatti salvati</h2>
+              <div class="sa-table-wrap"><table class="sa-table"><thead><tr><th>Email</th><th>Categoria</th><th>Nota</th></tr></thead><tbody id="contacts-table"></tbody></table></div>
+            </article>
+          </div>
+        </section>
+
+        <!-- SISTEMA -->
+        <section class="sa-panel" id="panel-system">
+          <div class="sa-grid-2">
+            <article class="sa-card">
+              <h2>Stato server</h2>
+              <p class="muted">Server time: <span class="mono" id="sys-time">—</span></p>
+              <p class="muted">Versione: <span class="mono" id="sys-version">—</span></p>
+              <p class="muted">Stripe keys: <span id="stripe-presence">—</span></p>
+              <p class="muted">Webhook: <span id="stripe-webhook-status">—</span></p>
+            </article>
+            <article class="sa-card sa-form">
+              <h2>Config Stripe (masked)</h2>
+              <p class="mono muted" id="stripe-secret-key">—</p>
+              <label>STRIPE_SECRET_KEY</label><input id="sa-stripe-secret-key-input" type="password" />
+              <label>STRIPE_WEBHOOK_SECRET</label><input id="sa-stripe-webhook-secret-input" type="password" />
+              <label>PRICE MONTHLY</label><input id="sa-stripe-price-monthly-input" type="text" />
+              <label>PRICE ANNUAL</label><input id="sa-stripe-price-annual-input" type="text" />
+              <button class="btn primary" id="sa-btn-save-stripe-config" type="button">Salva config</button>
+              <p class="muted" id="sa-stripe-save-msg"></p>
+            </article>
+          </div>
+          <article class="sa-card">
+            <h2>Pagamenti Stripe (mock)</h2>
+            <div class="sa-table-wrap" style="max-height:260px;overflow:auto">
+              <table class="sa-table"><thead><tr><th>Session</th><th>Tenant</th><th>Plan</th><th>Status</th></tr></thead><tbody id="sa-payments-tbody"></tbody></table>
+            </div>
+          </article>
+        </section>
+      </main>
     </div>
+  </div>
 
-    <script src="/super-admin/js/super-admin-dashboard.js"></script>
-  </body>
+  <div class="sa-modal-backdrop" id="modal-ai"><div class="sa-modal wide"><h2 style="margin:0 0 12px">✨ AI Assistant</h2><p class="muted" id="ai-sa-hint">Analisi piattaforma basata su dati reali.</p><div id="ai-sa-log" style="max-height:200px;overflow:auto;margin:12px 0"></div><form id="ai-sa-form" style="display:flex;gap:8px"><input id="ai-sa-input" style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border-soft);background:var(--bg-soft);color:var(--text)" placeholder="Chiedi sullo stato piattaforma..." /><button class="btn primary" type="submit">Invia</button></form><div style="margin-top:12px;text-align:right"><button class="btn ghost" id="modal-ai-close" type="button">Chiudi</button></div></div></div>
+  <div class="sa-modal-backdrop" id="modal-user"><div class="sa-modal"><h3 id="modal-user-title">Utente</h3><div id="modal-user-fields"></div><button class="btn ghost" id="modal-user-close" type="button">Chiudi</button></div></div>
+  <div class="sa-modal-backdrop" id="modal-cust"><div class="sa-modal"><h3 id="modal-cust-title">Cliente</h3><div id="modal-cust-fields"></div><button class="btn ghost" id="modal-cust-close" type="button">Chiudi</button></div></div>
+  <div class="sa-modal-backdrop" id="modal-pwd"><div class="sa-modal"><h3>Password temporanea</h3><p class="mono" id="modal-pwd-text"></p><button class="btn primary" id="modal-pwd-copy" type="button">Copia</button><button class="btn ghost" id="modal-pwd-close" type="button">Chiudi</button></div></div>
+
+  <script src="/shared/sidebar-mobile.js"></script>
+  <script src="/super-admin/js/super-admin-dashboard.js?v=20260622"></script>
+</body>
 </html>
-

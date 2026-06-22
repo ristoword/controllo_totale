@@ -4,89 +4,211 @@
   <meta charset="UTF-8" />
   <title data-i18n="situazione_title">CONTROLLO TOTALE – Situazione del Giorno</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/shared/module-page.css" />
-  <link rel="stylesheet" href="/shared/print-layout.css" />
   <link rel="stylesheet" href="situazione-giorno.css" />
 </head>
 <body>
   <div class="layout">
-    <header class="topbar">
-      <div class="topbar-left">
-        <h1 data-i18n="situazione_title">CONTROLLO TOTALE – Situazione del Giorno</h1>
-        <p class="subtitle" data-i18n="situazione_subtitle">Briefing operativo live · Prenotazioni · Staff · Cucina · Incasso</p>
-        <div class="live-badge" id="live-badge">
-          <span class="live-dot"></span>
-          <span data-i18n="situazione_live_data">Dati live —</span> <span id="live-time">—</span>
+
+    <aside class="sidebar">
+      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <div class="brand">
+        <div class="brand-logo">RW</div>
+        <div class="brand-text">
+          <div class="brand-title">RistoWord</div>
+          <div class="brand-subtitle" data-i18n="situazione_brand_sub">Situazione operativa</div>
         </div>
       </div>
-      <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost" data-i18n="dashboard_back">← Dashboard</a>
-        <button class="btn ghost" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
-        <button class="btn primary" id="btn-speak" type="button" data-i18n="situazione_speak">Ascolta briefing</button>
-        <button class="btn ghost" id="btn-voice" type="button" data-i18n="situazione_voice_cmd">🎤 Risto, situazione</button>
-      </div>
-    </header>
 
-    <div class="kpi-row" id="stats-grid">
-      <div class="chip"><span class="chip-label" data-i18n="situazione_bookings">Prenotazioni</span><span class="chip-value" id="k-bookings">0</span></div>
-      <div class="chip"><span class="chip-label" data-i18n="situazione_covers">Coperti previsti</span><span class="chip-value" id="k-covers">0</span></div>
-      <div class="chip"><span class="chip-label" data-i18n="situazione_staff_service">Staff in servizio</span><span class="chip-value" id="k-staff">0</span></div>
-      <div class="chip warn"><span class="chip-label" data-i18n="situazione_late_orders">Ordini in ritardo</span><span class="chip-value" id="k-late">0</span></div>
-      <div class="chip ok"><span class="chip-label" data-i18n="situazione_revenue_today">Incasso oggi</span><span class="chip-value" id="k-revenue">€ 0</span></div>
-      <div class="chip warn"><span class="chip-label" data-i18n="cantina_low_stock">Sotto scorta</span><span class="chip-value" id="k-stock">0</span></div>
-    </div>
+      <nav class="side-nav">
+        <div class="nav-section-label" data-i18n="nav_section_oggi">OGGI</div>
+
+        <a class="nav-item" href="/dashboard/dashboard.html">
+          <span class="nav-icon" aria-hidden="true">📊</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="nav_panoramica">Panoramica</span>
+            <span class="nav-hint" data-i18n="nav_panoramica_hint">Dashboard generale</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/ai-assistente">
+          <span class="nav-icon" aria-hidden="true">🤖</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="ai_assistente">AI Assistente</span>
+            <span class="nav-hint" data-i18n="nav_ai_hint">Supervisore intelligente</span>
+          </span>
+        </a>
+
+        <a class="nav-item active" href="/situazione-giorno" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">📋</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="situazione_giorno">Situazione del Giorno</span>
+            <span class="nav-hint" data-i18n="nav_situazione_hint">Briefing live della giornata</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/risto-comandi">
+          <span class="nav-icon" aria-hidden="true">🎤</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="risto_comandi">Risto Comandi</span>
+            <span class="nav-hint" data-i18n="nav_risto_hint">Comandi vocali operativi</span>
+          </span>
+        </a>
+
+        <div class="nav-section-label" data-i18n="nav_section_operativita">OPERATIVITÀ</div>
+
+        <a class="nav-item" href="/sala/sala.html">
+          <span class="nav-icon" aria-hidden="true">🍽️</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="sala">Sala</span>
+            <span class="nav-hint" data-i18n="nav_sala_hint">Mappa tavoli e azioni</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/sala/sala-fullscreen.html">
+          <span class="nav-icon" aria-hidden="true">🖥️</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="sala_fullscreen">Sala Fullscreen</span>
+            <span class="nav-hint" data-i18n="nav_sala_fs_hint">Mappa a schermo intero</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/cucina/cucina.html">
+          <span class="nav-icon" aria-hidden="true">👨‍🍳</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="cucina">Cucina</span>
+            <span class="nav-hint" data-i18n="nav_cucina_hint">KDS, ricette, HACCP</span>
+          </span>
+        </a>
+
+        <a class="nav-item" href="/pizzeria/pizzeria.html">
+          <span class="nav-icon" aria-hidden="true">🍕</span>
+          <span class="nav-text">
+            <span class="nav-label" data-i18n="pizzeria">Pizzeria</span>
+            <span class="nav-hint" data-i18n="nav_pizzeria_hint">KDS pizza e note</span>
+          </span>
+        </a>
+      </nav>
+
+      <div class="side-tip">
+        <span data-i18n="nav_ristoword_tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</span>
+      </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <main class="main">
-      <article class="card">
-        <header class="card-header">
-          <h2 data-i18n="situazione_narrative">Narrativa operativa</h2>
-          <p data-i18n="situazione_narrative_sub">Sintesi della giornata in corso</p>
-        </header>
-        <div class="card-body">
-          <p class="narrative" id="narrative">...</p>
-          <p class="hint" data-i18n="situazione_live_hint">Dati letti in tempo reale dal gestionale — nessun dato demo.</p>
+      <header class="page-header">
+        <div>
+          <h1 data-i18n="situazione_page_title">Situazione del Giorno</h1>
+          <p class="page-sub" id="live-time" data-i18n="situazione_loading">Caricamento situazione...</p>
         </div>
-      </article>
+        <div class="header-actions">
+          <div id="lang-selector"></div>
+          <button class="btn ghost" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
+        </div>
+      </header>
 
-      <div class="two-col">
-        <article class="card">
-          <header class="card-header">
-            <h2 data-i18n="situazione_bookings_today">Prenotazioni oggi</h2>
-            <p data-i18n="situazione_bookings_sub">Arrivi previsti e coperti</p>
+      <section class="tts-bar">
+        <button class="tts-btn" id="btn-speak" type="button">
+          <span class="tts-play" aria-hidden="true">▶</span>
+          <span class="tts-text">
+            <span class="tts-label" data-i18n="situazione_tts_label">Leggi tutto ad alta voce</span>
+            <span class="tts-sub" data-i18n="situazione_tts_sub">Narrato da AI</span>
+          </span>
+        </button>
+      </section>
+
+      <section class="kpi-row">
+        <article class="kpi-card">
+          <div class="kpi-label" data-i18n="situazione_kpi_bookings">Prenotazioni oggi</div>
+          <div class="kpi-value" id="k-bookings">0</div>
+          <div class="kpi-note"><span id="k-covers">0</span> <span data-i18n="situazione_kpi_covers">coperti</span></div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label" data-i18n="situazione_kpi_staff">Staff in servizio</div>
+          <div class="kpi-value" id="k-staff">0</div>
+          <div class="kpi-note"><span id="k-shifts">0</span> <span data-i18n="situazione_kpi_shifts">turni pianificati</span></div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label" data-i18n="situazione_kpi_orders">Comande attive</div>
+          <div class="kpi-value" id="k-orders">0</div>
+          <div class="kpi-note"><span id="k-orders-today">0</span> <span data-i18n="situazione_kpi_orders_today">ordini oggi</span></div>
+        </article>
+        <article class="kpi-card">
+          <div class="kpi-label" data-i18n="situazione_kpi_tasks">Cose da fare</div>
+          <div class="kpi-value" id="k-tasks">0</div>
+          <div class="kpi-note"><span id="k-stock">0</span> <span data-i18n="situazione_kpi_low_stock">sotto scorta</span></div>
+        </article>
+      </section>
+
+      <section class="panel-grid">
+        <article class="panel">
+          <header class="panel-head">
+            <h2 data-i18n="situazione_panel_bookings">Prenotazioni di oggi</h2>
           </header>
-          <div class="card-body tbl-wrap">
-            <table class="tbl">
-              <thead><tr>
-                <th data-i18n="situazione_col_time">Ora</th>
-                <th data-i18n="situazione_col_client">Cliente</th>
-                <th data-i18n="situazione_col_covers">Coperti</th>
-                <th data-i18n="situazione_col_table">Tavolo</th>
-              </tr></thead>
-              <tbody id="bookings-tbody"></tbody>
-            </table>
+          <div class="panel-body" id="panel-bookings">
+            <p class="empty" data-i18n="situazione_no_bookings">Nessuna prenotazione per oggi</p>
           </div>
         </article>
 
-        <article class="card">
-          <header class="card-header">
-            <h2 data-i18n="situazione_warehouse_critical">Magazzino critico</h2>
-            <p data-i18n="situazione_warehouse_sub">Prodotti sotto soglia minima</p>
+        <article class="panel">
+          <header class="panel-head panel-head-staff">
+            <h2 data-i18n="situazione_panel_staff">Staff presente</h2>
+            <span class="badge badge-ok" data-i18n="situazione_staff_now">IN SERVIZIO ADESSO</span>
           </header>
-          <div class="card-body tbl-wrap">
-            <table class="tbl">
-              <thead><tr>
-                <th data-i18n="situazione_col_product">Prodotto</th>
-                <th data-i18n="situazione_col_stock">Giacenza</th>
-                <th data-i18n="situazione_col_threshold">Soglia</th>
-              </tr></thead>
-              <tbody id="stock-tbody"></tbody>
-            </table>
+          <div class="panel-body" id="panel-staff">
+            <p class="empty" data-i18n="situazione_no_staff">Nessuno in servizio al momento</p>
           </div>
         </article>
-      </div>
+
+        <article class="panel">
+          <header class="panel-head">
+            <h2 data-i18n="situazione_panel_kitchen">Comande e prodotti da preparare</h2>
+            <span class="badge badge-warn" id="badge-prep">0</span>
+          </header>
+          <div class="panel-body" id="panel-kitchen">
+            <p class="empty" data-i18n="situazione_no_orders">Nessuna comanda attiva al momento</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <header class="panel-head">
+            <h2 data-i18n="situazione_panel_tasks">Merce e cose da fare</h2>
+          </header>
+          <div class="panel-body" id="panel-tasks">
+            <p class="empty" data-i18n="situazione_no_tasks">Nessuna notifica in sospeso</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="bottom-row">
+        <article class="bottom-card">
+          <div class="bottom-label" data-i18n="situazione_revenue_est">INCASSO STIMATO OGGI</div>
+          <div class="bottom-value" id="k-revenue">€ 0,00</div>
+          <div class="bottom-note"><span id="k-completed">0</span> <span data-i18n="situazione_orders_completed">ordini completati</span></div>
+        </article>
+
+        <article class="bottom-card bottom-card-hotel" id="card-hotel">
+          <div class="bottom-label" data-i18n="situazione_hotel">HOTEL</div>
+          <div class="bottom-value hotel-line" id="hotel-occupancy">—</div>
+          <div class="bottom-note" id="hotel-detail" data-i18n="situazione_hotel_inactive">Modulo hotel non attivo</div>
+        </article>
+
+        <article class="bottom-card">
+          <div class="bottom-label" data-i18n="situazione_orders_by_area">COMANDE PER AREA</div>
+          <div class="panel-body compact" id="panel-areas">
+            <p class="empty" data-i18n="situazione_no_orders">Nessuna comanda attiva</p>
+          </div>
+        </article>
+      </section>
     </main>
   </div>
+
   <script src="/js/i18n.js"></script>
-  <script src="situazione-giorno.js"></script>
+  <script src="/shared/sidebar-mobile.js"></script>
+  <script src="situazione-giorno.js?v=20260622"></script>
 </body>
 </html>

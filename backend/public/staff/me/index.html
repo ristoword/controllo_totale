@@ -2,96 +2,145 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Controllo Totale — Il mio profilo</title>
+  <title data-i18n="staff.me.title">Il mio profilo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/shared/rw-shell.css" />
   <link rel="stylesheet" href="staff-me.css" />
 </head>
 <body>
-  <div class="layout-me">
+  <div class="layout rw-layout me-layout">
 
-    <!-- PROFILE HEADER -->
-    <div class="profile-header">
-      <div class="avatar" id="avatar">—</div>
-      <div class="profile-info">
-        <h1 class="profile-name" id="profile-name">Caricamento…</h1>
-        <span class="profile-role" id="profile-role">—</span>
-      </div>
-      <div class="profile-actions">
-        <a class="btn ghost" href="/dashboard/dashboard.html">Dashboard</a>
-        <a class="btn ghost" href="/change-password/change-password.html">Cambio password</a>
-      </div>
-    </div>
-
-    <!-- INFO CARDS -->
-    <div class="info-cards">
-      <div class="info-card">
-        <div class="info-card-label">Email</div>
-        <div class="info-card-value" id="info-email">—</div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-label">Data assunzione</div>
-        <div class="info-card-value" id="info-hire">—</div>
-      </div>
-      <div class="info-card">
-        <div class="info-card-label">Ore/settimana</div>
-        <div class="info-card-value" id="info-hours">—</div>
-      </div>
-    </div>
-
-    <!-- CLOCK IN/OUT -->
-    <article class="card">
-      <header class="card-header">
-        <h2>Timbratura</h2>
-      </header>
-      <div class="card-body">
-        <div class="clock-section">
-          <div class="clock-status-box">
-            <div class="clock-status-label">Stato turno corrente</div>
-            <div class="clock-status-value" id="clock-status-text">Caricamento…</div>
-          </div>
-          <div class="clock-actions">
-            <button class="btn primary" id="btn-clock-in" disabled>Timbra entrata</button>
-            <button class="btn" id="btn-clock-out" disabled style="border-color:var(--ok);color:var(--ok);">Timbra uscita</button>
-          </div>
-          <div id="msg-clock" class="msg-bar"></div>
+    <aside class="sidebar">
+      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
+      <div class="brand">
+        <div class="brand-logo">RW</div>
+        <div class="brand-text">
+          <div class="brand-title">RistoWord</div>
+          <div class="brand-subtitle" data-i18n="rw_tagline">Un tocco, un'azione. Niente stress.</div>
         </div>
       </div>
-    </article>
+      <nav class="side-nav">
+        <div class="nav-section-label" data-i18n="nav_section_operativita">OPERATIVITÀ</div>
+        <a class="nav-item" href="/cucina/food-cost.html"><span class="nav-icon">📊</span><span class="nav-text"><span class="nav-label" data-i18n="food_cost">Food Cost</span><span class="nav-hint" data-i18n="food_cost_tip">Analisi costi</span></span></a>
+        <a class="nav-item" href="/catering/catering.html"><span class="nav-icon">🎉</span><span class="nav-text"><span class="nav-label" data-i18n="catering">Catering</span><span class="nav-hint" data-i18n="catering">Eventi</span></span></a>
+        <a class="nav-item" href="/cantina"><span class="nav-icon">🍷</span><span class="nav-text"><span class="nav-label" data-i18n="cantina">Cantina</span><span class="nav-hint" data-i18n="nav_cantina_hint">Carta vini</span></span></a>
+        <div class="nav-section-label" data-i18n="nav_section_persone">PERSONE</div>
+        <a class="nav-item" href="/staff/staff.html"><span class="nav-icon">👥</span><span class="nav-text"><span class="nav-label" data-i18n="staff">Staff</span><span class="nav-hint" data-i18n="staff.nav_hint">Dipendenti, turni, presenze</span></span></a>
+        <a class="nav-item" href="/turni/turni.html"><span class="nav-icon">📅</span><span class="nav-text"><span class="nav-label" data-i18n="turni">Turni</span><span class="nav-hint" data-i18n="turni_tip">Pianificazione turni</span></span></a>
+        <a class="nav-item" href="/staff-hr/index.html"><span class="nav-icon">📋</span><span class="nav-text"><span class="nav-label" data-i18n="staff_hr">Staff HR</span><span class="nav-hint" data-i18n="staff.hr.nav_hint">Presenze, ferie, pagamenti</span></span></a>
+        <a class="nav-item active" href="/staff/me/index.html" aria-current="page"><span class="nav-icon">👤</span><span class="nav-text"><span class="nav-label" data-i18n="my_profile">Il mio profilo</span><span class="nav-hint" data-i18n="my_profile_tip">Turni, ferie, timbrature</span></span></a>
+        <a class="nav-item" href="/supervisor/customers/customers.html"><span class="nav-icon">🧑‍🤝‍🧑</span><span class="nav-text"><span class="nav-label" data-i18n="customers.nav_label">CRM Clienti</span><span class="nav-hint" data-i18n="customers.nav_hint">Anagrafica clienti</span></span></a>
+        <a class="nav-item" href="/supervisor/supervisor.html"><span class="nav-icon">📈</span><span class="nav-text"><span class="nav-label" data-i18n="supervisor">Supervisor</span><span class="nav-hint" data-i18n="customers.supervisor_hint">KPI e report</span></span></a>
+      </nav>
+      <div class="side-tip"><span data-i18n="nav_ristoword_tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</span></div>
+    </aside>
 
-    <!-- MONTHLY HOURS -->
-    <div class="hours-total-box">
-      <span class="hours-total-label">Ore totali mese corrente</span>
-      <span class="hours-total-value" id="month-hours-total">—</span>
-    </div>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-    <!-- ATTENDANCE TABLE -->
-    <article class="card">
-      <header class="card-header">
-        <h2>Le mie presenze</h2>
-      </header>
-      <div class="card-body">
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Entrata</th>
-                <th>Uscita</th>
-                <th>Ore</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-attendance">
-              <tr><td colspan="4" class="empty-cell">Caricamento…</td></tr>
-            </tbody>
-          </table>
+    <div class="main-col">
+      <header class="app-header">
+        <div>
+          <p class="greeting-title" id="rw-greeting">Ciao</p>
+          <p class="greeting-date" id="rw-date">—</p>
         </div>
-      </div>
-    </article>
+        <div class="global-search">
+          <span class="global-search-icon" aria-hidden="true">🔍</span>
+          <input type="search" data-i18n-placeholder="rw_search_placeholder" placeholder="Cerca ovunque..." />
+        </div>
+        <div class="header-actions">
+          <div id="lang-selector"></div>
+          <button class="header-bell" type="button" aria-label="Notifiche">🔔</button>
+          <div class="user-avatar" id="rw-avatar">?</div>
+        </div>
+      </header>
 
+      <main class="main me-main">
+        <header class="me-hero">
+          <div>
+            <h1 data-i18n="staff.me.title">Il mio profilo</h1>
+            <p id="me-subtitle"><span data-i18n="staff.me.subtitle">Turni, ferie e timbrature personali</span> — <span id="me-date-label">—</span></p>
+          </div>
+        </header>
+
+        <div class="me-top-grid">
+          <article class="card profile-card">
+            <div class="profile-card-inner">
+              <div class="avatar-lg" id="avatar">—</div>
+              <div class="profile-details">
+                <h2 class="profile-name" id="profile-name">—</h2>
+                <span class="role-badge" id="profile-role">—</span>
+                <ul class="profile-meta">
+                  <li><span class="meta-icon">✉</span><span id="info-email">—</span></li>
+                  <li><span class="meta-icon">📅</span><span data-i18n="staff.me.hiredOn">Assunto il</span> <span id="info-hire">—</span></li>
+                  <li><span class="meta-icon">🕐</span><span data-i18n="staff.me.contractHours">Ore contratto</span> <strong id="info-hours">—</strong></li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="card stamp-card">
+            <header class="card-header compact">
+              <h2 data-i18n="staff.me.timestampCard">Timbratura</h2>
+            </header>
+            <div class="card-body">
+              <div class="stamp-mini-grid">
+                <div class="stamp-mini">
+                  <div class="stamp-mini-label" data-i18n="staff.me.currentShift">Turno corrente</div>
+                  <div class="stamp-mini-value" id="clock-status-text">—</div>
+                </div>
+                <div class="stamp-mini">
+                  <div class="stamp-mini-label" data-i18n="staff.me.monthHours">Ore mese</div>
+                  <div class="stamp-mini-value accent" id="month-hours-total">0.0h</div>
+                </div>
+              </div>
+              <div class="stamp-actions">
+                <button class="btn stamp-in" id="btn-clock-in" type="button" disabled>↪ <span data-i18n="staff.me.stampEntry">Timbra entrata</span></button>
+                <button class="btn stamp-out" id="btn-clock-out" type="button" disabled>↩ <span data-i18n="staff.me.stampExit">Timbra uscita</span></button>
+              </div>
+              <div id="msg-clock" class="msg-bar"></div>
+            </div>
+          </article>
+        </div>
+
+        <article class="card">
+          <header class="card-header">
+            <h2 data-i18n="staff.me.monthAttendance">Presenze del mese</h2>
+            <span class="month-badge" id="month-badge">0.0h</span>
+          </header>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="staff.me.date">Data</th>
+                    <th data-i18n="staff.hr.entry">Entrata</th>
+                    <th data-i18n="staff.hr.exit">Uscita</th>
+                    <th data-i18n="staff.hr.hours">Ore</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-attendance">
+                  <tr><td colspan="4" class="empty-cell" data-i18n="staff.me.noTimestamp">Nessuna timbratura.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
+        <div class="payroll-notice">
+          <span class="notice-icon" aria-hidden="true">ℹ</span>
+          <div>
+            <strong data-i18n="staff.me.payrollNotice">Busta paga</strong>
+            <p data-i18n="staff.me.payrollNoticeDesc">Le buste paga sono disponibili nel modulo Payroll. Per dubbi contatta l'owner o HR.</p>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 
-  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,cucina,cassa,staff,bar,magazzino,pizzeria,cashier,kitchen"></script>
-  <script src="staff-me.js"></script>
   <script src="/js/i18n.js"></script>
+  <script src="/shared/sidebar-mobile.js"></script>
+  <script src="/shared/rw-shell.js"></script>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,cucina,cassa,staff,bar,magazzino,pizzeria,cashier,kitchen"></script>
+  <script src="staff-me.js?v=20260622"></script>
 </body>
 </html>

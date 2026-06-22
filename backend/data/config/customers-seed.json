@@ -1,0 +1,61 @@
+[
+  {
+    "name": "Anna",
+    "surname": "Bianchi",
+    "phone": "+39 340 1122334",
+    "email": "anna.bianchi@email.it",
+    "category": "habitue",
+    "visits": 38,
+    "totalSpent": 2450,
+    "lastVisit": "2026-06-18",
+    "allergies": ["frutta secca"],
+    "preferences": ["tavolo finestra", "acqua naturale"],
+    "notes": "Cliente affezionata, viene il venerdì sera"
+  },
+  {
+    "name": "Giovanni",
+    "surname": "Rossi",
+    "phone": "+39 333 9988776",
+    "email": "g.rossi@azienda.it",
+    "category": "vip",
+    "visits": 52,
+    "totalSpent": 4820,
+    "lastVisit": "2026-06-20",
+    "preferences": ["vini rossi strutturati", "dolce incluso"],
+    "notes": "Organizza cene aziendali"
+  },
+  {
+    "name": "Sofia",
+    "surname": "Verdi",
+    "phone": "+39 347 5566778",
+    "email": "sofia.verdi@gmail.com",
+    "category": "nuovo",
+    "visits": 2,
+    "totalSpent": 186,
+    "lastVisit": "2026-06-10",
+    "allergies": [],
+    "intolerances": ["lattosio"]
+  },
+  {
+    "name": "Marco",
+    "surname": "Neri",
+    "phone": "+39 320 4455667",
+    "category": "walkin",
+    "visits": 6,
+    "totalSpent": 420,
+    "lastVisit": "2026-06-05",
+    "notes": "Passa spesso a pranzo"
+  },
+  {
+    "name": "Elena",
+    "surname": "Conti",
+    "phone": "+39 338 2211009",
+    "email": "elena.conti@email.it",
+    "category": "habitue",
+    "visits": 24,
+    "totalSpent": 1680,
+    "lastVisit": "2026-06-15",
+    "allergies": ["glutine"],
+    "preferences": ["menu senza glutine"]
+  }
+]

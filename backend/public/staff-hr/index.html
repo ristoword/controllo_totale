@@ -2,246 +2,255 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Controllo Totale — Staff HR</title>
+  <title data-i18n="staff.hr.title">Staff HR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/shared/rw-shell.css" />
   <link rel="stylesheet" href="staff-hr.css" />
 </head>
 <body>
-  <div class="layout">
+  <div class="layout rw-layout hr-layout">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
+      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
       <div class="brand">
-        <div class="brand-logo">CT</div>
-        <div>
-          <div class="brand-name">CONTROLLO TOTALE</div>
-          <div class="brand-sub">Staff HR</div>
+        <div class="brand-logo">RW</div>
+        <div class="brand-text">
+          <div class="brand-title">RistoWord</div>
+          <div class="brand-subtitle" data-i18n="rw_tagline">Un tocco, un'azione. Niente stress.</div>
         </div>
       </div>
-
-      <nav class="nav">
-        <a class="nav-item" href="/dashboard">Dashboard</a>
-        <a class="nav-item" href="/sala/sala.html">Sala</a>
-        <a class="nav-item" href="/cucina/cucina.html">Cucina</a>
-        <a class="nav-item" href="/pizzeria/pizzeria.html">Pizzeria</a>
-        <a class="nav-item" href="/bar/bar.html">Bar</a>
-        <a class="nav-item" href="/cassa/cassa.html">Cassa</a>
-        <a class="nav-item" href="/magazzino/magazzino.html">Magazzino</a>
-        <a class="nav-item" href="/prenotazioni/prenotazioni.html">Prenotazioni</a>
-        <a class="nav-item" href="/supervisor/supervisor.html">Supervisor</a>
-        <a class="nav-item" href="/staff/staff.html">Staff</a>
-        <a class="nav-item" href="/turni/turni.html">Turni</a>
-        <a class="nav-item active" href="/staff-hr/index.html">Staff HR</a>
-        <a class="nav-item" href="/staff/me/index.html">Il mio profilo</a>
-        <a class="nav-item" href="/archivio/archivio.html">Archivio</a>
+      <nav class="side-nav">
+        <div class="nav-section-label" data-i18n="nav_section_operativita">OPERATIVITÀ</div>
+        <a class="nav-item" href="/cucina/food-cost.html"><span class="nav-icon">📊</span><span class="nav-text"><span class="nav-label" data-i18n="food_cost">Food Cost</span><span class="nav-hint" data-i18n="food_cost_tip">Analisi costi</span></span></a>
+        <a class="nav-item" href="/catering/catering.html"><span class="nav-icon">🎉</span><span class="nav-text"><span class="nav-label" data-i18n="catering">Catering</span><span class="nav-hint" data-i18n="catering">Eventi</span></span></a>
+        <a class="nav-item" href="/cantina"><span class="nav-icon">🍷</span><span class="nav-text"><span class="nav-label" data-i18n="cantina">Cantina</span><span class="nav-hint" data-i18n="nav_cantina_hint">Carta vini</span></span></a>
+        <div class="nav-section-label" data-i18n="nav_section_persone">PERSONE</div>
+        <a class="nav-item" href="/staff/staff.html"><span class="nav-icon">👥</span><span class="nav-text"><span class="nav-label" data-i18n="staff">Staff</span><span class="nav-hint" data-i18n="staff.nav_hint">Dipendenti, turni, presenze</span></span></a>
+        <a class="nav-item" href="/turni/turni.html"><span class="nav-icon">📅</span><span class="nav-text"><span class="nav-label" data-i18n="turni">Turni</span><span class="nav-hint" data-i18n="turni_tip">Pianificazione turni</span></span></a>
+        <a class="nav-item active" href="/staff-hr/index.html" aria-current="page"><span class="nav-icon">📋</span><span class="nav-text"><span class="nav-label" data-i18n="staff_hr">Staff HR</span><span class="nav-hint" data-i18n="staff.hr.nav_hint">Presenze, ferie, pagamenti</span></span></a>
+        <a class="nav-item" href="/staff/me/index.html"><span class="nav-icon">👤</span><span class="nav-text"><span class="nav-label" data-i18n="my_profile">Il mio profilo</span><span class="nav-hint" data-i18n="my_profile_tip">Turni, ferie, timbrature</span></span></a>
+        <a class="nav-item" href="/supervisor/customers/customers.html"><span class="nav-icon">🧑‍🤝‍🧑</span><span class="nav-text"><span class="nav-label" data-i18n="customers.nav_label">CRM Clienti</span><span class="nav-hint" data-i18n="customers.nav_hint">Anagrafica clienti</span></span></a>
+        <a class="nav-item" href="/supervisor/supervisor.html"><span class="nav-icon">📈</span><span class="nav-text"><span class="nav-label" data-i18n="supervisor">Supervisor</span><span class="nav-hint" data-i18n="customers.supervisor_hint">KPI e report</span></span></a>
       </nav>
-
-      <div class="sidebar-footer">
-        <div class="tiny muted" id="user-label">—</div>
-        <a class="btn-logout" href="/login">Logout</a>
-      </div>
+      <div class="side-tip"><span data-i18n="nav_ristoword_tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</span></div>
     </aside>
 
-    <!-- MAIN -->
-    <main class="main">
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-      <header class="topbar">
-        <div class="topbar-left">
-          <h1>Staff HR</h1>
-          <p class="subtitle">Presenze, ore, ferie e costo personale</p>
+    <div class="main-col">
+      <header class="app-header">
+        <div>
+          <p class="greeting-title" id="rw-greeting">Ciao</p>
+          <p class="greeting-date" id="rw-date">—</p>
         </div>
-        <div class="topbar-right">
-          <button class="btn ghost" id="btn-refresh">Aggiorna</button>
+        <div class="global-search">
+          <span class="global-search-icon" aria-hidden="true">🔍</span>
+          <input type="search" data-i18n-placeholder="rw_search_placeholder" placeholder="Cerca ovunque..." />
+        </div>
+        <div class="header-actions">
+          <div id="lang-selector"></div>
+          <button class="header-bell" type="button" aria-label="Notifiche">🔔</button>
+          <div class="user-avatar" id="rw-avatar">?</div>
         </div>
       </header>
 
-      <!-- TABS -->
-      <div class="tabs">
-        <button class="tab active" data-tab="presenze">Presenze oggi</button>
-        <button class="tab" data-tab="ore">Riepilogo ore</button>
-        <button class="tab" data-tab="ferie">Calendario ferie</button>
-        <button class="tab" data-tab="costi">Costo personale</button>
-      </div>
-
-      <div id="msg-global" class="msg-bar" style="display:none;"></div>
-
-      <!-- TAB: PRESENZE -->
-      <section class="tab-panel active" id="panel-presenze">
-        <div class="kpi-row">
-          <div class="kpi-card">
-            <div class="kpi-label">Dipendenti attivi</div>
-            <div class="kpi-value accent" id="kpi-active-staff">—</div>
+      <main class="main hr-main">
+        <header class="hr-hero">
+          <div>
+            <h1 data-i18n="staff.hr.title">Staff HR</h1>
+            <p id="hr-subtitle"><span data-i18n="staff.hr.subtitle">Presenze, ore, ferie e costo personale</span> — <span id="hr-date-label">—</span></p>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Timbrature oggi</div>
-            <div class="kpi-value" id="kpi-clock-count">—</div>
+          <div class="hr-hero-actions">
+            <button class="btn ghost" id="btn-export-csv" type="button">⬇ <span data-i18n="staff.hr.exportCsv">Esporta CSV</span></button>
+            <button class="btn ghost" id="btn-print-pdf" type="button">↗ <span data-i18n="staff.hr.printPdf">Stampa PDF</span></button>
+            <button class="btn ghost" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Ore cumulate</div>
-            <div class="kpi-value accent" id="kpi-hours-today">—</div>
-          </div>
-        </div>
+        </header>
 
-        <div class="card">
-          <div class="card-header">
-            <h2>Timbrature</h2>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input type="date" id="attendance-date" class="input-date" />
-              <button class="btn ghost small" id="btn-load-attendance">Carica</button>
+        <nav class="hr-tabs" id="hr-tabs">
+          <button type="button" class="hr-tab active" data-tab="oggi" data-i18n="staff.hr.todayTab">Oggi</button>
+          <button type="button" class="hr-tab" data-tab="mese" data-i18n="staff.hr.monthTab">Mese</button>
+          <button type="button" class="hr-tab" data-tab="ferie" data-i18n="staff.hr.leaveTab">Ferie</button>
+          <button type="button" class="hr-tab" data-tab="costi" data-i18n="staff.hr.costsTab">Costi</button>
+        </nav>
+
+        <div id="msg-global" class="msg-bar" style="display:none;"></div>
+
+        <!-- TAB OGGI -->
+        <section class="hr-panel active" id="panel-oggi">
+          <div class="kpi-row">
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.activeEmployees">Dipendenti attivi</div>
+              <div class="kpi-value kpi-green" id="kpi-active-staff">—</div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.todayTimestamps">Timbrature oggi</div>
+              <div class="kpi-value kpi-orange" id="kpi-clock-count">—</div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.todayHours">Ore oggi</div>
+              <div class="kpi-value" id="kpi-hours-today">—</div>
+            </article>
+          </div>
+
+          <article class="card">
+            <header class="card-header">
+              <h2 data-i18n="staff.hr.todayTimestampsCard">Timbrature di oggi</h2>
+              <div class="card-header-tools">
+                <input type="date" id="attendance-date" class="input-date" />
+                <button class="btn ghost small" id="btn-load-attendance" type="button" data-i18n="refresh">Aggiorna</button>
+              </div>
+            </header>
+            <div class="card-body">
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th data-i18n="staff.employee">Dipendente</th>
+                      <th data-i18n="staff.role">Ruolo</th>
+                      <th data-i18n="staff.hr.entry">Entrata</th>
+                      <th data-i18n="staff.hr.exit">Uscita</th>
+                      <th data-i18n="staff.hr.hours">Ore</th>
+                    </tr>
+                  </thead>
+                  <tbody id="attendance-tbody">
+                    <tr><td colspan="5" class="empty-cell" data-i18n="staff.hr.noTimestamp">Nessuna timbratura.</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-          <div class="card-body">
-            <div class="table-wrap">
-              <table class="data-table" id="attendance-table">
-                <thead>
-                  <tr>
-                    <th>Dipendente</th>
-                    <th>Ruolo</th>
-                    <th>Entrata</th>
-                    <th>Uscita</th>
-                    <th>Ore</th>
-                    <th>Azioni</th>
-                  </tr>
-                </thead>
-                <tbody id="attendance-tbody">
-                  <tr><td colspan="6" class="empty-cell">Caricamento…</td></tr>
-                </tbody>
-              </table>
-            </div>
+          </article>
 
-            <!-- Manual clock in/out per staff -->
+          <section class="open-shift-section">
+            <h3 data-i18n="staff.hr.openShift">Turni aperti</h3>
+            <p class="muted" data-i18n="staff.hr.openShiftDesc">Timbratura manuale entrata per il personale</p>
             <div class="clock-cards" id="clock-cards"></div>
-          </div>
-        </div>
-      </section>
+          </section>
+        </section>
 
-      <!-- TAB: ORE -->
-      <section class="tab-panel" id="panel-ore">
-        <div class="kpi-row">
-          <div class="kpi-card">
-            <div class="kpi-label">Ore mese</div>
-            <div class="kpi-value accent" id="kpi-month-hours">—</div>
+        <!-- TAB MESE -->
+        <section class="hr-panel" id="panel-mese">
+          <div class="kpi-row">
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.monthHours">Ore mese</div>
+              <div class="kpi-value kpi-orange" id="kpi-month-hours">—</div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.avgPerEmployee">Media/dipendente</div>
+              <div class="kpi-value" id="kpi-avg-hours">—</div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.shiftsRecorded">Turni registrati</div>
+              <div class="kpi-value kpi-green" id="kpi-shift-count">—</div>
+            </article>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Media/dipendente</div>
-            <div class="kpi-value" id="kpi-avg-hours">—</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Turni registrati</div>
-            <div class="kpi-value" id="kpi-shift-count">—</div>
-          </div>
-        </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h2>Riepilogo ore mensile</h2>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <input type="month" id="month-picker" class="input-date" />
-              <button class="btn ghost small" id="btn-load-hours">Carica</button>
-              <button class="btn ghost small" id="btn-export-hours">Esporta CSV</button>
+          <article class="card">
+            <header class="card-header">
+              <h2 data-i18n="staff.hr.monthSummary">Riepilogo ore mensile</h2>
+              <div class="card-header-tools">
+                <input type="month" id="month-picker" class="input-date" />
+                <button class="btn ghost small" id="btn-load-hours" type="button" data-i18n="refresh">Carica</button>
+                <button class="btn ghost small" id="btn-export-hours" type="button" data-i18n="staff.hr.exportCsv">Esporta CSV</button>
+              </div>
+            </header>
+            <div class="card-body">
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th data-i18n="staff.employee">Dipendente</th>
+                      <th data-i18n="staff.role">Ruolo</th>
+                      <th data-i18n="staff.hr.hours">Ore</th>
+                      <th data-i18n="staff.hr.pay">Retribuzione</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hours-tbody">
+                    <tr><td colspan="4" class="empty-cell" data-i18n="staff.hr.selectMonth">Seleziona un mese.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="hours-totals" class="totals-row" style="display:none;"></div>
             </div>
-          </div>
-          <div class="card-body">
-            <div class="table-wrap">
+          </article>
+        </section>
+
+        <!-- TAB FERIE -->
+        <section class="hr-panel" id="panel-ferie">
+          <article class="card">
+            <header class="card-header">
+              <h2 id="ferie-title" data-i18n="staff.hr.leaveCalendar">Calendario ferie</h2>
+              <div class="card-header-tools">
+                <button class="btn ghost small" id="btn-cal-prev" type="button">&#8249;</button>
+                <span id="cal-month-label" class="cal-month-label">—</span>
+                <button class="btn ghost small" id="btn-cal-next" type="button">&#8250;</button>
+                <select class="select-sm" id="cal-staff-filter">
+                  <option value="" data-i18n="staff.hr.allStaff">Tutto il personale</option>
+                </select>
+              </div>
+            </header>
+            <div class="card-body">
+              <div class="cal-legend">
+                <span class="leg-item ferie" data-i18n="staff.leaveType.ferie">Ferie</span>
+                <span class="leg-item malattia" data-i18n="staff.leaveType.malattia">Malattia</span>
+                <span class="leg-item permesso" data-i18n="staff.leaveType.permesso">Permesso</span>
+                <span class="leg-item riposo" data-i18n="staff.hr.rest">Riposo</span>
+              </div>
+              <div id="ferie-calendar" class="calendar"></div>
+            </div>
+          </article>
+
+          <article class="card" id="pending-card" style="display:none;">
+            <header class="card-header"><h2 data-i18n="staff.hr.pendingRequests">Richieste in attesa</h2></header>
+            <div class="card-body" id="pending-list"></div>
+          </article>
+
+          <article class="card">
+            <header class="card-header"><h2 data-i18n="staff.hr.monthAbsenceSummary">Riepilogo assenze del mese</h2></header>
+            <div class="card-body">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Dipendente</th>
-                    <th>Ruolo</th>
-                    <th>Ore</th>
-                    <th>Retribuzione</th>
+                    <th data-i18n="staff.employee">Dipendente</th>
+                    <th data-i18n="staff.leaveType.ferie">Ferie</th>
+                    <th data-i18n="staff.leaveType.malattia">Malattia</th>
+                    <th data-i18n="staff.leaveType.permesso">Permesso</th>
+                    <th data-i18n="staff.hr.rest">Riposo</th>
                   </tr>
                 </thead>
-                <tbody id="hours-tbody">
-                  <tr><td colspan="4" class="empty-cell">Seleziona un mese e premi Carica.</td></tr>
+                <tbody id="ferie-summary-tbody">
+                  <tr><td colspan="5" class="empty-cell" data-i18n="staff.hr.noAbsence">Nessun dato.</td></tr>
                 </tbody>
               </table>
             </div>
-            <div id="hours-totals" class="totals-row" style="display:none;"></div>
-          </div>
-        </div>
-      </section>
+          </article>
+        </section>
 
-      <!-- TAB: FERIE -->
-      <section class="tab-panel" id="panel-ferie">
-        <div class="card">
-          <div class="card-header">
-            <h2 id="ferie-title">Calendario ferie</h2>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button class="btn ghost small" id="btn-cal-prev">&#8249;</button>
-              <span id="cal-month-label" style="font-size:14px;font-weight:600;min-width:140px;text-align:center;">—</span>
-              <button class="btn ghost small" id="btn-cal-next">&#8250;</button>
-              <select class="select-sm" id="cal-staff-filter">
-                <option value="">Tutto il personale</option>
-              </select>
-            </div>
+        <!-- TAB COSTI -->
+        <section class="hr-panel" id="panel-costi">
+          <div class="kpi-row">
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.monthSalaryCost">Costo stipendi (mese)</div>
+              <div class="kpi-value kpi-orange" id="kpi-cost-total">—</div>
+            </article>
+            <article class="kpi-card">
+              <div class="kpi-label" data-i18n="staff.hr.totalHours">Ore totali</div>
+              <div class="kpi-value" id="kpi-cost-hours">—</div>
+            </article>
           </div>
-          <div class="card-body">
-            <div class="cal-legend">
-              <span class="leg-item ferie">■ Ferie</span>
-              <span class="leg-item malattia">■ Malattia</span>
-              <span class="leg-item permesso">■ Permesso</span>
-              <span class="leg-item riposo">■ Riposo</span>
-            </div>
-            <div id="ferie-calendar" class="calendar"></div>
+          <div class="info-note">
+            <strong data-i18n="staff.hr.costNoteTitle">Nota:</strong>
+            <span data-i18n="staff.hr.costNoteDesc">Il calcolo dettagliato del costo personale è disponibile nel modulo Payroll.</span>
           </div>
-        </div>
-
-        <!-- Pending requests -->
-        <div class="card" id="pending-card" style="display:none;">
-          <div class="card-header">
-            <h2>Richieste in attesa di approvazione</h2>
-          </div>
-          <div class="card-body" id="pending-list"></div>
-        </div>
-
-        <!-- Monthly absence summary -->
-        <div class="card">
-          <div class="card-header"><h2>Riepilogo assenze del mese</h2></div>
-          <div class="card-body">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Dipendente</th>
-                  <th>Ferie</th>
-                  <th>Malattia</th>
-                  <th>Permesso</th>
-                  <th>Riposo</th>
-                </tr>
-              </thead>
-              <tbody id="ferie-summary-tbody">
-                <tr><td colspan="5" class="empty-cell">Nessun dato.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB: COSTI -->
-      <section class="tab-panel" id="panel-costi">
-        <div class="kpi-row">
-          <div class="kpi-card">
-            <div class="kpi-label">Costo stipendi (mese)</div>
-            <div class="kpi-value accent" id="kpi-cost-total">—</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Ore totali</div>
-            <div class="kpi-value" id="kpi-cost-hours">—</div>
-          </div>
-        </div>
-
-        <div class="info-note">
-          <strong>Nota:</strong> Il calcolo dettagliato del costo personale (contributi, TFR, straordinari)
-          è disponibile nel modulo Payroll. Qui viene mostrato il riepilogo basato sulle tariffe orarie configurate.
-        </div>
-      </section>
-
-    </main>
+        </section>
+      </main>
+    </div>
   </div>
 
-  <script src="staff-hr.js"></script>
-  <link rel="stylesheet" href="/shared/ai-widget.css">
-  <script src="/shared/ai-widget.js" data-module="staff-hr"></script>
   <script src="/js/i18n.js"></script>
+  <script src="/shared/sidebar-mobile.js"></script>
+  <script src="/shared/rw-shell.js"></script>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner"></script>
+  <script src="staff-hr.js?v=20260622"></script>
 </body>
 </html>

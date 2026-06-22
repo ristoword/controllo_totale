@@ -80,6 +80,46 @@ exports.create = async (req, res) => {
   res.status(201).json(record);
 };
 
+// POST /api/leave/owner – owner crea richiesta per un dipendente
+exports.createForStaff = async (req, res) => {
+  const restaurantId = ensureOwner(req, res);
+  if (!restaurantId) return;
+
+  const { userId, type, startDate, endDate, reason } = req.body || {};
+  if (!userId) return res.status(400).json({ error: "Dipendente obbligatorio." });
+
+  const start = dateOnly(startDate);
+  const end = dateOnly(endDate);
+  if (!start || !end) {
+    return res.status(400).json({ error: "Date inizio e fine obbligatorie." });
+  }
+  if (new Date(start) > new Date(end)) {
+    return res.status(400).json({ error: "Date non valide: la data di inizio deve essere <= fine." });
+  }
+
+  const fullUser = await usersRepository.findById(userId);
+  if (!fullUser || fullUser.restaurantId !== restaurantId) {
+    return res.status(404).json({ error: "Dipendente non trovato." });
+  }
+
+  const reqType = type === "ferie" || type === "permesso" || type === "malattia" ? type : "ferie";
+  if (await leaveRepository.hasOverlap(restaurantId, userId, reqType, start, end, null)) {
+    return res.status(409).json({ error: "Esiste già una richiesta per questo periodo e tipo." });
+  }
+
+  const record = await leaveRepository.createLeaveRequest(restaurantId, {
+    userId,
+    username: fullUser.username || "",
+    name: fullUser.name || "",
+    surname: fullUser.surname || "",
+    type: reqType,
+    startDate: start,
+    endDate: end,
+    reason: String(reason || ""),
+  });
+  res.status(201).json(record);
+};
+
 // POST /api/leave/me/:id/cancel – annulla solo se pending e proprietario
 exports.cancel = async (req, res) => {
   const user = req.session?.user;

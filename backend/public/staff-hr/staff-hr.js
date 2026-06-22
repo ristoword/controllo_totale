@@ -13,6 +13,12 @@
   const DAYS_IT = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
 
   function $(id) { return document.getElementById(id); }
+
+  function t(key) {
+    if (typeof window.rwT === "function") return window.rwT(key);
+    return key;
+  }
+
   function euro(n) { return "€ " + Number(n || 0).toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   function pad2(n) { return String(n).padStart(2, "0"); }
 
@@ -80,7 +86,7 @@
 
   function fillCalStaffFilter() {
     const sel = $("cal-staff-filter");
-    sel.innerHTML = '<option value="">Tutto il personale</option>';
+    sel.innerHTML = '<option value="">' + esc(t("staff.hr.allStaff")) + "</option>";
     staffList.forEach((s) => {
       const opt = document.createElement("option");
       opt.value = s.id;
@@ -91,16 +97,17 @@
 
   /* ─── Tab switching ────────────────────── */
   function initTabs() {
-    document.querySelectorAll(".tab").forEach((btn) => {
+    document.querySelectorAll(".hr-tab").forEach((btn) => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+        document.querySelectorAll(".hr-tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".hr-panel").forEach((p) => p.classList.remove("active"));
         btn.classList.add("active");
         const panel = $("panel-" + btn.dataset.tab);
         if (panel) panel.classList.add("active");
         if (btn.dataset.tab === "ferie") loadCalendar();
-        if (btn.dataset.tab === "ore") loadHours();
+        if (btn.dataset.tab === "mese") loadHours();
         if (btn.dataset.tab === "costi") loadCosts();
+        if (btn.dataset.tab === "oggi") loadAttendance();
       });
     });
   }
@@ -128,7 +135,7 @@
         updatePresenzaKpisFromSummary(summary);
       } catch (e2) {
         showMsg("Impossibile caricare le presenze: " + e2.message, false);
-        $("attendance-tbody").innerHTML = '<tr><td colspan="6" class="empty-cell">Nessun dato disponibile.</td></tr>';
+        $("attendance-tbody").innerHTML = '<tr><td colspan="5" class="empty-cell">' + esc(t("staff.hr.noTimestamp")) + "</td></tr>";
       }
     }
   }
@@ -136,7 +143,7 @@
   function renderAttendance(records) {
     const tbody = $("attendance-tbody");
     if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Nessuna presenza registrata.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">' + esc(t("staff.hr.noTimestamp")) + "</td></tr>";
       return;
     }
     tbody.innerHTML = "";
@@ -147,10 +154,6 @@
       const clockIn = r.clockInAt || r.clockIn || r.start || null;
       const clockOut = r.clockOutAt || r.clockOut || r.end || null;
       const hours = clockIn ? diffHours(clockIn, clockOut || new Date().toISOString()) : 0;
-      const status = r.status || (clockOut ? "chiuso" : clockIn ? "aperto" : "assente");
-      const badgeClass = status === "chiuso" || status === "closed" ? "badge-ok"
-        : status === "aperto" || status === "open" ? "badge-warn" : "badge-muted";
-      const statusLabel = { chiuso: "Chiuso", closed: "Chiuso", aperto: "In servizio", open: "In servizio", assente: "Assente", anomaly: "Anomalia" }[status] || status;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -158,10 +161,7 @@
         <td><span class="badge badge-muted">${esc(role)}</span></td>
         <td>${esc(fmtTime(clockIn))}</td>
         <td>${esc(fmtTime(clockOut))}</td>
-        <td><strong style="color:var(--accent)">${hours.toFixed(1)}h</strong></td>
-        <td>
-          ${(!clockOut && clockIn) ? `<button class="btn ghost small" onclick="window._closeShift('${r.id}')">Chiudi</button>` : ""}
-        </td>
+        <td><strong style="color:#f97316">${hours.toFixed(1)}h</strong></td>
       `;
       tbody.appendChild(tr);
     });
@@ -182,10 +182,7 @@
       card.innerHTML = `
         <div class="clock-card-name">${esc(staffName(s))}</div>
         <div class="clock-card-role">${esc(s.role || "—")}</div>
-        <div class="clock-card-actions">
-          <button class="btn small${isOpen ? "" : " primary"}" ${isOpen ? "disabled" : ""} onclick="window._manualClockIn('${s.id}')">Entrata</button>
-          <button class="btn small" ${!isOpen ? "disabled" : ""} style="${isOpen ? "border-color:var(--ok);color:var(--ok)" : ""}" onclick="window._manualClockOut('${s.id}')">Uscita</button>
-        </div>
+        <button class="btn-entry" ${isOpen ? "disabled" : ""} onclick="window._manualClockIn('${s.id}')">${esc(t("staff.hr.entry"))}</button>
       `;
       container.appendChild(card);
     });
@@ -296,7 +293,7 @@
     hoursData = rows;
     const tbody = $("hours-tbody");
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Nessun dato.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">' + esc(t("staff.hr.noData")) + "</td></tr>";
       $("hours-totals").style.display = "none";
       $("kpi-month-hours").textContent = "—";
       $("kpi-avg-hours").textContent = "—";
@@ -437,7 +434,7 @@
     const tbody = $("ferie-summary-tbody");
     const rows = Object.values(byStaff);
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">Nessuna assenza nel mese.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">' + esc(t("staff.hr.noAbsence")) + "</td></tr>";
       return;
     }
     tbody.innerHTML = "";
@@ -529,27 +526,45 @@
     a.click(); URL.revokeObjectURL(url);
   }
 
+  function exportTodayCsv() {
+    const rows = [[t("staff.employee"), t("staff.role"), t("staff.hr.entry"), t("staff.hr.exit"), t("staff.hr.hours")]];
+    attendanceRecords.forEach((r) => {
+      const member = staffList.find((s) => s.id === r.userId || s.id === r.staffId);
+      const name = r.name || r.userName || (member ? staffName(member) : "—");
+      const role = r.role || (member ? member.role : "—");
+      const clockIn = r.clockInAt || r.clockIn || "";
+      const clockOut = r.clockOutAt || r.clockOut || "";
+      const hours = clockIn ? diffHours(clockIn, clockOut || new Date().toISOString()).toFixed(2) : "0";
+      rows.push([name, role, fmtTime(clockIn), fmtTime(clockOut), hours]);
+    });
+    downloadCsv(rows, "timbrature_oggi.csv");
+  }
+
   /* ─── Init ─────────────────────────────── */
   async function init() {
+    const dateLabel = $("hr-date-label");
+    if (dateLabel) {
+      dateLabel.textContent = new Date().toLocaleDateString("it-IT", { day: "numeric", month: "short", year: "numeric" });
+    }
+
     initTabs();
     await loadStaff();
     initPresenze();
     initOre();
     initFerie();
 
-    $("btn-refresh").addEventListener("click", () => {
-      const activeTab = document.querySelector(".tab.active");
+    $("btn-refresh")?.addEventListener("click", () => {
+      const activeTab = document.querySelector(".hr-tab.active");
       if (activeTab) activeTab.click();
     });
 
-    fetch("/api/auth/me", { credentials: "same-origin" })
-      .then((r) => r.json())
-      .then((u) => {
-        if (u && (u.name || u.username)) {
-          $("user-label").textContent = (u.name || u.username) + " · " + (u.role || "");
-        }
-      })
-      .catch(() => {});
+    $("btn-export-csv")?.addEventListener("click", () => {
+      const active = document.querySelector(".hr-tab.active")?.dataset.tab;
+      if (active === "mese") exportHoursCsv();
+      else exportTodayCsv();
+    });
+
+    $("btn-print-pdf")?.addEventListener("click", () => window.print());
   }
 
   document.addEventListener("DOMContentLoaded", init);

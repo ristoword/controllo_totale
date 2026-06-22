@@ -12,6 +12,7 @@ router.get("/super-admin-dashboard", requireSuperAdmin, superAdminController.get
 router.get("/super-admin-console", requireSuperAdmin, superAdminController.getSuperAdminConsolePage);
 
 // Auth APIs
+router.get("/api/super-admin/me", requireSuperAdmin, superAdminController.apiMe);
 router.post("/api/super-admin/login", superAdminController.apiLogin);
 router.post("/api/super-admin/change-password", requireSuperAdmin, superAdminController.apiChangePassword);
 router.post("/api/super-admin/logout", requireSuperAdmin, superAdminController.apiLogout);

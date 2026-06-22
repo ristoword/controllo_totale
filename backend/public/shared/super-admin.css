@@ -1,0 +1,330 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap");
+
+.sa-layout .sidebar {
+  width: 260px;
+}
+
+.sa-nav-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 9px 10px;
+  text-decoration: none;
+  color: var(--text-soft);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+}
+
+.sa-nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.sa-nav-item.active {
+  background: linear-gradient(90deg, rgba(245, 184, 0, 0.22), rgba(249, 115, 22, 0.12));
+  border-color: rgba(245, 184, 0, 0.35);
+}
+
+.sa-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.sa-page-head h1 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(28px, 4vw, 36px);
+}
+
+.sa-page-head p {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.sa-head-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sa-pill {
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+
+.sa-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.sa-tab {
+  border: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text-soft);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sa-tab:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sa-tab.active {
+  background: rgba(245, 184, 0, 0.15);
+  border-color: rgba(245, 184, 0, 0.45);
+  color: var(--text);
+}
+
+.sa-panel {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sa-panel.active {
+  display: flex;
+}
+
+.sa-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sa-kpi {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sa-kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.sa-kpi-icon.orange { background: rgba(245, 184, 0, 0.15); }
+.sa-kpi-icon.red { background: rgba(255, 75, 75, 0.12); }
+.sa-kpi-icon.blue { background: rgba(77, 163, 255, 0.12); }
+.sa-kpi-icon.green { background: rgba(61, 214, 140, 0.12); }
+.sa-kpi-icon.yellow { background: rgba(245, 184, 0, 0.1); }
+
+.sa-kpi-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sa-kpi-value {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sa-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.sa-card h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.sa-table-wrap {
+  overflow-x: auto;
+}
+
+.sa-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.sa-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.sa-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-soft);
+  vertical-align: middle;
+}
+
+.status-pill {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(61, 214, 140, 0.12);
+  color: var(--accent-ok);
+}
+
+.sa-quick-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sa-quick-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.sa-quick-card:hover {
+  background: rgba(245, 184, 0, 0.08);
+  border-color: rgba(245, 184, 0, 0.35);
+}
+
+.sa-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.sa-form label {
+  display: block;
+  margin: 8px 0 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sa-form input,
+.sa-form select,
+.sa-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.sa-form textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.sa-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.btn.small {
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+.btn.danger {
+  border-color: rgba(255, 75, 75, 0.5);
+  color: #ff8a8a;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sa-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sa-modal-backdrop.open {
+  display: flex;
+}
+
+.sa-modal {
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+.sa-modal.wide {
+  width: min(720px, 100%);
+}
+
+@media (max-width: 1100px) {
+  .sa-kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sa-quick-row,
+  .sa-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .sa-kpi-row {
+    grid-template-columns: 1fr;
+  }
+}

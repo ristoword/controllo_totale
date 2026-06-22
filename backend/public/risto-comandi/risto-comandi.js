@@ -1,8 +1,11 @@
 (function () {
   "use strict";
   var listening = false;
+  var booted = false;
 
-  function $(id) { return document.getElementById(id); }
+  function $(id) {
+    return document.getElementById(id);
+  }
 
   function t(key) {
     if (typeof window.rwT === "function") return window.rwT(key);
@@ -11,18 +14,21 @@
 
   function speechLang() {
     var lang = (window.ControlloTotaleI18n && window.ControlloTotaleI18n.getLang()) || "it";
-    return lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "fr" ? "fr-FR" : lang === "es" ? "es-ES" : lang === "nl" ? "nl-NL" : "it-IT";
+    return lang === "en"
+      ? "en-US"
+      : lang === "de"
+        ? "de-DE"
+        : lang === "fr"
+          ? "fr-FR"
+          : lang === "es"
+            ? "es-ES"
+            : lang === "nl"
+              ? "nl-NL"
+              : "it-IT";
   }
 
   function currentLocale() {
     return (window.ControlloTotaleI18n && window.ControlloTotaleI18n.getLang()) || "it";
-  }
-
-  function renderCaps() {
-    var list = $("risto-caps-list");
-    if (!list) return;
-    var keys = ["risto_cap_magazzino", "risto_cap_cantina", "risto_cap_briefing", "risto_cap_sales"];
-    list.innerHTML = keys.map(function (k) { return "<li>" + t(k) + "</li>"; }).join("");
   }
 
   function addMsg(text, role, isAction) {
@@ -37,21 +43,40 @@
     if (!message.trim()) return;
     addMsg(message, "user");
     $("chat-input").value = "";
-    var res = await fetch("/api/ai/chat", {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: message, enableTools: true, context: "risto", locale: currentLocale() }),
-    });
-    var data = await res.json();
-    addMsg(data.reply || data.error || t("risto_error"), "bot", data.isAction);
-    if (data.actions && data.actions.length) {
-      addMsg(t("risto_actions_done") + " " + data.actions.map(function (a) { return a.tool; }).join(", "), "bot", true);
+    addMsg(t("risto_thinking"), "bot");
+    var thinking = $("chat-log").lastElementChild;
+    try {
+      var res = await fetch("/api/ai/chat", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: message,
+          enableTools: true,
+          context: "risto",
+          locale: currentLocale(),
+        }),
+      });
+      var data = await res.json();
+      if (thinking && thinking.parentNode) thinking.remove();
+      addMsg(data.reply || data.error || t("risto_error"), "bot", data.isAction);
+      if (data.actions && data.actions.length) {
+        addMsg(
+          t("risto_actions_done") + " " + data.actions.map(function (a) { return a.tool; }).join(", "),
+          "bot",
+          true
+        );
+      }
+    } catch (e) {
+      if (thinking && thinking.parentNode) thinking.remove();
+      addMsg(t("risto_error"), "bot");
     }
   }
 
   function setMicLabel(listeningNow) {
-    $("btn-mic").textContent = listeningNow ? t("risto_listening") : "🎤 " + t("risto_speak_btn");
+    var btn = $("btn-mic");
+    if (!btn) return;
+    btn.textContent = listeningNow ? t("risto_listening") : "🎤 " + t("risto_speak_btn");
   }
 
   function toggleMic() {
@@ -80,19 +105,25 @@
     rec.start();
   }
 
+  function bindQuickTiles() {
+    document.querySelectorAll(".quick-tile").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        send(btn.getAttribute("data-cmd") || "");
+      });
+    });
+  }
+
   function init() {
-    renderCaps();
+    if (booted) return;
+    booted = true;
     addMsg(t("risto_welcome"), "bot");
     $("chat-form").addEventListener("submit", function (e) {
       e.preventDefault();
       send($("chat-input").value);
     });
     $("btn-mic").addEventListener("click", toggleMic);
-    document.querySelectorAll(".quick").forEach(function (btn) {
-      btn.addEventListener("click", function () { send(btn.getAttribute("data-cmd")); });
-    });
+    bindQuickTiles();
     window.addEventListener("i18n:updated", function () {
-      renderCaps();
       setMicLabel(listening);
     });
   }

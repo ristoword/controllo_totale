@@ -6,6 +6,11 @@
 
   function $(id) { return document.getElementById(id); }
 
+  function t(key) {
+    if (typeof window.rwT === "function") return window.rwT(key);
+    return key;
+  }
+
   function esc(s) {
     if (s == null) return "";
     const d = document.createElement("div");
@@ -65,11 +70,16 @@
     }
   }
 
+  function currentMonthPrefix() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+  }
+
   function renderProfile() {
     if (!profile) return;
     const p = profile.personal || {};
     const name = [p.name || profile.name, p.surname || profile.surname].filter(Boolean).join(" ") || profile.username || "—";
-    const role = profile.role || "—";
+    const role = (profile.role || "—").toString().toUpperCase();
 
     $("profile-name").textContent = name;
     $("profile-role").textContent = role;
@@ -97,26 +107,31 @@
 
       if (hasOpen && openShift) {
         const entrata = fmtTime(openShift.clockInAt);
-        statusText.textContent = "Turno aperto — entrato alle " + entrata;
-        statusText.style.color = "var(--ok)";
+        statusText.textContent = t("staff.me.shiftOpenAt") + " " + entrata;
+        statusText.className = "stamp-mini-value shift-open";
       } else {
-        statusText.textContent = "Nessun turno aperto.";
-        statusText.style.color = "var(--text-muted)";
+        statusText.textContent = t("staff.me.noShiftOpen");
+        statusText.className = "stamp-mini-value shift-closed";
       }
 
       $("btn-clock-in").disabled = hasOpen;
       $("btn-clock-out").disabled = !hasOpen;
 
-      // Attendance history
-      const rows = (Array.isArray(hist) ? hist : []).slice(-40).reverse();
+      const monthPrefix = currentMonthPrefix();
+      const rows = (Array.isArray(hist) ? hist : [])
+        .filter((r) => {
+          const d = (r.date || r.clockInAt || "").slice(0, 7);
+          return d === monthPrefix;
+        })
+        .sort((a, b) => new Date(b.clockInAt || b.date) - new Date(a.clockInAt || a.date));
+
       const tbody = $("tbody-attendance");
+      let monthTotal = 0;
 
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Nessuna timbratura registrata.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">' + esc(t("staff.me.noTimestamp")) + "</td></tr>";
       } else {
         tbody.innerHTML = "";
-        let monthTotal = 0;
-
         rows.forEach((r) => {
           const ci = r.clockInAt || r.date;
           const co = r.clockOutAt;
@@ -129,13 +144,16 @@
             <td>${esc(fmtDate(ci))}</td>
             <td>${esc(fmtTime(ci))}</td>
             <td>${esc(fmtTime(co))}</td>
-            <td><strong style="color:var(--accent)">${hours > 0 ? hours.toFixed(1) + "h" : "—"}</strong></td>
+            <td><strong style="color:#f97316">${hours > 0 ? hours.toFixed(1) + "h" : "—"}</strong></td>
           `;
           tbody.appendChild(tr);
         });
-
-        $("month-hours-total").textContent = monthTotal.toFixed(1) + "h";
       }
+
+      const monthStr = monthTotal.toFixed(1) + "h";
+      $("month-hours-total").textContent = monthStr;
+      const badge = $("month-badge");
+      if (badge) badge.textContent = t("staff.me.thisMonth") + " " + monthStr;
     } catch (e) {
       $("tbody-attendance").innerHTML = '<tr><td colspan="4" class="empty-cell">' + esc(e.message) + '</td></tr>';
     }
@@ -145,7 +163,7 @@
     $("btn-clock-in").disabled = true;
     try {
       await api("/api/attendance/me/clock-in", { method: "POST", body: JSON.stringify({}) });
-      showMsg("msg-clock", "Timbratura entrata registrata.", true);
+      showMsg("msg-clock", t("staff.me.clockInOk"), true);
       await loadAttendance();
     } catch (e) {
       showMsg("msg-clock", e.message, false);
@@ -157,7 +175,7 @@
     $("btn-clock-out").disabled = true;
     try {
       await api("/api/attendance/me/clock-out", { method: "POST", body: JSON.stringify({}) });
-      showMsg("msg-clock", "Timbratura uscita registrata.", true);
+      showMsg("msg-clock", t("staff.me.clockOutOk"), true);
       await loadAttendance();
     } catch (e) {
       showMsg("msg-clock", e.message, false);
@@ -167,6 +185,11 @@
 
   /* ─── Init ─────────────────────────────── */
   document.addEventListener("DOMContentLoaded", () => {
+    const dateLabel = $("me-date-label");
+    if (dateLabel) {
+      dateLabel.textContent = new Date().toLocaleDateString("it-IT", { day: "numeric", month: "short", year: "numeric" });
+    }
+
     loadProfile();
     loadAttendance();
 

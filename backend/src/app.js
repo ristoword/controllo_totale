@@ -494,7 +494,7 @@ try {
 // CANTINA – /api/cantina
 try {
   const cantinaRouter = require("./routes/cantina.routes");
-  const ROLES_CANTINA = ["owner", "supervisor", "sala", "bar", "cassa", "magazzino", "pizzeria"];
+  const ROLES_CANTINA = ["owner", "supervisor", "sala", "bar", "cassa", "magazzino", "pizzeria", "cucina"];
   app.use("/api/cantina", requireAuth, requireRole(ROLES_CANTINA), cantinaRouter);
   if (process.env.VERIFY_LOAD_ONLY !== "1") {
   (async () => {

@@ -17,6 +17,7 @@ router.get("/balances/:userId", requireAuth, asyncHandler(leaveController.balanc
 
 // Owner: lista e azioni
 router.get("/", requireAuth, asyncHandler(leaveController.list));
+router.post("/owner", requireAuth, asyncHandler(leaveController.createForStaff));
 router.post("/:id/approve", requireAuth, asyncHandler(leaveController.approve));
 router.post("/:id/reject", requireAuth, asyncHandler(leaveController.reject));
 

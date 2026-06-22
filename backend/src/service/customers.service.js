@@ -1,5 +1,5 @@
-// backend/src/service/customers.service.js
 const customersRepository = require("../repositories/customers.repository");
+const { normalizeCategory } = require("../repositories/customers.repository.logic");
 
 async function findOrCreate(data) {
   const phone = (data.phone || "").trim();
@@ -22,22 +22,28 @@ async function findOrCreate(data) {
     phone,
     email,
     notes: (data.notes || "").trim(),
+    category: "nuovo",
   });
 }
 
 async function list(filters = {}) {
-  let list = await customersRepository.getAll();
-  const cat = (filters.category || "").trim();
+  await customersRepository.seedIfEmpty();
+  let items = await customersRepository.getAll();
+  const cat = normalizeCategory(filters.category || "");
   const q = (filters.q || "").trim();
 
   if (q) {
-    list = await customersRepository.searchByNameOrPhone(q);
+    items = await customersRepository.searchByNameOrPhone(q);
   }
-  if (cat) {
-    list = list.filter((c) => c.category === cat);
+  if (filters.category) {
+    items = items.filter((c) => c.category === cat);
   }
 
-  return list;
+  return items.sort((a, b) => {
+    const na = `${a.surname} ${a.name}`.toLowerCase();
+    const nb = `${b.surname} ${b.name}`.toLowerCase();
+    return na.localeCompare(nb);
+  });
 }
 
 async function getById(id) {
@@ -52,10 +58,15 @@ async function update(id, data) {
   return customersRepository.update(id, data);
 }
 
+async function remove(id) {
+  return customersRepository.remove(id);
+}
+
 module.exports = {
   findOrCreate,
   list,
   getById,
   create,
   update,
+  remove,
 };

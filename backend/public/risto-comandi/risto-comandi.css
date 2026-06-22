@@ -1,20 +1,244 @@
-/* Risto Comandi — layout responsive */
-.main.two-col {
-  grid-template-columns: minmax(0, 1.4fr) minmax(min(260px, 100%), 0.6fr);
+.risto-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.75fr);
+  gap: 16px;
+  align-items: start;
 }
 
-.chat-card .card-body {
-  min-height: min(420px, 60vh);
+.assistant-card {
+  background: linear-gradient(160deg, #1a2038 0, #14182a 55%, #121425 100%);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-@media (max-width: 900px) {
-  .main.two-col {
+.assistant-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.assistant-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5b800, #f97316);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.assistant-welcome {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.quick-section h2,
+.examples-section h2 {
+  margin: 0 0 12px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quick-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 88px;
+  padding: 12px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.quick-tile:hover {
+  background: var(--accent-soft);
+  border-color: rgba(245, 184, 0, 0.35);
+}
+
+.quick-icon {
+  font-size: 22px;
+}
+
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.example {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: var(--text-soft);
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.chat-section {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-log {
+  max-height: min(240px, 35vh);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px;
+}
+
+.msg {
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.msg.user {
+  align-self: flex-end;
+  background: rgba(245, 184, 0, 0.18);
+  border: 1px solid rgba(245, 184, 0, 0.3);
+}
+
+.msg.bot {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-soft);
+}
+
+.msg.action {
+  border-color: rgba(61, 214, 140, 0.35);
+  background: rgba(61, 214, 140, 0.08);
+}
+
+.chat-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chat-form input {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.caps-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+.caps-panel h2 {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.cap-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cap-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cap-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.cap-item strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.cap-item p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.tip-card {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  border: 1px solid rgba(245, 184, 0, 0.25);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.tip-card p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.tip-icon {
+  font-size: 18px;
+}
+
+@media (max-width: 1000px) {
+  .risto-grid {
     grid-template-columns: 1fr;
+  }
+
+  .quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 640px) {
-  .chat-card .card-body {
-    min-height: min(360px, 55vh);
+@media (max-width: 560px) {
+  .quick-grid,
+  .examples-grid {
+    grid-template-columns: 1fr;
   }
 }

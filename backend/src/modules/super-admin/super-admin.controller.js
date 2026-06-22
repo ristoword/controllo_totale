@@ -35,11 +35,19 @@ exports.getSuperAdminDashboardPage = (req, res) => {
   res.sendFile(htmlPath("super-admin-dashboard.html"));
 };
 
-/** Console avanzata (solo super-admin): URL non linkata pubblicamente. */
+/** Console avanzata — reindirizza alla dashboard unificata. */
 exports.getSuperAdminConsolePage = (req, res) => {
   const mustChange = !!req.superAdmin?.mustChangePassword;
   if (mustChange) return res.redirect("/super-admin-change-password");
-  res.sendFile(htmlPath("super-admin-console.html"));
+  res.redirect("/super-admin-dashboard");
+};
+
+exports.apiMe = (req, res) => {
+  res.json({
+    ok: true,
+    username: req.superAdmin?.username || "admin",
+    mustChangePassword: !!req.superAdmin?.mustChangePassword,
+  });
 };
 
 exports.apiLogin = async (req, res) => {

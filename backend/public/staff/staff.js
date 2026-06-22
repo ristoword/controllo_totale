@@ -1,4 +1,4 @@
-// Staff management — Controllo Totale (RISTOSAAS design)
+// Staff management — RistoWord layout
 (function () {
   "use strict";
 
@@ -8,8 +8,14 @@
   let leaveList = [];
   let editingStaffId = null;
   let leaveFilterStatus = "";
+  let activeTab = "dipendenti";
 
   function $(id) { return document.getElementById(id); }
+
+  function t(key) {
+    if (typeof window.rwT === "function") return window.rwT(key);
+    return key;
+  }
 
   function esc(s) {
     if (s == null) return "";
@@ -97,6 +103,40 @@
     renderTable();
     renderRoleTable();
     renderAccessTable();
+    populateLeaveStaffSelect();
+    updateRoleHoursLabel();
+  }
+
+  function populateLeaveStaffSelect() {
+    const sel = $("leave-staff");
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">' + esc(t("staff.filterAll")) + "</option>";
+    staffList.filter((u) => u.active !== false).forEach((u) => {
+      const opt = document.createElement("option");
+      opt.value = u.id;
+      opt.textContent = userName(u);
+      sel.appendChild(opt);
+    });
+    if (current) sel.value = current;
+  }
+
+  function updateRoleHoursLabel() {
+    const el = $("role-hours-label");
+    if (!el) return;
+    const totalHours = staffList.reduce((sum, u) => sum + (u.hoursWeek || u.weeklyHours || 0), 0);
+    el.textContent = totalHours > 0 ? "🕐 " + totalHours + " " + t("staff.hoursWeek") : "";
+  }
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll(".staff-tab").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === tab);
+    });
+    document.querySelectorAll(".staff-panel").forEach((panel) => {
+      panel.classList.toggle("active", panel.id === "panel-" + tab);
+    });
+    if (tab === "presenze") loadPresenze();
   }
 
   /* ─── KPIs ─────────────────────────────── */
@@ -122,7 +162,7 @@
     tbody.innerHTML = "";
 
     if (!staffList.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">Nessun dipendente.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">' + esc(t("staff.noEmployees")) + "</td></tr>";
       return;
     }
 
@@ -132,19 +172,16 @@
       const hasAccount = u.username ? true : false;
       const linkedBadge = hasAccount ? '<span class="badge-linked">LINKED</span>' : '';
 
-      const statusMap = {
-        true: { label: "Attivo", cls: "badge-ok" },
-        false: { label: "Sospeso", cls: "badge-danger" },
-      };
       const active = u.active !== false;
-      const status = statusMap[active] || statusMap[true];
+      const statusLabel = active ? t("staff.status_active") : t("staff.status_suspended");
+      const statusCls = active ? "badge-ok" : "badge-danger";
 
       const hoursWeek = u.hoursWeek || u.weeklyHours || "—";
 
       tr.innerHTML = `
         <td><strong>${esc(name)}</strong>${linkedBadge}</td>
         <td><span class="badge badge-muted">${esc(roleLabel(u.role))}</span></td>
-        <td><span class="badge ${status.cls}">${esc(status.label)}</span></td>
+        <td><span class="badge ${statusCls}">${esc(statusLabel)}</span></td>
         <td>${esc(String(hoursWeek))}</td>
         <td class="actions">
           <button class="btn-xs" data-action="edit" data-id="${esc(u.id)}">✎</button>
@@ -184,9 +221,39 @@
     });
   }
 
-  /* ─── Access Table ─────────────────────── */
+  /* ─── Access accounts (cards) ────────── */
   function renderAccessTable() {
+    const cardsEl = $("access-cards");
     const tbody = $("access-tbody");
+    const withAccounts = staffList.filter((u) => u.username);
+
+    if (cardsEl) {
+      cardsEl.innerHTML = "";
+      if (!withAccounts.length) {
+        cardsEl.innerHTML = '<p class="access-empty">' + esc(t("staff.noAccounts")) + "</p>";
+      } else {
+        withAccounts.forEach((u) => {
+          const card = document.createElement("div");
+          card.className = "access-card";
+          card.innerHTML = `
+            <div class="access-card-info">
+              <strong>${esc(userName(u))}</strong>
+              <div class="access-card-meta">
+                <span><code>@${esc(u.username)}</code></span>
+                <span>${esc(roleLabel(u.role))}</span>
+                <span>${esc(u.email || "—")}</span>
+              </div>
+            </div>
+            <div class="access-card-actions">
+              <button class="btn-xs danger" data-action="delete-access" data-id="${esc(u.id)}" title="${esc(t("cancel"))}">🗑</button>
+            </div>
+          `;
+          card.querySelector("[data-action='delete-access']")?.addEventListener("click", () => deleteStaff(u.id));
+          cardsEl.appendChild(card);
+        });
+      }
+    }
+
     if (!tbody) return;
     const withAccounts = staffList.filter((u) => u.username);
     tbody.innerHTML = "";
@@ -219,9 +286,12 @@
   /* ─── Add/Edit Staff ───────────────────── */
   function clearForm() {
     editingStaffId = null;
-    $("form-title").textContent = "Aggiungi dipendente";
-    $("form-subtitle").textContent = "Nuovo membro dello staff";
-    $("btn-save-staff").textContent = "Aggiungi dipendente";
+    const title = $("form-title");
+    const sub = $("form-subtitle");
+    if (title) title.textContent = t("staff.addEmployee");
+    if (sub) sub.textContent = t("staff.addEmployee_sub");
+    const saveBtn = $("btn-save-staff");
+    if (saveBtn) saveBtn.innerHTML = "💾 <span>" + esc(t("save")) + "</span>";
     $("btn-form-reset").style.display = "none";
     $("link-account-section").style.display = "none";
     ["field-name", "field-surname", "field-phone", "field-email",
@@ -237,9 +307,9 @@
     const u = staffList.find((x) => String(x.id) === String(id));
     if (!u) return;
     editingStaffId = id;
-    $("form-title").textContent = "Modifica dipendente";
+    $("form-title").textContent = t("edit") + " " + t("staff.employee").toLowerCase();
     $("form-subtitle").textContent = userName(u);
-    $("btn-save-staff").textContent = "Salva modifiche";
+    $("btn-save-staff").innerHTML = "💾 <span>" + esc(t("save")) + "</span>";
     $("btn-form-reset").style.display = "inline-flex";
     $("link-account-section").style.display = "block";
 
@@ -254,7 +324,8 @@
     $("field-notes").value = u.notes || "";
 
     showMsg("form-message", "");
-    $("card-employee-form").scrollIntoView({ behavior: "smooth", block: "start" });
+    switchTab("dipendenti");
+    $("card-employee-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function saveStaff() {
@@ -389,48 +460,76 @@
     renderPresenzeSummary();
   }
 
+  function getRecordsForDay() {
+    return dailySummary && Array.isArray(dailySummary.records) ? dailySummary.records : attendanceList;
+  }
+
+  function getOpenRecord(userId) {
+    return getRecordsForDay().find((r) => String(r.userId) === String(userId) && r.status === "open");
+  }
+
+  function getWorkedMinutesToday(userId) {
+    return getRecordsForDay()
+      .filter((r) => String(r.userId) === String(userId))
+      .reduce((sum, r) => sum + (r.workedMinutes || 0), 0);
+  }
+
   function renderPresenzeTable() {
     const tbody = $("presenze-tbody");
     if (!tbody) return;
-    const records = dailySummary && Array.isArray(dailySummary.records) ? dailySummary.records : attendanceList;
     tbody.innerHTML = "";
 
-    if (!records || records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">Nessuna presenza.</td></tr>';
+    const activeStaff = staffList.filter((u) => u.active !== false);
+    if (!activeStaff.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-cell">' + esc(t("staff.noAttendance")) + "</td></tr>";
       return;
     }
 
-    records.forEach((r) => {
-      const tr = document.createElement("tr");
-      const name = userNameById(r.userId);
-      const isOpen = r.status === "open";
-      const statusLabel = isOpen ? "In servizio" : r.status === "anomaly" ? "Anomalia" : "Chiuso";
-      const badgeCls = isOpen ? "badge-ok" : r.status === "anomaly" ? "badge-danger" : "badge-muted";
-      const ore = r.workedMinutes != null ? formatMinutes(r.workedMinutes) : "—";
+    activeStaff.forEach((u) => {
+      const open = getOpenRecord(u.id);
+      const mins = getWorkedMinutesToday(u.id);
+      const hoursStr = (mins / 60).toFixed(2) + "h";
+      let shiftHtml;
+      if (open) {
+        const time = formatTime(open.clockInAt);
+        shiftHtml = '<span class="shift-in">' + esc(t("staff.inShift")) + " " + esc(time) + "</span>";
+      } else {
+        shiftHtml = '<span class="shift-out">' + esc(t("staff.outOfShift")) + "</span>";
+      }
 
+      const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><strong>${esc(name)}</strong></td>
-        <td><span class="badge ${badgeCls}">${esc(statusLabel)}</span></td>
-        <td><strong style="color:var(--accent)">${ore}</strong></td>
+        <td><strong>${esc(userName(u))}</strong></td>
+        <td>${shiftHtml}</td>
+        <td><strong style="color:var(--accent,#f97316)">${hoursStr}</strong></td>
         <td class="actions">
-          ${isOpen ? `<button class="btn-xs" data-action="close" data-id="${esc(r.id)}">Chiudi</button>` : ""}
-          ${r.anomalyType ? `<button class="btn-xs" data-action="reset-anom" data-id="${esc(r.id)}">Reset</button>` : ""}
+          <button class="btn-xs btn-clock-in" data-action="login" data-id="${esc(u.id)}" ${open ? "disabled" : ""}>${esc(t("staff.login"))}</button>
+          <button class="btn-xs btn-clock-out" data-action="logout" data-id="${esc(u.id)}" ${open ? "" : "disabled"}>${esc(t("staff.logout"))}</button>
         </td>
       `;
-      tr.querySelectorAll("[data-action]").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          const id = btn.dataset.id;
-          try {
-            if (btn.dataset.action === "close") {
-              await fetchJSON("/api/attendance/" + id + "/close", { method: "PATCH", body: JSON.stringify({}) });
-            } else {
-              await fetchJSON("/api/attendance/" + id + "/anomaly", { method: "PATCH", body: JSON.stringify({ clear: true }) });
-            }
-            await loadPresenze();
-            renderKpi();
-          } catch (e) { alert(e.message); }
-        });
+
+      tr.querySelector("[data-action='logout']")?.addEventListener("click", async () => {
+        const rec = getOpenRecord(u.id);
+        if (!rec) return;
+        try {
+          await fetchJSON("/api/attendance/" + rec.id + "/close", { method: "PATCH", body: JSON.stringify({}) });
+          await loadPresenze();
+          renderKpi();
+        } catch (e) { alert(e.message); }
       });
+
+      tr.querySelector("[data-action='login']")?.addEventListener("click", async () => {
+        if (getOpenRecord(u.id)) return;
+        try {
+          await fetchJSON("/api/attendance/me/clock-in", {
+            method: "POST",
+            body: JSON.stringify({ staffId: u.id }),
+          });
+          await loadPresenze();
+          renderKpi();
+        } catch (e) { alert(e.message); }
+      });
+
       tbody.appendChild(tr);
     });
   }
@@ -466,16 +565,20 @@
       : leaveList;
 
     if (!filtered.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Nessuna richiesta.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">' + esc(t("staff.noRequests")) + "</td></tr>";
       return;
     }
 
-    const typeMap = { ferie: "Ferie", permesso: "Permesso", malattia: "Malattia" };
+    const typeMap = {
+      ferie: t("staff.leaveType.ferie"),
+      permesso: t("staff.leaveType.permesso"),
+      malattia: t("staff.leaveType.malattia"),
+    };
     const statusMap = {
-      pending: { label: "In attesa", cls: "badge-accent" },
-      approved: { label: "Approvata", cls: "badge-ok" },
-      rejected: { label: "Rifiutata", cls: "badge-danger" },
-      cancelled: { label: "Annullata", cls: "badge-muted" },
+      pending: { label: t("staff.status_pending"), cls: "badge-accent" },
+      approved: { label: t("staff.status_approved"), cls: "badge-ok" },
+      rejected: { label: t("staff.status_rejected"), cls: "badge-danger" },
+      cancelled: { label: t("cancel"), cls: "badge-muted" },
     };
 
     filtered.forEach((r) => {
@@ -511,6 +614,38 @@
     });
   }
 
+  /* ─── Leave request form (owner) ───────── */
+  async function submitLeaveRequest() {
+    const userId = $("leave-staff")?.value;
+    const type = $("leave-type")?.value || "ferie";
+    const startDate = $("leave-from")?.value;
+    const endDate = $("leave-to")?.value;
+    const reason = $("leave-notes")?.value?.trim() || "";
+
+    if (!userId) {
+      showMsg("leave-form-msg", "Seleziona un dipendente.", false);
+      return;
+    }
+    if (!startDate || !endDate) {
+      showMsg("leave-form-msg", "Inserisci le date.", false);
+      return;
+    }
+
+    showMsg("leave-form-msg", "Invio...", true);
+    try {
+      await fetchJSON("/api/leave/owner", {
+        method: "POST",
+        body: JSON.stringify({ userId, type, startDate, endDate, reason }),
+      });
+      showMsg("leave-form-msg", "Richiesta inviata.", true);
+      $("leave-notes").value = "";
+      await loadLeaveRequests();
+      renderKpi();
+    } catch (e) {
+      showMsg("leave-form-msg", e.message, false);
+    }
+  }
+
   /* ─── QR / Badges (placeholder) ────────── */
   function initQrBadges() {
     $("btn-gen-qr")?.addEventListener("click", () => alert("Funzionalità QR badge in sviluppo."));
@@ -526,6 +661,18 @@
     const dateInput = $("presenze-date");
     if (dateInput) dateInput.value = new Date().toISOString().slice(0, 10);
 
+    const leaveFrom = $("leave-from");
+    const leaveTo = $("leave-to");
+    const today = new Date().toISOString().slice(0, 10);
+    if (leaveFrom) leaveFrom.value = today;
+    if (leaveTo) leaveTo.value = today;
+
+    document.querySelectorAll(".staff-tab").forEach((tab) => {
+      tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+    });
+
+    document.querySelector(".staff-tab[data-tab='accessi']")?.addEventListener("click", renderAccessTable);
+
     loadStaff();
 
     $("btn-refresh")?.addEventListener("click", loadStaff);
@@ -534,7 +681,12 @@
     $("btn-create-access")?.addEventListener("click", createAccess);
     $("btn-link-account")?.addEventListener("click", linkAccount);
     $("btn-presenze-refresh")?.addEventListener("click", loadPresenze);
+    $("btn-leave-send")?.addEventListener("click", submitLeaveRequest);
     if (dateInput) dateInput.addEventListener("change", loadPresenze);
+
+    document.querySelector("[data-i18n='staff.badge.copyNfc']")?.addEventListener("click", () => {
+      navigator.clipboard?.writeText("https://ristoword.com/clock").then(() => alert("Link copiato."));
+    });
 
     // Leave filter tabs
     document.querySelectorAll("#leave-tabs .filter-tab").forEach((tab) => {
