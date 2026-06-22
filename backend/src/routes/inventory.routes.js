@@ -12,6 +12,7 @@ router.get("/value", asyncHandler(inventoryController.getInventoryValue));
 router.get("/transfers", asyncHandler(inventoryController.listTransfers));
 router.patch("/transfers/:transferId", asyncHandler(inventoryController.patchLoadTransfer));
 router.post("/email-supplier", asyncHandler(inventoryController.emailSupplier));
+router.get("/reorder", asyncHandler(inventoryController.smartReorder));
 router.get("/barcode/:code", asyncHandler(inventoryController.getByBarcode));
 router.post("/receive/voice-preview", asyncHandler(inventoryController.voicePreview));
 router.post("/receive", asyncHandler(inventoryController.receive));

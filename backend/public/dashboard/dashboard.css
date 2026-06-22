@@ -285,6 +285,56 @@ body {
   gap: 10px;
 }
 
+/* TRENDS ROW */
+.trends-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 10px;
+}
+
+.trend-card {
+  background: #131627;
+  border-radius: var(--radius-lg);
+  border: 1px solid #262a3e;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trend-card.forecast {
+  border-color: var(--accent-soft);
+}
+
+.trend-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.trend-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.trend-delta {
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 16px;
+}
+
+.trend-delta.positive { color: #2ecc71; }
+.trend-delta.negative { color: #e74c3c; }
+.trend-delta.neutral  { color: var(--text-muted); }
+
+.trend-sub {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
 .dashboard-status-row {
   display: grid;
   grid-template-columns: minmax(0, auto) 1fr;
@@ -579,6 +629,10 @@ body {
   }
 
   .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trends-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

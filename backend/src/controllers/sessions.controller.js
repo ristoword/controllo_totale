@@ -1,53 +1,84 @@
-// backend/src/controllers/sessions.controller.js
-const sessionsRepository = require("../repositories/sessions.repository");
+"use strict";
 
-// POST /api/sessions/login
-exports.login = async (req, res) => {
-  const { userId, name, department, authorizedBy, source } = req.body || {};
+const { useMysqlPersistence } = require("../config/mysqlPersistence");
 
-  if (!userId || !name || !department) {
-    return res.status(400).json({
-      error: true,
-      message: "userId, name e department obbligatori",
+exports.list = async (req, res) => {
+  const currentSessionId = req.sessionID;
+  const currentUserId = req.session?.user?.id;
+
+  if (!useMysqlPersistence()) {
+    return res.json({
+      sessions: [{
+        id: currentSessionId,
+        current: true,
+        user: req.session?.user?.username || "—",
+        createdAt: null,
+        expiresAt: null,
+      }],
+      total: 1,
     });
   }
 
-  const session = await sessionsRepository.createSession({
-    userId,
-    name,
-    department,
-    authorizedBy: source === "cassa" ? (authorizedBy || "") : null,
-    source: source || "module",
-  });
+  try {
+    const { getPool } = require("../db/mysql-pool");
+    const pool = getPool();
+    const [rows] = await pool.query(
+      "SELECT session_id, data, expires FROM sessions ORDER BY expires DESC LIMIT 100"
+    );
 
-  res.status(201).json(session);
-};
+    const sessions = (rows || []).map((row) => {
+      let parsed = {};
+      try {
+        parsed = typeof row.data === "string" ? JSON.parse(row.data) : row.data || {};
+      } catch (_) {}
 
-// POST /api/sessions/logout
-exports.logout = async (req, res) => {
-  const { sessionId, userId } = req.body || {};
+      const user = parsed.user || {};
+      return {
+        id: row.session_id,
+        current: row.session_id === currentSessionId,
+        user: user.username || "—",
+        userId: user.id || null,
+        role: user.role || null,
+        restaurantId: user.restaurantId || null,
+        expiresAt: row.expires ? new Date(row.expires * 1000).toISOString() : null,
+      };
+    });
 
-  let session = null;
-  if (sessionId) {
-    session = await sessionsRepository.endSession(sessionId);
-  } else if (userId) {
-    session = await sessionsRepository.endSessionByUserId(userId);
-  }
+    const own = currentUserId
+      ? sessions.filter((s) => s.userId === currentUserId || !s.userId)
+      : sessions;
 
-  if (!session) {
-    return res.status(404).json({
-      error: true,
-      message: "Sessione non trovata o già chiusa",
+    res.json({ sessions: own, total: own.length });
+  } catch (err) {
+    res.status(500).json({
+      error: "sessions_error",
+      message: err.message || "Errore nel recupero sessioni",
     });
   }
-
-  res.json({ success: true, session });
 };
 
-// GET /api/sessions/active
-// GET /api/sessions/active/:department
-exports.getActive = async (req, res) => {
-  const department = req.params.department || null;
-  const sessions = await sessionsRepository.getActiveSessions(department);
-  res.json(sessions);
+exports.revoke = async (req, res) => {
+  const targetId = req.params.id;
+  if (targetId === req.sessionID) {
+    return res.status(400).json({ error: "Non puoi revocare la sessione corrente. Usa logout." });
+  }
+
+  if (!useMysqlPersistence()) {
+    return res.status(501).json({ error: "Revoca sessioni disponibile solo con MySQL" });
+  }
+
+  try {
+    const { getPool } = require("../db/mysql-pool");
+    const pool = getPool();
+    const [result] = await pool.query("DELETE FROM sessions WHERE session_id = ?", [targetId]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Sessione non trovata" });
+    }
+    res.json({ success: true, revoked: targetId });
+  } catch (err) {
+    res.status(500).json({
+      error: "revoke_error",
+      message: err.message || "Errore nella revoca sessione",
+    });
+  }
 };

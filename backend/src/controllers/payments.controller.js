@@ -412,6 +412,64 @@ async function getCurrentShift(req, res) {
   res.json(result);
 }
 
+async function createPaymentLink(req, res) {
+  const { orderId, table, amount, description } = req.body || {};
+  const total = toNumber(amount, 0);
+  if (total <= 0) {
+    return res.status(400).json({ error: "Importo non valido" });
+  }
+
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeKey || stripeKey.startsWith("sk_test_placeholder")) {
+    return res.status(503).json({
+      error: "Stripe non configurato",
+      message: "Configurare STRIPE_SECRET_KEY nel file .env",
+    });
+  }
+
+  try {
+    const stripe = require("stripe")(stripeKey);
+    const appUrl = process.env.APP_URL || `${req.protocol}://${req.get("host")}`;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            unit_amount: Math.round(total * 100),
+            product_data: {
+              name: description || `Conto Tavolo ${table || "—"}`,
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        orderId: orderId || "",
+        table: String(table || ""),
+        source: "controllo_totale_cassa",
+      },
+      success_url: `${appUrl}/cassa/payment-success.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/cassa/cassa.html`,
+    });
+
+    res.json({
+      url: session.url,
+      sessionId: session.id,
+      amount: total,
+      table,
+      orderId,
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "stripe_error",
+      message: err.message || "Errore nella creazione del link di pagamento",
+    });
+  }
+}
+
 module.exports = {
   listPayments,
   getPaymentsSummary,
@@ -424,4 +482,5 @@ module.exports = {
   partialClose,
   zReport,
   getCurrentShift,
+  createPaymentLink,
 };

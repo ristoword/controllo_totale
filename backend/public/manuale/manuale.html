@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>CONTROLLO TOTALE – Manuale</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/manuale/">
+<link rel="stylesheet" href="/shared/rw-shell.css">
+<link rel="stylesheet" href="manuale.css">
+</head>
+<body>
+<div class="layout rw-layout">
+
+<aside class="sidebar" id="sidebar"></aside>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+<div class="main-col">
+<header class="app-header">
+<h1 data-i18n="manuale_title">Manuale Utente</h1>
+<p class="subtitle" data-i18n="manuale_subtitle">Guida operativa di Controllo Totale</p>
+</header>
+
+<main class="main manuale-main">
+
+<section class="manuale-search">
+<input type="text" id="manual-search" placeholder="Cerca nel manuale..." class="search-input">
+</section>
+
+<section class="manuale-toc" id="manual-toc"></section>
+
+<section class="manuale-content" id="manual-content"></section>
+
+</main>
+</div>
+</div>
+
+<script src="/js/i18n.js"></script>
+<script src="/shared/sidebar-mobile.js"></script>
+<script src="/shared/rw-shell.js"></script>
+<script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,cucina,cassa,bar,pizzeria,magazzino,staff"></script>
+<script src="manuale.js"></script>
+</body>
+</html>

@@ -11,6 +11,8 @@ router.get("/accountant", asyncHandler(reportsController.getAccountantReport));
 router.get("/top-dishes", asyncHandler(reportsController.getTopDishes));
 router.get("/dish-margins", asyncHandler(reportsController.getDishMargins));
 router.get("/foodcost-alerts", asyncHandler(reportsController.getFoodCostAlerts));
+router.get("/trends", asyncHandler(reportsController.getTrends));
+router.get("/unified", asyncHandler(reportsController.getUnifiedReport));
 // GET /api/reports/:id
 router.get("/:id", asyncHandler(reportsController.getReportById));
 

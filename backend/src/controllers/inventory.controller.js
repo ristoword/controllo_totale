@@ -171,6 +171,85 @@ exports.deleteInventory = async (req, res) => {
   res.json({ success: true });
 };
 
+// GET /api/inventory/reorder – Smart reorder suggestions based on 14-day usage
+exports.smartReorder = async (req, res) => {
+  try {
+    const stockMovementsRepository = require("../repositories/stock-movements.repository");
+
+    const inventory = await inventoryRepository.getAll();
+    const items = Array.isArray(inventory) ? inventory : [];
+
+    const now = new Date();
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 86400000);
+
+    let movements = [];
+    try {
+      movements = await stockMovementsRepository.listMovements({
+        dateFrom: fourteenDaysAgo.toISOString().slice(0, 10),
+      });
+    } catch (_) {}
+
+    const usageByProduct = {};
+    for (const m of movements) {
+      if (m.type !== "consumption" && m.type !== "transfer" && m.type !== "adjustment") continue;
+      const qty = Math.abs(Number(m.quantity) || 0);
+      if (qty === 0) continue;
+      const key = m.productId || m.productName || "";
+      usageByProduct[key] = (usageByProduct[key] || 0) + qty;
+    }
+
+    const suggestions = [];
+    for (const item of items) {
+      const stock = Number(item.stock ?? item.quantity) || 0;
+      const minStock = Number(item.minStock ?? item.min_stock) || 0;
+      const usage14d = usageByProduct[item.id] || usageByProduct[item.name] || 0;
+      const dailyUsage = usage14d / 14;
+      const daysLeft = dailyUsage > 0 ? stock / dailyUsage : stock > 0 ? 999 : 0;
+      const needsReorder = (minStock > 0 && stock < minStock) || (dailyUsage > 0 && daysLeft < 7);
+
+      if (!needsReorder) continue;
+
+      const reorderQty = Math.max(
+        (minStock > 0 ? minStock : dailyUsage * 14) - stock,
+        dailyUsage * 7
+      );
+
+      suggestions.push({
+        productId: item.id,
+        name: item.name,
+        unit: item.unit || "kg",
+        currentStock: stock,
+        minStock,
+        dailyUsage: Math.round(dailyUsage * 100) / 100,
+        daysLeft: Math.round(daysLeft * 10) / 10,
+        suggestedQty: Math.ceil(reorderQty),
+        urgency: daysLeft < 2 ? "critical" : daysLeft < 5 ? "high" : "medium",
+        supplier: item.supplier || null,
+      });
+    }
+
+    suggestions.sort((a, b) => {
+      const urgencyOrder = { critical: 0, high: 1, medium: 2 };
+      return (urgencyOrder[a.urgency] || 2) - (urgencyOrder[b.urgency] || 2);
+    });
+
+    res.json({
+      suggestions,
+      meta: {
+        totalProducts: items.length,
+        needsReorder: suggestions.length,
+        criticalCount: suggestions.filter((s) => s.urgency === "critical").length,
+        lookbackDays: 14,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "reorder_error",
+      message: err.message || "Errore nel calcolo riordino",
+    });
+  }
+};
+
 // =======================
 //  RECEIVING (direct load)
 // =======================

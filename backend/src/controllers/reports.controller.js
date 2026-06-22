@@ -80,3 +80,17 @@ exports.getFoodCostAlerts = async (req, res) => {
   const data = await reportsService.getFoodCostAlerts(threshold);
   res.json(data);
 };
+
+// GET /api/reports/trends
+exports.getTrends = async (req, res) => {
+  const data = await reportsService.buildTrends();
+  res.json(data);
+};
+
+// GET /api/reports/unified?from=&to=
+exports.getUnifiedReport = async (req, res) => {
+  const from = req.query.from ? new Date(req.query.from) : new Date();
+  const to = req.query.to ? new Date(req.query.to) : new Date();
+  const data = await reportsService.buildUnifiedReport(from, to);
+  res.json(data);
+};

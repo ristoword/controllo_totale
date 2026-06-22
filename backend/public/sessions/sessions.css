@@ -1,0 +1,49 @@
+@import url("/shared/responsive-base.css");
+@import url("/shared/sidebar-mobile.css");
+
+.sessions-main { max-width: 800px; margin: 0 auto; padding: 20px; }
+
+.sessions-kpi { margin-bottom: 20px; display: flex; gap: 10px; }
+.kpi-pill {
+  background: #131627;
+  border-radius: 12px;
+  border: 1px solid #262a3e;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kpi-label { color: #a4a7bd; font-size: 13px; }
+.kpi-value { color: #f5b800; font-size: 20px; font-weight: 700; }
+
+.sessions-list { display: flex; flex-direction: column; gap: 8px; }
+.placeholder { color: #7c8195; font-size: 14px; }
+
+.session-card {
+  background: #131627;
+  border-radius: 14px;
+  border: 1px solid #262a3e;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.session-card.current { border-color: #f5b800; }
+
+.session-info { display: flex; flex-direction: column; gap: 4px; }
+.session-user { font-size: 15px; font-weight: 600; color: #f8f8fb; }
+.session-meta { font-size: 12px; color: #a4a7bd; }
+.session-badge { font-size: 11px; color: #f5b800; font-weight: 600; }
+
+.btn-revoke {
+  background: #ff4b4b;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-revoke:hover { opacity: 0.85; }
+.btn-revoke:disabled { opacity: 0.4; cursor: not-allowed; }

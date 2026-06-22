@@ -380,6 +380,63 @@ function setupAI() {
 }
 
 // =============================
+// TRENDS
+// =============================
+
+async function fetchTrends() {
+  try {
+    const res = await fetch("/api/reports/trends", { credentials: "same-origin" });
+    if (!res.ok) throw new Error();
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+function formatDelta(pct) {
+  if (pct == null) return { text: "", cls: "neutral" };
+  const sign = pct > 0 ? "+" : "";
+  const cls = pct > 0 ? "positive" : pct < 0 ? "negative" : "neutral";
+  return { text: sign + pct.toFixed(1) + "%", cls };
+}
+
+function renderTrends(trends) {
+  if (!trends) return;
+
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+
+  const setDelta = (id, pct) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const d = formatDelta(pct);
+    el.textContent = d.text;
+    el.className = "trend-delta " + d.cls;
+  };
+
+  setText("trend-today-rev", formatMoney(trends.today?.revenue));
+  setDelta("trend-today-delta", trends.today?.deltaVsYesterday);
+  setText("trend-today-covers", String(trends.today?.covers ?? 0));
+  setText("trend-today-margin", (trends.today?.marginPercent ?? 0) + "%");
+
+  setText("trend-week-rev", formatMoney(trends.week?.revenue));
+  setDelta("trend-week-delta", trends.week?.deltaVsPrevWeek);
+
+  setText("trend-month-rev", formatMoney(trends.month?.revenue));
+  setDelta("trend-month-delta", trends.month?.deltaVsPrevMonth);
+
+  setText("trend-fc7-rev", formatMoney(trends.forecast7d?.revenue));
+  var fc7conf = trends.forecast7d?.confidence;
+  setText("trend-fc7-conf", typeof fc7conf === "string" ? fc7conf : fc7conf != null ? Math.round(fc7conf * 100) + "%" : "—");
+
+  setText("trend-fc30-rev", formatMoney(trends.forecast30d?.revenue));
+  var fc30conf = trends.forecast30d?.confidence;
+  setText("trend-fc30-conf", typeof fc30conf === "string" ? fc30conf : fc30conf != null ? Math.round(fc30conf * 100) + "%" : "—");
+}
+
+// =============================
 // CASH STATUS + ALERTS
 // =============================
 
@@ -431,9 +488,10 @@ async function loadDashboard() {
   const ordersList = document.getElementById("last-orders-list");
   if (ordersList) ordersList.innerHTML = '<div class="placeholder">Caricamento...</div>';
 
-  const [orders, dashboard] = await Promise.all([
+  const [orders, dashboard, trends] = await Promise.all([
     fetchOrders(),
     fetchDashboardSummary(),
+    fetchTrends(),
   ]);
 
   updateOrderKpi(orders);
@@ -469,6 +527,8 @@ async function loadDashboard() {
       `;
     }
   }
+
+  renderTrends(trends);
 
   renderCashStatus(
     dashboard

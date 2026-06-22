@@ -1,11 +1,10 @@
-// backend/src/routes/sessions.routes.js
+"use strict";
+
 const router = require("express").Router();
 const asyncHandler = require("../utils/asyncHandler");
-const sessionsController = require("../controllers/sessions.controller");
+const ctrl = require("../controllers/sessions.controller");
 
-router.post("/login", asyncHandler(sessionsController.login));
-router.post("/logout", asyncHandler(sessionsController.logout));
-router.get("/active", asyncHandler(sessionsController.getActive));
-router.get("/active/:department", asyncHandler(sessionsController.getActive));
+router.get("/", asyncHandler(ctrl.list));
+router.delete("/:id", asyncHandler(ctrl.revoke));
 
 module.exports = router;

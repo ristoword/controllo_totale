@@ -245,6 +245,16 @@ app.get("/cantina", requirePageAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "../public/cantina/cantina.html"));
 });
 
+// Manuale utente
+app.get("/manuale", requirePageAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/manuale/manuale.html"));
+});
+
+// Sessioni attive
+app.get("/sessions", requirePageAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/sessions/sessions.html"));
+});
+
 // QR table ordering: /qr/1, /qr/2, etc. (no auth – public QR)
 app.get("/qr", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/qr/index.html"));
@@ -368,6 +378,15 @@ try {
   console.warn("suppliers.routes non trovato:", e.message);
 }
 
+// PURCHASE ORDERS (ordini acquisto fornitori)
+try {
+  const purchaseOrdersRouter = require("./routes/purchase-orders.routes");
+  const ROLES_PO = ["owner", "supervisor", "magazzino", "cucina"];
+  app.use("/api/purchase-orders", requireAuth, requireRole(ROLES_PO), purchaseOrdersRouter);
+} catch (e) {
+  console.warn("purchase-orders.routes non trovato:", e.message);
+}
+
 // DAILY MENU (Menu del Giorno)
 try {
   const dailyMenuRouter = require("./routes/daily-menu.routes");
@@ -489,6 +508,32 @@ try {
   app.use("/api/ai", requireAuth, requireRole(ROLES_ALL), aiRouter);
 } catch (e) {
   console.warn("ai.routes non trovato:", e.message);
+}
+
+// SESSIONS – /api/sessions
+try {
+  const sessionsRouter = require("./routes/sessions.routes");
+  const ROLES_SESSIONS = ["owner", "supervisor"];
+  app.use("/api/sessions", requireAuth, requireRole(ROLES_SESSIONS), sessionsRouter);
+} catch (e) {
+  console.warn("sessions.routes non trovato:", e.message);
+}
+
+// NOTIFICATIONS – /api/notifications
+try {
+  const notificationsRouter = require("./routes/notifications.routes");
+  app.use("/api/notifications", requireAuth, requireRole(ROLES_ALL), notificationsRouter);
+} catch (e) {
+  console.warn("notifications.routes non trovato:", e.message);
+}
+
+// AI PROPOSALS – /api/ai/proposals
+try {
+  const aiProposalsRouter = require("./routes/ai-proposals.routes");
+  const ROLES_PROPOSALS = ["owner", "supervisor"];
+  app.use("/api/ai/proposals", requireAuth, requireRole(ROLES_PROPOSALS), aiProposalsRouter);
+} catch (e) {
+  console.warn("ai-proposals.routes non trovato:", e.message);
 }
 
 // CANTINA – /api/cantina

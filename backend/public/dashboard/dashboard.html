@@ -40,6 +40,7 @@
 <a class="side-nav-item" href="/situazione-giorno" data-i18n="situazione_giorno">Situazione del Giorno</a>
 <a class="side-nav-item" href="/risto-comandi" data-i18n="risto_comandi">Risto Comandi</a>
 <a class="side-nav-item" href="/cassa/cassa.html" data-i18n="cassa">Cassa</a>
+<a class="side-nav-item" href="/cassa/chiusura.html" data-i18n="chiusura_z" data-i18n-title="chiusura_z_tip">Chiusura Z</a>
 <a class="side-nav-item" href="/magazzino/magazzino.html" data-i18n="magazzino">Magazzino</a>
 <a class="side-nav-item" href="/fornitori/fornitori.html" data-i18n="fornitori">Fornitori</a>
 <a class="side-nav-item" href="/qr-tables/qr-tables.html" data-i18n="qr_tables">QR Tavoli</a>
@@ -60,6 +61,8 @@
 <a class="side-nav-item" href="/archivio/archivio.html" data-i18n="archivio" data-i18n-title="archivio_tip">Archivio</a>
 <a class="side-nav-item" href="/archivio/comande.html" data-i18n="archivio_orders" data-i18n-title="archivio_orders_tip">Archivio comande</a>
 <a class="side-nav-item" href="/ai-assistente" data-i18n="ai_assistente" data-i18n-title="ai_assistente_tip">🤖 AI Assistente</a>
+<a class="side-nav-item" href="/manuale/manuale.html" data-i18n="manuale" data-i18n-title="manuale_tip">Manuale</a>
+<a class="side-nav-item" href="/sessions/sessions.html" data-i18n="sessions" data-i18n-title="sessions_tip">Sessioni</a>
 
 </nav>
 
@@ -136,6 +139,36 @@ Controllo totale di Sala → Cucina → Pizzeria → Magazzino → Cassa
 <div class="kpi-note" data-i18n="kpi_late_note">> 15 minuti</div>
 </article>
 
+</section>
+
+<!-- TRENDS -->
+<section class="trends-row" id="trends-row">
+<article class="trend-card">
+<div class="trend-label" data-i18n="trend_today">Oggi</div>
+<div class="trend-value" id="trend-today-rev">€ 0,00</div>
+<div class="trend-delta" id="trend-today-delta"></div>
+<div class="trend-sub"><span id="trend-today-covers">0</span> <span data-i18n="covers">coperti</span> · <span id="trend-today-margin">0%</span> <span data-i18n="margin">margine</span></div>
+</article>
+<article class="trend-card">
+<div class="trend-label" data-i18n="trend_week">Settimana</div>
+<div class="trend-value" id="trend-week-rev">€ 0,00</div>
+<div class="trend-delta" id="trend-week-delta"></div>
+</article>
+<article class="trend-card">
+<div class="trend-label" data-i18n="trend_month">Mese</div>
+<div class="trend-value" id="trend-month-rev">€ 0,00</div>
+<div class="trend-delta" id="trend-month-delta"></div>
+</article>
+<article class="trend-card forecast">
+<div class="trend-label" data-i18n="trend_forecast_7d">Previsione 7gg</div>
+<div class="trend-value" id="trend-fc7-rev">€ 0,00</div>
+<div class="trend-sub"><span data-i18n="confidence">Confidenza</span>: <span id="trend-fc7-conf">—</span></div>
+</article>
+<article class="trend-card forecast">
+<div class="trend-label" data-i18n="trend_forecast_30d">Previsione 30gg</div>
+<div class="trend-value" id="trend-fc30-rev">€ 0,00</div>
+<div class="trend-sub"><span data-i18n="confidence">Confidenza</span>: <span id="trend-fc30-conf">—</span></div>
+</article>
 </section>
 
 <!-- CASH + ALERTS -->

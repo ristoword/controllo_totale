@@ -493,10 +493,190 @@ async function getFoodCostAlerts(thresholdPercent = 35) {
   return { alerts: alerts.sort((a, b) => (b.foodCostPercent || 0) - (a.foodCostPercent || 0)) };
 }
 
+/**
+ * Revenue trends: today / 7d / 30d with deltas vs previous period + simple forecasts.
+ */
+async function buildTrends() {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+
+  const allPayments = await paymentsRepository.listPayments({});
+  const allOrders = await ordersRepository.getAllOrders();
+
+  function dayRevenue(dateStr) {
+    return allPayments
+      .filter((p) => {
+        const d = getPaymentDate(p);
+        return d && new Date(d).toISOString().slice(0, 10) === dateStr;
+      })
+      .reduce((s, p) => s + toNumber(p.total, 0), 0);
+  }
+
+  function dayCovers(dateStr) {
+    return allPayments
+      .filter((p) => {
+        const d = getPaymentDate(p);
+        return d && new Date(d).toISOString().slice(0, 10) === dateStr;
+      })
+      .reduce((s, p) => s + toNumber(p.covers, 0), 0);
+  }
+
+  function dayOrderCount(dateStr) {
+    return allOrders.filter((o) => {
+      const d = o.updatedAt || o.createdAt;
+      return d && new Date(d).toISOString().slice(0, 10) === dateStr;
+    }).length;
+  }
+
+  function rangeRevenue(days) {
+    let total = 0;
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      total += dayRevenue(d.toISOString().slice(0, 10));
+    }
+    return total;
+  }
+
+  function prevRangeRevenue(days) {
+    let total = 0;
+    for (let i = days; i < days * 2; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      total += dayRevenue(d.toISOString().slice(0, 10));
+    }
+    return total;
+  }
+
+  function delta(current, previous) {
+    if (!previous || previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 10000) / 100;
+  }
+
+  function buildDayHistory(days) {
+    const history = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const ds = d.toISOString().slice(0, 10);
+      history.push({
+        date: ds,
+        revenue: dayRevenue(ds),
+        covers: dayCovers(ds),
+        orders: dayOrderCount(ds),
+      });
+    }
+    return history;
+  }
+
+  function simpleForecast(history, futureDays) {
+    const revs = history.map((h) => h.revenue);
+    const daysWithData = revs.filter((r) => r > 0).length;
+    if (revs.length === 0) return { revenue: 0, dailyAvg: 0, confidence: "low", confidenceNum: 0 };
+    const avg = revs.reduce((a, b) => a + b, 0) / revs.length;
+    const variance = revs.reduce((a, r) => a + Math.pow(r - avg, 2), 0) / revs.length;
+    const stddev = Math.sqrt(variance);
+    const confNum = avg > 0 ? Math.max(0.3, Math.min(0.95, 1 - stddev / avg)) : 0;
+    const confidence = daysWithData >= 20 ? "high" : daysWithData >= 7 ? "medium" : "low";
+    return {
+      revenue: Math.round(avg * futureDays * 100) / 100,
+      dailyAvg: Math.round(avg * 100) / 100,
+      confidence,
+      confidenceNum: Math.round(confNum * 100) / 100,
+    };
+  }
+
+  const todayRev = dayRevenue(todayStr);
+  const yesterdayStr = new Date(now.getTime() - 86400000).toISOString().slice(0, 10);
+  const yesterdayRev = dayRevenue(yesterdayStr);
+
+  const week = rangeRevenue(7);
+  const prevWeek = prevRangeRevenue(7);
+  const month = rangeRevenue(30);
+  const prevMonth = prevRangeRevenue(30);
+
+  const history7d = buildDayHistory(7);
+  const history30d = buildDayHistory(30);
+
+  const todayCovers = dayCovers(todayStr);
+  const todayOrders = dayOrderCount(todayStr);
+
+  const totalCogs = await orderFoodCostsRepository.getTotalFoodCostForDate(now);
+  const margin = todayRev - totalCogs;
+  const marginPercent = todayRev > 0 ? Math.round((margin / todayRev) * 10000) / 100 : 0;
+
+  return {
+    today: {
+      revenue: todayRev,
+      covers: todayCovers,
+      orders: todayOrders,
+      cogs: totalCogs,
+      margin,
+      marginPercent,
+      deltaVsYesterday: delta(todayRev, yesterdayRev),
+    },
+    week: {
+      revenue: week,
+      deltaVsPrevWeek: delta(week, prevWeek),
+    },
+    month: {
+      revenue: month,
+      deltaVsPrevMonth: delta(month, prevMonth),
+    },
+    forecast7d: simpleForecast(history7d, 7),
+    forecast30d: simpleForecast(history30d, 30),
+    history7d,
+    history30d,
+    generatedAt: now.toISOString(),
+  };
+}
+
+/**
+ * Unified cross-module snapshot: orders, payments, stock, staff, revenue in one view.
+ */
+async function buildUnifiedReport(dateFrom, dateTo) {
+  const from = normalizeDate(dateFrom) || new Date();
+  const to = normalizeDate(dateTo) || new Date();
+
+  const [accountant, topDishes, dishMargins, fcAlerts] = await Promise.all([
+    buildAccountantReport(from, to),
+    getTopDishes(to),
+    getDishMargins(to),
+    getFoodCostAlerts(35),
+  ]);
+
+  let inventoryValue = 0;
+  let lowStockCount = 0;
+  try {
+    inventoryValue = await inventoryService.getTotalInventoryValue();
+    lowStockCount = await inventoryService.getLowStockCount();
+  } catch (_) {}
+
+  return {
+    period: {
+      from: from.toISOString().slice(0, 10),
+      to: to.toISOString().slice(0, 10),
+    },
+    financial: accountant.grandTotals || {},
+    paymentMethods: accountant.paymentMethodsBreakdown || {},
+    topDishes: topDishes.topDishes || [],
+    dishMargins: dishMargins.summary || {},
+    foodCostAlerts: (fcAlerts.alerts || []).length,
+    inventory: {
+      totalValue: inventoryValue,
+      lowStockItems: lowStockCount,
+    },
+    days: accountant.days || [],
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 module.exports = {
   buildDailyReport,
   buildDashboardSummary,
   buildAccountantReport,
+  buildTrends,
+  buildUnifiedReport,
   summarizeOrders,
   summarizePayments,
   getTopDishes,

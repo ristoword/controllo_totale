@@ -45,6 +45,12 @@ router.post(
   asyncHandler(paymentsController.zReport)
 );
 
+// POST /api/payments/payment-link — Generate Stripe Checkout link for table payment
+router.post(
+  "/payment-link",
+  asyncHandler(paymentsController.createPaymentLink)
+);
+
 // GET /api/payments/:id
 router.get(
   "/:id",

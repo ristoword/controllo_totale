@@ -38,6 +38,15 @@ router.post("/production", asyncHandler(aiController.getProductionSuggestion));
 // POST /api/ai/inventory – Magazzino multi-livello
 router.post("/inventory", asyncHandler(aiController.getInventorySuggestion));
 
+// GET /api/ai/kitchen/insights – Kitchen insights snapshot (combines predictive + operational)
+router.get("/kitchen/insights", asyncHandler(aiController.getKitchenInsights));
+
+// POST /api/ai/kitchen/menu-generator – AI menu suggestions
+router.post("/kitchen/menu-generator", asyncHandler(aiController.menuGenerator));
+
+// POST /api/ai/kitchen/pricing – AI dynamic pricing suggestions
+router.post("/kitchen/pricing", asyncHandler(aiController.pricingAI));
+
 // GET /api/ai/usage – debug-only usage stats (no auth)
 router.get("/usage", asyncHandler(aiController.getUsage));
 

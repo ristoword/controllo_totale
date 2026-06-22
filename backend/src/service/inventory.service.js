@@ -407,10 +407,22 @@ async function getLowStockCount() {
   return count;
 }
 
+async function getTotalInventoryValue() {
+  const items = await inventoryRepository.readInventory();
+  let total = 0;
+  for (const item of items) {
+    const stock = Number(item.stock ?? item.quantity) || 0;
+    const cost = Number(item.unitCost ?? item.unit_cost ?? item.costPerUnit ?? 0);
+    total += stock * cost;
+  }
+  return Math.round(total * 100) / 100;
+}
+
 module.exports = {
   onOrderFinalized,
   onOrderClosed,
   validateOrderConsumption,
   calculateRecipeIngredientCost,
   getLowStockCount,
+  getTotalInventoryValue,
 };
