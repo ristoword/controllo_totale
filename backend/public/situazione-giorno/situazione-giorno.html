@@ -10,93 +10,7 @@
 <body>
   <div class="layout rw-layout">
 
-    <aside class="sidebar">
-      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-
-      <div class="brand">
-        <div class="brand-logo">RW</div>
-        <div class="brand-text">
-          <div class="brand-title">RistoWord</div>
-          <div class="brand-subtitle" data-i18n="rw_tagline">Un tocco, un'azione. Niente stress.</div>
-        </div>
-      </div>
-
-      <nav class="side-nav">
-        <div class="nav-section-label" data-i18n="nav_section_oggi">OGGI</div>
-
-        <a class="nav-item" href="/dashboard/dashboard.html">
-          <span class="nav-icon" aria-hidden="true">📊</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="nav_panoramica">Panoramica</span>
-            <span class="nav-hint" data-i18n="nav_panoramica_hint">Dashboard generale</span>
-          </span>
-        </a>
-
-        <a class="nav-item" href="/ai-assistente">
-          <span class="nav-icon" aria-hidden="true">🤖</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="ai_assistente">AI Assistente</span>
-            <span class="nav-hint" data-i18n="nav_ai_hint">Supervisore intelligente</span>
-          </span>
-        </a>
-
-        <a class="nav-item active" href="/situazione-giorno" aria-current="page">
-          <span class="nav-icon" aria-hidden="true">📋</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="situazione_giorno">Situazione del Giorno</span>
-            <span class="nav-hint" data-i18n="nav_situazione_hint">Briefing live della giornata</span>
-          </span>
-        </a>
-
-        <a class="nav-item" href="/risto-comandi">
-          <span class="nav-icon" aria-hidden="true">🎤</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="risto_comandi">Risto Comandi</span>
-            <span class="nav-hint" data-i18n="nav_risto_hint">Comandi vocali operativi</span>
-          </span>
-        </a>
-
-        <div class="nav-section-label" data-i18n="nav_section_operativita">OPERATIVITÀ</div>
-
-        <a class="nav-item" href="/sala/sala.html">
-          <span class="nav-icon" aria-hidden="true">🍽️</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="sala">Sala</span>
-            <span class="nav-hint" data-i18n="nav_sala_hint">Mappa tavoli e azioni</span>
-          </span>
-        </a>
-
-        <a class="nav-item" href="/sala/sala-fullscreen.html">
-          <span class="nav-icon" aria-hidden="true">🖥️</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="sala_fullscreen">Sala Fullscreen</span>
-            <span class="nav-hint" data-i18n="nav_sala_fs_hint">Mappa a schermo intero</span>
-          </span>
-        </a>
-
-        <a class="nav-item" href="/cucina/cucina.html">
-          <span class="nav-icon" aria-hidden="true">👨‍🍳</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="cucina">Cucina</span>
-            <span class="nav-hint" data-i18n="nav_cucina_hint">KDS, ricette, HACCP</span>
-          </span>
-        </a>
-
-        <a class="nav-item" href="/pizzeria/pizzeria.html">
-          <span class="nav-icon" aria-hidden="true">🍕</span>
-          <span class="nav-text">
-            <span class="nav-label" data-i18n="pizzeria">Pizzeria</span>
-            <span class="nav-hint" data-i18n="nav_pizzeria_hint">KDS pizza e note</span>
-          </span>
-        </a>
-      </nav>
-
-      <div class="side-tip">
-        <span data-i18n="nav_ristoword_tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</span>
-      </div>
-    </aside>
+    <aside class="sidebar" id="sidebar"></aside>
 
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
@@ -229,6 +143,7 @@
   <script src="/shared/sidebar-mobile.js"></script>
   <script src="/shared/rw-shell.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,bar,cassa,magazzino,pizzeria,cucina"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="situazione-giorno.js?v=20260622b"></script>
 </body>
 </html>

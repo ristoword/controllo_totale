@@ -9,16 +9,8 @@
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar no-print">
-      <div class="brand-title">CONTROLLO TOTALE</div>
-      <div class="brand-sub">Comande servite</div>
-      <nav class="nav">
-        <a href="/dashboard/dashboard.html">Dashboard</a>
-        <a href="/archivio/archivio.html">Archivio</a>
-        <a class="active" href="/archivio/comande.html">Archivio comande</a>
-        <a href="/cucina/cucina.html">Cucina</a>
-      </nav>
-    </aside>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <main class="main">
       <button type="button" class="sidebar-toggle no-print" id="sidebar-toggle">&#9776; Menu</button>
@@ -72,6 +64,7 @@
 
   <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,cassa,magazzino,cucina,sala"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="/shared/api.js"></script>
   <script src="comande.js"></script>
   <link rel="stylesheet" href="/shared/ai-widget.css">

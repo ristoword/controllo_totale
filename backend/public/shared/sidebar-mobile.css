@@ -60,12 +60,11 @@
   .layout .sidebar,
   .shell .sidebar {
     position: fixed;
-    left: 0;
     top: 0;
     width: min(280px, 88vw);
     height: 100dvh;
     z-index: 9000;
-    transform: translateX(-100%);
+    left: calc(-1 * min(280px, 88vw));
     transition: transform 0.28s ease;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -73,7 +72,7 @@
 
   .layout .sidebar.open,
   .shell .sidebar.open {
-    transform: translateX(0);
+    transform: translateX(min(280px, 88vw));
   }
 
   .hamburger-btn {

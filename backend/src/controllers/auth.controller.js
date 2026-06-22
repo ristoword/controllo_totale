@@ -60,7 +60,7 @@ exports.login = async (req, res, next) => {
     req.session.restaurantId = user.restaurantId ?? "default";
 
     // Timbratura: solo utenti non-owner, con restaurantId
-    if (user.role !== "owner" && user.restaurantId) {
+    if (user.role !== "owner" && user.role !== "super_admin" && user.restaurantId) {
       try {
         const openShift = await attendanceRepository.findOpenShiftByUser(user.id, user.restaurantId);
         if (openShift) {
@@ -105,7 +105,7 @@ exports.logout = async (req, res, next) => {
   try {
     const sessionUser = req.session && req.session.user;
     const restaurantId = req.session && req.session.restaurantId;
-    if (sessionUser && sessionUser.role !== "owner" && restaurantId && sessionUser.id) {
+    if (sessionUser && sessionUser.role !== "owner" && sessionUser.role !== "super_admin" && restaurantId && sessionUser.id) {
       try {
         const openShift = await attendanceRepository.findOpenShiftByUser(sessionUser.id, restaurantId);
         if (openShift) {

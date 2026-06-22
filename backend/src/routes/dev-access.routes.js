@@ -26,7 +26,8 @@ function devAccessFullyUnlocked() {
 
 // Consenti accesso owner console: owner session può accedere a dashboard/status anche senza DEV_ENABLED.
 function isOwnerSession(req) {
-  return req.session?.user?.role === "owner" && req.session?.restaurantId;
+  var r = req.session?.user?.role;
+  return (r === "owner" || r === "super_admin") && req.session?.restaurantId;
 }
 
 function isOwnerDevConsolePath(p) {

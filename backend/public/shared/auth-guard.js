@@ -36,7 +36,7 @@
     };
     const equiv = equivalents[role];
     if (equiv && equiv.some((e) => allowedRoles.includes(e))) return true;
-    if (role === "owner") return true;
+    if (role === "owner" || role === "super_admin") return true;
     return false;
   }
 

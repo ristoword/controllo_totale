@@ -11,36 +11,8 @@
 <body>
   <div class="layout">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar no-print">
-      <div class="brand">
-        <div class="brand-logo">RW</div>
-        <div class="brand-text">
-          <div class="brand-title">CONTROLLO TOTALE</div>
-          <div class="brand-subtitle">Crea piatti</div>
-        </div>
-      </div>
-
-      <nav class="side-nav">
-        <a class="side-nav-item" href="/dashboard/dashboard.html">Dashboard</a>
-        <a class="side-nav-item" href="/sala/sala.html">Sala</a>
-        <a class="side-nav-item" href="/cucina/cucina.html">Cucina</a>
-        <a class="side-nav-item" href="/pizzeria/pizzeria.html">Pizzeria</a>
-        <a class="side-nav-item" href="/bar/bar.html">Bar</a>
-        <a class="side-nav-item" href="/cassa/cassa.html">Cassa</a>
-        <a class="side-nav-item" href="/magazzino/magazzino.html">Magazzino</a>
-        <a class="side-nav-item" href="/catering/catering.html">Catering</a>
-        <a class="side-nav-item" href="/prenotazioni/prenotazioni.html">Prenotazioni</a>
-        <a class="side-nav-item" href="/asporto/asporto.html">Asporto</a>
-        <a class="side-nav-item" href="/supervisor/supervisor.html">Supervisor</a>
-        <a class="side-nav-item active" href="/menu-admin/menu-admin.html">Menu Admin</a>
-      </nav>
-
-      <div class="side-footer">
-        <div class="side-footer-text">© 2026 Controllo Totale</div>
-        <div class="side-footer-sub">Kitchen-First System</div>
-      </div>
-    </aside>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <!-- MAIN -->
     <main class="main">
@@ -316,6 +288,7 @@
 
   <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="menu-admin.js"></script>
   <link rel="stylesheet" href="/shared/ai-widget.css">
   <script src="/shared/ai-widget.js" data-module="menu-admin"></script>

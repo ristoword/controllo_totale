@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="sala-fullscreen.css" />
 </head>
 <body class="ct-sala-fs">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
   <header class="ct-fs-topbar">
     <div class="ct-fs-brand">
       <span class="ct-fs-logo">CT</span>
@@ -72,6 +75,8 @@
       setInterval(refresh, 10000);
     })();
   </script>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,manager,sala,sala_manager,super_admin"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="/js/i18n.js"></script>
 </body>
 </html>

@@ -32,7 +32,7 @@ async function requireAuth(req, res, next) {
           ? String(req.session.restaurantId).trim()
           : "default";
         req.session.restaurantId = rid;
-        req.session.user = req.session.user || { role: "owner", restaurantId: rid, username: "superadmin" };
+        req.session.user = req.session.user || { role: "super_admin", restaurantId: rid, username: "superadmin" };
         req.session.user.restaurantId = req.session.restaurantId;
         return next();
       }

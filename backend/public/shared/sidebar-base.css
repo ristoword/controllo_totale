@@ -1,0 +1,178 @@
+/* sidebar-base.css — fallback sidebar styles injected by sidebar-nav.js
+   Prepended to <head> so page-specific CSS naturally overrides these.
+   Uses left offset (not transform) for hidden state so the hamburger
+   (position:fixed inside) remains viewport-relative and clickable. */
+
+.sidebar {
+  background: linear-gradient(180deg, #121321 0, #090814 60%, #050712 100%);
+  border-right: 1px solid #272a38;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 260px;
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: fixed;
+  left: -260px;
+  top: 0;
+  z-index: 9000;
+  transition: transform 0.28s ease;
+  flex-shrink: 0;
+}
+
+.sidebar.open {
+  transform: translateX(260px);
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 8999;
+}
+
+.hamburger-btn {
+  display: flex;
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top, 12px));
+  left: max(12px, env(safe-area-inset-left, 12px));
+  z-index: 9001;
+  width: 44px;
+  height: 44px;
+  background: #141824;
+  border: 1px solid #2a3040;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px;
+  flex-direction: column;
+  justify-content: space-between;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #f5f5f7;
+  border-radius: 2px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.hamburger-btn.active span:nth-child(1) {
+  transform: rotate(45deg) translate(6px, 6px);
+}
+.hamburger-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-btn.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(6px, -6px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px 10px;
+}
+
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 20% 0, #ffffff 0, #f5b800 32%, #f97316 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+  color: #111;
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brand-title {
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f8f8fb;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  color: #a4a7bd;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.side-nav-item {
+  display: block;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+  color: #a4a7bd;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.08s ease;
+}
+
+.side-nav-item:hover {
+  background: #191b2c;
+  color: #f5b800;
+  transform: translateX(2px);
+}
+
+.side-nav-item.active {
+  background: rgba(245, 184, 0, 0.12);
+  color: #f5b800;
+}
+
+.side-footer {
+  margin-top: auto;
+  font-size: 11px;
+  color: #7c8195;
+  padding-top: 4px;
+}
+
+.side-footer-sub {
+  font-size: 10px;
+  color: #a4a7bd;
+}
+
+/* Ensure topbar/header doesn't overlap hamburger */
+.layout > header:first-of-type,
+.layout > .topbar {
+  padding-left: max(60px, calc(12px + 44px + 12px));
+}
+
+@media (max-width: 720px) {
+  .sidebar {
+    width: min(280px, 88vw);
+    left: calc(-1 * min(280px, 88vw));
+  }
+
+  .sidebar.open {
+    transform: translateX(min(280px, 88vw));
+  }
+
+  .side-nav-item {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+}

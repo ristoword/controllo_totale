@@ -12,66 +12,7 @@
 
 <div class="layout">
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-
-<button class="hamburger-btn" id="hamburger-btn" aria-label="Menu">
-  <span></span><span></span><span></span>
-</button>
-
-<div class="brand">
-<div class="brand-logo">CT</div>
-<div class="brand-text">
-<div class="brand-title">CONTROLLO TOTALE</div>
-<div class="brand-subtitle" data-i18n="brand_subtitle">Control Center</div>
-</div>
-</div>
-
-<nav class="side-nav">
-
-<a class="side-nav-item active" href="/" data-i18n="dashboard">Dashboard</a>
-<a class="side-nav-item" href="/owner-console" data-i18n="owner_area" data-i18n-title="owner_area_tip">Area owner</a>
-<a class="side-nav-item" href="/sala/sala.html" data-i18n="sala">Sala</a>
-<a class="side-nav-item" href="/sala/sala-fullscreen.html" data-i18n="sala_fullscreen" data-i18n-title="sala_fullscreen_tip">Sala fullscreen</a>
-<a class="side-nav-item" href="/cucina/cucina.html" data-i18n="cucina">Cucina</a>
-<a class="side-nav-item" href="/pizzeria/pizzeria.html" data-i18n="pizzeria">Pizzeria</a>
-<a class="side-nav-item" href="/bar/bar.html" data-i18n="bar">Bar</a>
-<a class="side-nav-item" href="/cantina" data-i18n="cantina">Cantina</a>
-<a class="side-nav-item" href="/situazione-giorno" data-i18n="situazione_giorno">Situazione del Giorno</a>
-<a class="side-nav-item" href="/risto-comandi" data-i18n="risto_comandi">Risto Comandi</a>
-<a class="side-nav-item" href="/cassa/cassa.html" data-i18n="cassa">Cassa</a>
-<a class="side-nav-item" href="/cassa/chiusura.html" data-i18n="chiusura_z" data-i18n-title="chiusura_z_tip">Chiusura Z</a>
-<a class="side-nav-item" href="/magazzino/magazzino.html" data-i18n="magazzino">Magazzino</a>
-<a class="side-nav-item" href="/fornitori/fornitori.html" data-i18n="fornitori">Fornitori</a>
-<a class="side-nav-item" href="/qr-tables/qr-tables.html" data-i18n="qr_tables">QR Tavoli</a>
-<a class="side-nav-item" href="/catering/catering.html" data-i18n="catering">Catering</a>
-<a class="side-nav-item" href="/prenotazioni/prenotazioni.html" data-i18n="prenotazioni">Prenotazioni</a>
-<a class="side-nav-item" href="/asporto/asporto.html" data-i18n="asporto">Asporto</a>
-<a class="side-nav-item" href="/supervisor/supervisor.html" data-i18n="supervisor">Supervisor</a>
-<a class="side-nav-item" href="/staff/staff.html" data-i18n="staff">Staff</a>
-<a class="side-nav-item" href="/turni/turni.html" data-i18n="turni" data-i18n-title="turni_tip">Turni</a>
-<a class="side-nav-item" href="/staff-hr/index.html" data-i18n="staff_hr" data-i18n-title="staff_hr_tip">Staff HR</a>
-<a class="side-nav-item" href="/staff/me/index.html" data-i18n="my_profile" data-i18n-title="my_profile_tip">Il mio profilo</a>
-<a class="side-nav-item" href="/supervisor/customers/customers.html" data-i18n="customers" data-i18n-title="customers_tip">Clienti</a>
-<a class="side-nav-item" href="/hardware/hardware.html" data-i18n="hardware">Hardware / Stampa</a>
-<a class="side-nav-item" href="/menu-admin/menu-admin.html" data-i18n="menu_admin">Menu Admin</a>
-<a class="side-nav-item" href="/daily-menu/daily-menu.html" data-i18n="daily_menu">Menu del Giorno</a>
-<a class="side-nav-item" href="/cucina/food-cost.html" data-i18n="food_cost" data-i18n-title="food_cost_tip">Food Cost</a>
-<a class="side-nav-item" href="/haccp/haccp.html" data-i18n="haccp" data-i18n-title="haccp_tip">HACCP</a>
-<a class="side-nav-item" href="/archivio/archivio.html" data-i18n="archivio" data-i18n-title="archivio_tip">Archivio</a>
-<a class="side-nav-item" href="/archivio/comande.html" data-i18n="archivio_orders" data-i18n-title="archivio_orders_tip">Archivio comande</a>
-<a class="side-nav-item" href="/ai-assistente" data-i18n="ai_assistente" data-i18n-title="ai_assistente_tip">🤖 AI Assistente</a>
-<a class="side-nav-item" href="/manuale/manuale.html" data-i18n="manuale" data-i18n-title="manuale_tip">Manuale</a>
-<a class="side-nav-item" href="/sessions/sessions.html" data-i18n="sessions" data-i18n-title="sessions_tip">Sessioni</a>
-
-</nav>
-
-<div class="side-footer">
-<div class="side-footer-text" data-i18n="footer_text">© 2026 Controllo Totale</div>
-<div class="side-footer-sub" data-i18n="footer_sub">Kitchen-First System</div>
-</div>
-
-</aside>
+<aside class="sidebar" id="sidebar"></aside>
 
 <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
@@ -356,7 +297,8 @@ Chiedi
 
 </div>
 
-<script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa,supervisor,staff,bar,pizzeria,kitchen,cashier,sala_manager,kitchen_manager,cash_manager,bar_manager"></script>
+<script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,manager,sala,cucina,cassa,staff,bar,pizzeria,kitchen,cashier,sala_manager,kitchen_manager,cash_manager,bar_manager,magazzino,magazzino_manager,super_admin"></script>
+<script src="/shared/sidebar-nav.js"></script>
 <script src="/shared/websocket.js"></script>
 <script src="dashboard.js"></script>
 <script src="/js/i18n.js"></script>

@@ -10,30 +10,7 @@
 <body>
   <div class="layout rw-layout me-layout">
 
-    <aside class="sidebar">
-      <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
-      <div class="brand">
-        <div class="brand-logo">RW</div>
-        <div class="brand-text">
-          <div class="brand-title">RistoWord</div>
-          <div class="brand-subtitle" data-i18n="rw_tagline">Un tocco, un'azione. Niente stress.</div>
-        </div>
-      </div>
-      <nav class="side-nav">
-        <div class="nav-section-label" data-i18n="nav_section_operativita">OPERATIVITÀ</div>
-        <a class="nav-item" href="/cucina/food-cost.html"><span class="nav-icon">📊</span><span class="nav-text"><span class="nav-label" data-i18n="food_cost">Food Cost</span><span class="nav-hint" data-i18n="food_cost_tip">Analisi costi</span></span></a>
-        <a class="nav-item" href="/catering/catering.html"><span class="nav-icon">🎉</span><span class="nav-text"><span class="nav-label" data-i18n="catering">Catering</span><span class="nav-hint" data-i18n="catering">Eventi</span></span></a>
-        <a class="nav-item" href="/cantina"><span class="nav-icon">🍷</span><span class="nav-text"><span class="nav-label" data-i18n="cantina">Cantina</span><span class="nav-hint" data-i18n="nav_cantina_hint">Carta vini</span></span></a>
-        <div class="nav-section-label" data-i18n="nav_section_persone">PERSONE</div>
-        <a class="nav-item" href="/staff/staff.html"><span class="nav-icon">👥</span><span class="nav-text"><span class="nav-label" data-i18n="staff">Staff</span><span class="nav-hint" data-i18n="staff.nav_hint">Dipendenti, turni, presenze</span></span></a>
-        <a class="nav-item" href="/turni/turni.html"><span class="nav-icon">📅</span><span class="nav-text"><span class="nav-label" data-i18n="turni">Turni</span><span class="nav-hint" data-i18n="turni_tip">Pianificazione turni</span></span></a>
-        <a class="nav-item" href="/staff-hr/index.html"><span class="nav-icon">📋</span><span class="nav-text"><span class="nav-label" data-i18n="staff_hr">Staff HR</span><span class="nav-hint" data-i18n="staff.hr.nav_hint">Presenze, ferie, pagamenti</span></span></a>
-        <a class="nav-item active" href="/staff/me/index.html" aria-current="page"><span class="nav-icon">👤</span><span class="nav-text"><span class="nav-label" data-i18n="my_profile">Il mio profilo</span><span class="nav-hint" data-i18n="my_profile_tip">Turni, ferie, timbrature</span></span></a>
-        <a class="nav-item" href="/supervisor/customers/customers.html"><span class="nav-icon">🧑‍🤝‍🧑</span><span class="nav-text"><span class="nav-label" data-i18n="customers.nav_label">CRM Clienti</span><span class="nav-hint" data-i18n="customers.nav_hint">Anagrafica clienti</span></span></a>
-        <a class="nav-item" href="/supervisor/supervisor.html"><span class="nav-icon">📈</span><span class="nav-text"><span class="nav-label" data-i18n="supervisor">Supervisor</span><span class="nav-hint" data-i18n="customers.supervisor_hint">KPI e report</span></span></a>
-      </nav>
-      <div class="side-tip"><span data-i18n="nav_ristoword_tip">Stile RistoWord: grandi pulsanti, parole semplici, zero giri strani</span></div>
-    </aside>
+    <aside class="sidebar" id="sidebar"></aside>
 
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
@@ -141,6 +118,7 @@
   <script src="/shared/sidebar-mobile.js"></script>
   <script src="/shared/rw-shell.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,cucina,cassa,staff,bar,magazzino,pizzeria,cashier,kitchen"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="staff-me.js?v=20260622"></script>
 </body>
 </html>

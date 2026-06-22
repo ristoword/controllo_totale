@@ -9,38 +9,8 @@
 <body>
   <div class="layout">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-logo">CT</div>
-        <div>
-          <div class="brand-name">CONTROLLO TOTALE</div>
-          <div class="brand-sub">Turni</div>
-        </div>
-      </div>
-
-      <nav class="nav">
-        <a class="nav-item" href="/dashboard">Dashboard</a>
-        <a class="nav-item" href="/sala/sala.html">Sala</a>
-        <a class="nav-item" href="/cucina/cucina.html">Cucina</a>
-        <a class="nav-item" href="/pizzeria/pizzeria.html">Pizzeria</a>
-        <a class="nav-item" href="/bar/bar.html">Bar</a>
-        <a class="nav-item" href="/cassa/cassa.html">Cassa</a>
-        <a class="nav-item" href="/magazzino/magazzino.html">Magazzino</a>
-        <a class="nav-item" href="/prenotazioni/prenotazioni.html">Prenotazioni</a>
-        <a class="nav-item" href="/supervisor/supervisor.html">Supervisor</a>
-        <a class="nav-item" href="/staff/staff.html">Staff</a>
-        <a class="nav-item active" href="/turni/turni.html">Turni</a>
-        <a class="nav-item" href="/staff-hr/index.html">Staff HR</a>
-        <a class="nav-item" href="/staff/me/index.html">Il mio profilo</a>
-        <a class="nav-item" href="/archivio/archivio.html">Archivio</a>
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="tiny muted" id="user-label">—</div>
-        <a class="btn-logout" href="/login/login.html">Logout</a>
-      </div>
-    </aside>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <!-- MAIN -->
     <main class="main">
@@ -215,6 +185,8 @@
   </div>
 
   <script src="/js/i18n.js"></script>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,manager,sala,cucina,cassa,staff,bar,pizzeria,kitchen,cashier,sala_manager,kitchen_manager,cash_manager,bar_manager,magazzino,magazzino_manager,super_admin"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="turni.js"></script>
   <link rel="stylesheet" href="/shared/ai-widget.css">
   <script src="/shared/ai-widget.js" data-module="turni"></script>

@@ -10,7 +10,7 @@ function requireRole(allowedRoles) {
       return res.status(401).json({ error: "Non autenticato", message: "Effettua il login." });
     }
     const role = req.session.user.role;
-    if (role === "owner" || set.has(role)) {
+    if (role === "owner" || role === "super_admin" || set.has(role)) {
       return next();
     }
     return res.status(403).json({ error: "Accesso negato", message: "Non hai permesso per questa risorsa." });

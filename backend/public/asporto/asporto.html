@@ -8,6 +8,9 @@
 </head>
 <body>
   <div class="layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
     <header class="topbar">
       <div class="topbar-left">
         <h1>CONTROLLO TOTALE – Asporto</h1>
@@ -83,6 +86,7 @@
   </div>
 
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,sala,cucina,cassa,kitchen,cashier"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="asporto.js"></script>
   <link rel="stylesheet" href="/shared/ai-widget.css">
   <script src="/shared/ai-widget.js" data-module="asporto"></script>

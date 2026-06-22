@@ -60,7 +60,8 @@ async function requireOwnerSetup(req, res, next) {
   if (!sessionUser) return next();
 
   // Owner: può usare dashboard, sala, cassa, ecc. anche senza aver ancora completato il wizard / creato dipendenti
-  if (String(sessionUser.role || "").toLowerCase() === "owner") {
+  var r = String(sessionUser.role || "").toLowerCase();
+  if (r === "owner" || r === "super_admin") {
     return next();
   }
 

@@ -9,19 +9,8 @@
 </head>
 <body>
   <div class="layout">
-    <aside class="sidebar no-print">
-      <div class="brand-title">CONTROLLO TOTALE</div>
-      <div class="brand-sub">Archivio &amp; storico</div>
-      <nav class="nav">
-        <a href="/dashboard/dashboard.html">Dashboard</a>
-        <a class="active" href="/archivio/archivio.html">Archivio</a>
-        <a href="/archivio/comande.html">Archivio comande</a>
-        <a href="/cassa/cassa.html">Cassa</a>
-        <a href="/supervisor/supervisor.html">Supervisor</a>
-        <a href="/turni/turni.html">Turni</a>
-        <a href="/staff-hr/index.html">Staff HR</a>
-      </nav>
-    </aside>
+    <aside class="sidebar" id="sidebar"></aside>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
     <main class="main">
       <button type="button" class="sidebar-toggle no-print" id="sidebar-toggle">&#9776; Menu</button>
@@ -192,6 +181,7 @@
 
   <script src="/js/i18n.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,cassa,magazzino"></script>
+  <script src="/shared/sidebar-nav.js"></script>
   <script src="/shared/api.js"></script>
   <script src="archivio.js"></script>
   <link rel="stylesheet" href="/shared/ai-widget.css">

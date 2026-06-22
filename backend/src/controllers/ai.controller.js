@@ -550,7 +550,7 @@ exports.postChat = async (req, res) => {
   }
 
   const role = req.session?.user?.role || "";
-  const canUseTools = enableTools && (RISTO_ROLES.includes(role) || role === "owner");
+  const canUseTools = enableTools && (RISTO_ROLES.includes(role) || role === "owner" || role === "super_admin");
 
   if (!process.env.OPENAI_API_KEY) {
     return res.status(503).json({
