@@ -2,6 +2,11 @@ const form = document.getElementById("login-form");
 const messageBox = document.getElementById("login-message");
 const btnLogin = document.getElementById("btn-login");
 
+function t(key) {
+  if (typeof window.rwT === "function") return window.rwT(key);
+  return key;
+}
+
 function showMessage(text, type = "") {
   messageBox.textContent = text || "";
   messageBox.className = "login-message";
@@ -50,7 +55,7 @@ async function submitLogin(payload) {
       (data && data.message) ||
       (data && data.error) ||
       (typeof data === "string" && data) ||
-      "Login non riuscito";
+      t("login_failed");
     throw new Error(msg);
   }
 
@@ -58,19 +63,28 @@ async function submitLogin(payload) {
 }
 
 const params = new URLSearchParams(window.location.search);
-if (params.get("denied") === "1") showMessage("Accesso negato per questo ruolo.", "error");
-if (params.get("license") === "required") {
-  const msg = document.getElementById("login-message");
-  if (msg) msg.innerHTML = 'Attivare la licenza per accedere. <a href="/license/license.html" style="color:var(--accent)">Attiva licenza</a>';
+
+function initLoginMessages() {
+  if (params.get("denied") === "1") showMessage(t("login_denied"), "error");
+  if (params.get("license") === "required") {
+    const msg = document.getElementById("login-message");
+    if (msg) msg.innerHTML = t("login_license_required") + ' <a href="/license/license.html" style="color:var(--accent)">' + t("login_license_activate") + "</a>";
+  }
+  if (params.get("license") === "expired") {
+    const msg = document.getElementById("login-message");
+    if (msg) msg.innerHTML = t("login_license_expired") + ' <a href="/license/license.html" style="color:var(--accent)">' + t("login_license_renew") + "</a>";
+  }
+  if (params.get("ownerActivated") === "1") {
+    const msg = document.getElementById("login-message");
+    if (msg) msg.textContent = t("login_owner_activated");
+    if (msg) msg.classList.add("success");
+  }
 }
-if (params.get("license") === "expired") {
-  const msg = document.getElementById("login-message");
-  if (msg) msg.innerHTML = 'Licenza scaduta. <a href="/license/license.html" style="color:var(--accent)">Rinnova licenza</a>';
-}
-if (params.get("ownerActivated") === "1") {
-  const msg = document.getElementById("login-message");
-  if (msg) msg.textContent = "Licenza attivata. Accedi con il tuo utente owner.";
-  if (msg) msg.classList.add("success");
+
+if (window.ControlloTotaleI18n && window.ControlloTotaleI18n.whenReady) {
+  window.ControlloTotaleI18n.whenReady().then(initLoginMessages);
+} else {
+  initLoginMessages();
 }
 
 form.addEventListener("submit", async (event) => {
@@ -81,12 +95,12 @@ form.addEventListener("submit", async (event) => {
   const role = document.getElementById("role").value;
 
   if (!username || !password) {
-    showMessage("Inserisci utente e password.", "error");
+    showMessage(t("login_fill_fields"), "error");
     return;
   }
 
   btnLogin.disabled = true;
-  showMessage("Accesso in corso...");
+  showMessage(t("login_in_progress"));
 
   try {
     const data = await submitLogin({ username, password, role });
@@ -101,7 +115,7 @@ form.addEventListener("submit", async (event) => {
       })
     );
 
-    showMessage("Accesso effettuato.", "success");
+    showMessage(t("login_success"), "success");
 
     const redirectTo = getReturnUrl() || data.redirectTo || getRedirectByRole(data.role || role);
 
@@ -110,7 +124,7 @@ form.addEventListener("submit", async (event) => {
     }, 500);
   } catch (error) {
     console.error("Errore login:", error);
-    showMessage(error.message || "Errore di accesso.", "error");
+    showMessage(error.message || t("login_error_access"), "error");
   } finally {
     btnLogin.disabled = false;
   }

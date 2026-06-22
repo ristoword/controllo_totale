@@ -4,6 +4,7 @@
  * Uso: npm test
  */
 process.env.NODE_ENV = process.env.NODE_ENV || "test";
+process.env.VERIFY_LOAD_ONLY = "1";
 
 require("../src/config/loadEnv").loadEnv();
 
@@ -14,3 +15,4 @@ if (!process.env.SESSION_SECRET || !String(process.env.SESSION_SECRET).trim()) {
 
 require("../src/app");
 console.log("[verify-load] OK");
+process.exit(0);

@@ -1,7 +1,6 @@
 /**
- * Controllo Totale i18n — frontend-only internationalization
- * Loads JSON from /i18n/{lang}.json and replaces text on elements with data-i18n attribute.
- * Supports data-i18n-placeholder for input placeholders.
+ * Controllo Totale i18n — frontend internationalization
+ * Loads JSON from /i18n/{lang}.json and replaces text on elements with data-i18n attributes.
  */
 (function () {
   "use strict";
@@ -9,9 +8,16 @@
   const STORAGE_KEY = "rw_lang";
   const SUPPORTED = ["it", "en", "de", "fr", "es", "nl"];
   const DEFAULT_LANG = "it";
+  const FALLBACK_LANG = "en";
 
   let translations = {};
+  let fallbackTranslations = {};
   let currentLang = DEFAULT_LANG;
+  let ready = false;
+  let readyResolve;
+  const readyPromise = new Promise(function (resolve) {
+    readyResolve = resolve;
+  });
 
   function getSavedLang() {
     try {
@@ -30,8 +36,7 @@
   }
 
   async function loadTranslations(lang) {
-    const url = "/i18n/" + lang + ".json";
-    const res = await fetch(url);
+    const res = await fetch("/i18n/" + lang + ".json");
     if (!res.ok) throw new Error("i18n load failed: " + res.status);
     return res.json();
   }
@@ -47,29 +52,42 @@
     }
   }
 
+  function translate(key) {
+    if (!key) return "";
+    if (translations[key] !== undefined && translations[key] !== null) return translations[key];
+    if (fallbackTranslations[key] !== undefined && fallbackTranslations[key] !== null) {
+      return fallbackTranslations[key];
+    }
+    return key;
+  }
+
   function applyTranslations() {
     const loggedIn = isLoggedIn();
     document.querySelectorAll("[data-i18n]").forEach(function (el) {
       if (el.id === "user-name-label" && loggedIn) return;
       const key = el.getAttribute("data-i18n");
-      const t = translations[key];
-      if (t !== undefined && t !== null) {
-        el.textContent = t;
-      }
+      const t = translate(key);
+      if (t !== key) el.textContent = t;
     });
     document.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
       const key = el.getAttribute("data-i18n-placeholder");
-      const t = translations[key];
-      if (t !== undefined && t !== null) {
-        el.placeholder = t;
-      }
+      const t = translate(key);
+      if (t !== key) el.placeholder = t;
     });
     document.querySelectorAll("[data-i18n-title]").forEach(function (el) {
       const key = el.getAttribute("data-i18n-title");
-      const t = translations[key];
-      if (t !== undefined && t !== null) {
-        el.title = t;
-      }
+      const t = translate(key);
+      if (t !== key) el.title = t;
+    });
+    document.querySelectorAll("[data-i18n-aria-label]").forEach(function (el) {
+      const key = el.getAttribute("data-i18n-aria-label");
+      const t = translate(key);
+      if (t !== key) el.setAttribute("aria-label", t);
+    });
+    document.querySelectorAll("select option[data-i18n]").forEach(function (el) {
+      const key = el.getAttribute("data-i18n");
+      const t = translate(key);
+      if (t !== key) el.textContent = t;
     });
     document.documentElement.lang = currentLang;
     if (typeof window.dispatchEvent === "function") {
@@ -83,11 +101,30 @@
       translations = await loadTranslations(lang);
       currentLang = lang;
       setSavedLang(lang);
+      if (lang !== DEFAULT_LANG) {
+        try {
+          fallbackTranslations = await loadTranslations(DEFAULT_LANG);
+        } catch (_) {
+          fallbackTranslations = {};
+        }
+      } else if (lang !== FALLBACK_LANG) {
+        try {
+          fallbackTranslations = await loadTranslations(FALLBACK_LANG);
+        } catch (_) {
+          fallbackTranslations = {};
+        }
+      } else {
+        fallbackTranslations = {};
+      }
       applyTranslations();
       updateLangSelector();
     } catch (err) {
       console.warn("i18n: failed to load " + lang, err);
     }
+  }
+
+  function langLabel(code) {
+    return translate("lang_" + code) || code.toUpperCase();
   }
 
   function updateLangSelector() {
@@ -102,28 +139,19 @@
       }
     });
     var floatLabel = document.getElementById("i18n-float-label");
-    if (floatLabel) floatLabel.textContent = LANG_LABELS[currentLang] || currentLang.toUpperCase();
+    if (floatLabel) floatLabel.textContent = langLabel(currentLang);
   }
-
-  const LANG_LABELS = {
-    it: "Italiano",
-    en: "English",
-    de: "Deutsch",
-    fr: "Français",
-    es: "Español",
-    nl: "Nederlands",
-  };
 
   function buildLangButtons(container) {
     container.innerHTML = "";
-    ["it", "en", "de", "fr", "es", "nl"].forEach(function (code) {
+    SUPPORTED.forEach(function (code) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "lang-option" + (code === currentLang ? " active" : "");
       btn.setAttribute("data-lang", code);
       btn.setAttribute("aria-pressed", code === currentLang ? "true" : "false");
-      btn.setAttribute("aria-label", LANG_LABELS[code] || code.toUpperCase());
-      btn.textContent = LANG_LABELS[code] || code.toUpperCase();
+      btn.setAttribute("aria-label", langLabel(code));
+      btn.textContent = langLabel(code);
       btn.addEventListener("click", function () {
         switchLanguage(code);
       });
@@ -153,7 +181,7 @@
     var toggle = document.createElement("button");
     toggle.id = "i18n-float-toggle";
     toggle.type = "button";
-    toggle.innerHTML = "🌐 <span id='i18n-float-label'>" + (LANG_LABELS[currentLang] || currentLang.toUpperCase()) + "</span>";
+    toggle.innerHTML = "🌐 <span id='i18n-float-label'>" + langLabel(currentLang) + "</span>";
 
     var dropdown = document.createElement("div");
     dropdown.id = "i18n-float-dropdown";
@@ -185,29 +213,55 @@
     currentLang = getSavedLang();
     try {
       translations = await loadTranslations(currentLang);
+      if (currentLang !== DEFAULT_LANG) {
+        try {
+          fallbackTranslations = await loadTranslations(DEFAULT_LANG);
+        } catch (_) {
+          fallbackTranslations = {};
+        }
+      } else {
+        try {
+          fallbackTranslations = await loadTranslations(FALLBACK_LANG);
+        } catch (_) {
+          fallbackTranslations = {};
+        }
+      }
     } catch (_) {
       if (currentLang !== DEFAULT_LANG) {
         currentLang = DEFAULT_LANG;
         try {
           translations = await loadTranslations(DEFAULT_LANG);
         } catch (e) {
+          ready = true;
+          if (readyResolve) readyResolve();
           return;
         }
       } else {
+        ready = true;
+        if (readyResolve) readyResolve();
         return;
       }
     }
     applyTranslations();
     initLangSelector();
+    ready = true;
+    if (readyResolve) readyResolve();
   }
 
+  function t(key) {
+    return translate(key);
+  }
+
+  window.rwT = t;
   window.ControlloTotaleI18n = {
     getLang: function () {
       return currentLang;
     },
     setLang: switchLanguage,
-    t: function (key) {
-      return translations[key] !== undefined ? translations[key] : key;
+    t: t,
+    apply: applyTranslations,
+    whenReady: function () {
+      return ready ? Promise.resolve() : readyPromise;
     },
   };
 

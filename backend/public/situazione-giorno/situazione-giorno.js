@@ -4,7 +4,23 @@
 
   function $(id) { return document.getElementById(id); }
 
+  function t(key) {
+    if (typeof window.rwT === "function") return window.rwT(key);
+    return key;
+  }
+
+  function speechLang() {
+    var lang = (window.ControlloTotaleI18n && window.ControlloTotaleI18n.getLang()) || "it";
+    return lang === "en" ? "en-US" : lang === "de" ? "de-DE" : lang === "fr" ? "fr-FR" : lang === "es" ? "es-ES" : lang === "nl" ? "nl-NL" : "it-IT";
+  }
+
+  function localeTag() {
+    var lang = (window.ControlloTotaleI18n && window.ControlloTotaleI18n.getLang()) || "it";
+    return lang === "en" ? "en-GB" : lang + "-" + lang.toUpperCase();
+  }
+
   async function loadBriefing() {
+    $("narrative").textContent = t("situazione_loading");
     var res = await fetch("/api/operational-briefing", { credentials: "same-origin" });
     var data = await res.json();
     var b = data.briefing || {};
@@ -16,8 +32,8 @@
     $("k-late").textContent = String(b.kitchen?.late || 0);
     $("k-revenue").textContent = "€ " + Number(b.sales?.revenueToday || 0).toFixed(2);
     $("k-stock").textContent = String(b.inventory?.lowStockCount || 0);
-    $("narrative").textContent = lastNarrative;
-    $("live-time").textContent = new Date(b.generatedAt || Date.now()).toLocaleTimeString("it-IT");
+    $("narrative").textContent = lastNarrative || t("situazione_no_data");
+    $("live-time").textContent = new Date(b.generatedAt || Date.now()).toLocaleTimeString(localeTag());
 
     var btbody = $("bookings-tbody");
     btbody.innerHTML = "";
@@ -37,38 +53,49 @@
   }
 
   function speak(text) {
-    if (!window.speechSynthesis) return alert("TTS non supportato");
+    if (!window.speechSynthesis) return alert(t("tts_unsupported"));
     window.speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
-    u.lang = "it-IT";
+    u.lang = speechLang();
     window.speechSynthesis.speak(u);
   }
 
   function startVoice() {
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return alert("Riconoscimento vocale non supportato");
+    if (!SR) return alert(t("risto_voice_unsupported"));
     var rec = new SR();
-    rec.lang = "it-IT";
+    rec.lang = speechLang();
     rec.onresult = async function (ev) {
       var text = ev.results[0][0].transcript;
       var res = await fetch("/api/ai/chat", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, enableTools: true, context: "risto" }),
+        body: JSON.stringify({
+          message: text,
+          enableTools: true,
+          context: "risto",
+          locale: (window.ControlloTotaleI18n && window.ControlloTotaleI18n.getLang()) || "it",
+        }),
       });
       var data = await res.json();
-      $("narrative").textContent = data.reply || "Nessuna risposta";
+      $("narrative").textContent = data.reply || t("situazione_no_response");
       if (data.reply) speak(data.reply);
     };
     rec.start();
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function init() {
     loadBriefing();
     $("btn-refresh").addEventListener("click", loadBriefing);
     $("btn-speak").addEventListener("click", function () { speak(lastNarrative); });
     $("btn-voice").addEventListener("click", startVoice);
     setInterval(loadBriefing, 60000);
-  });
+  }
+
+  if (window.ControlloTotaleI18n && window.ControlloTotaleI18n.whenReady) {
+    window.ControlloTotaleI18n.whenReady().then(init);
+  } else {
+    document.addEventListener("DOMContentLoaded", init);
+  }
 })();

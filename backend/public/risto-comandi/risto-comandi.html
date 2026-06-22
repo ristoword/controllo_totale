@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>CONTROLLO TOTALE – Risto Comandi</title>
+  <title data-i18n="risto_title">CONTROLLO TOTALE – Risto Comandi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/shared/module-page.css" />
   <link rel="stylesheet" href="/shared/print-layout.css" />
@@ -12,60 +12,56 @@
   <div class="layout">
     <header class="topbar">
       <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Risto Comandi</h1>
-        <p class="subtitle">Assistente vocale operativo — esegue azioni reali nel gestionale</p>
+        <h1 data-i18n="risto_title">CONTROLLO TOTALE – Risto Comandi</h1>
+        <p class="subtitle" data-i18n="risto_subtitle">Assistente vocale operativo · Azioni reali nel gestionale</p>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
-        <a href="/situazione-giorno" class="btn ghost">Situazione</a>
-        <button class="btn danger" id="btn-mic" type="button">🎤 Parla</button>
+        <a href="/dashboard/dashboard.html" class="btn ghost" data-i18n="dashboard_back">← Dashboard</a>
+        <a href="/situazione-giorno" class="btn ghost" data-i18n="situazione_short">Situazione</a>
+        <button class="btn danger" id="btn-mic" type="button" data-i18n="risto_speak_btn">🎤 Parla</button>
       </div>
     </header>
 
     <main class="main two-col">
       <article class="card chat-card">
         <header class="card-header">
-          <h2>Chat operativa</h2>
-          <p>Scrivi o parla — Risto esegue comandi nel gestionale</p>
+          <h2 data-i18n="risto_chat">Chat operativa</h2>
+          <p data-i18n="risto_chat_sub">Scrivi o parla — Risto esegue comandi nel gestionale</p>
         </header>
         <div class="card-body" style="display:flex;flex-direction:column;flex:1">
           <div class="chat-log" id="chat-log"></div>
           <form id="chat-form" class="chat-form">
-            <input id="chat-input" placeholder="Scrivi un comando o parla..." autocomplete="off" />
-            <button class="btn primary" type="submit">Invia</button>
+            <input id="chat-input" data-i18n-placeholder="risto_placeholder" placeholder="Scrivi o parla: es. «stock sotto soglia», «briefing di oggi»..." autocomplete="off" />
+            <button class="btn primary" type="submit" data-i18n="risto_send">Invia</button>
           </form>
         </div>
       </article>
 
       <article class="card">
         <header class="card-header">
-          <h2>Comandi rapidi</h2>
-          <p>Azioni frequenti con un click</p>
+          <h2 data-i18n="risto_quick_cmds">Comandi rapidi</h2>
+          <p data-i18n="risto_quick_sub">Azioni frequenti con un click</p>
         </header>
         <div class="card-body">
           <div class="quick-cmds">
-            <button class="btn ghost quick" data-cmd="Situazione attuale di oggi">Situazione oggi</button>
-            <button class="btn ghost quick" data-cmd="Cerca prodotti sotto scorta in magazzino">Scorte basse</button>
-            <button class="btn ghost quick" data-cmd="Riepilogo incasso e ordini di oggi">Incasso oggi</button>
-            <button class="btn ghost quick" data-cmd="Mostra briefing operativo completo">Briefing</button>
+            <button class="btn ghost quick" data-cmd="Situazione attuale di oggi" data-i18n="risto_quick_today">Situazione oggi</button>
+            <button class="btn ghost quick" data-cmd="Cerca prodotti sotto scorta in magazzino" data-i18n="risto_quick_stock">Scorte basse</button>
+            <button class="btn ghost quick" data-cmd="Riepilogo incasso e ordini di oggi" data-i18n="risto_quick_revenue">Incasso oggi</button>
+            <button class="btn ghost quick" data-cmd="Mostra briefing operativo completo" data-i18n="risto_quick_briefing">Briefing</button>
           </div>
         </div>
 
         <header class="card-header" style="border-top:1px solid var(--border)">
-          <h2>Capacità</h2>
-          <p>Tool operativi disponibili</p>
+          <h2 data-i18n="risto_caps_title">Capacità</h2>
+          <p data-i18n="risto_caps_sub">Tool operativi disponibili</p>
         </header>
         <div class="card-body">
-          <ul class="caps">
-            <li>Magazzino: cerca e aggiorna stock</li>
-            <li>Cantina: aggiungi vino, giacenza</li>
-            <li>Briefing giornata completo</li>
-            <li>Riepilogo vendite e ordini</li>
-          </ul>
+          <ul class="caps" id="risto-caps-list"></ul>
         </div>
       </article>
     </main>
   </div>
+  <script src="/js/i18n.js"></script>
   <script src="risto-comandi.js"></script>
 </body>
 </html>

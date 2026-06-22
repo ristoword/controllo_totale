@@ -1,13 +1,31 @@
 (function () {
   "use strict";
   var wines = [];
+  var booted = false;
 
   function $(id) { return document.getElementById(id); }
+
+  function t(key) {
+    if (typeof window.rwT === "function") return window.rwT(key);
+    return key;
+  }
+
+  function colorLabel(color) {
+    return t("wine_color_" + color) || color;
+  }
+
+  function apiErrorMessage(data, status) {
+    if (data && typeof data.message === "string") return data.message;
+    if (data && typeof data.error === "string") return data.error;
+    if (status === 401) return t("login_error");
+    if (status === 403) return t("login_denied");
+    return t("error_generic");
+  }
 
   async function api(url, opts) {
     var res = await fetch(url, Object.assign({ credentials: "same-origin", headers: { "Content-Type": "application/json" } }, opts || {}));
     var data = await res.json().catch(function () { return null; });
-    if (!res.ok) throw new Error((data && data.error) || "Errore " + res.status);
+    if (!res.ok) throw new Error(apiErrorMessage(data, res.status));
     return data;
   }
 
@@ -25,7 +43,7 @@
   function showError(msg) {
     var el = $("cantina-load-error");
     if (!el) return;
-    el.textContent = msg || "Errore caricamento cantina.";
+    el.textContent = msg || t("error_generic");
     el.style.display = msg ? "block" : "none";
   }
 
@@ -55,7 +73,7 @@
     var tbody = $("wines-tbody");
     tbody.innerHTML = "";
     if (!wines.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:var(--text-muted)">Nessun vino in carta. Clicca «+ Nuovo vino» o Aggiorna.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:var(--text-muted)">' + t("cantina_empty") + "</td></tr>";
       return;
     }
     for (var i = 0; i < wines.length; i++) {
@@ -63,11 +81,11 @@
       var tr = document.createElement("tr");
       tr.innerHTML =
         '<td class="name"><strong>' + (w.producer || "") + '</strong><br><span style="font-size:11px;color:var(--text-muted)">' + w.name + (w.vintage ? " " + w.vintage : "") + "</span></td>" +
-        '<td><span class="badge ' + w.color + '">' + w.color + "</span></td>" +
+        '<td><span class="badge ' + w.color + '">' + colorLabel(w.color) + "</span></td>" +
         '<td class="num">' + (w.stock || 0) + "</td>" +
         '<td class="num">' + euro(w.salePrice) + "</td>" +
         '<td class="num ' + (margin(w) >= 55 ? "cantina-margin-ok" : "cantina-margin-low") + '">' + margin(w) + "%</td>" +
-        '<td class="actions"><button class="btn ghost small" data-edit="' + w.id + '">Mod</button><button class="btn ghost small" data-del="' + w.id + '">Del</button></td>';
+        '<td class="actions"><button class="btn ghost small" data-edit="' + w.id + '">' + t("edit") + '</button><button class="btn ghost small" data-del="' + w.id + '">' + t("delete") + "</button></td>";
       tbody.appendChild(tr);
     }
     tbody.querySelectorAll("[data-edit]").forEach(function (btn) {
@@ -93,9 +111,11 @@
   async function loadWines() {
     var q = $("f-search").value.trim();
     var color = $("f-color").value;
-    var url = "/api/cantina?";
-    if (q) url += "q=" + encodeURIComponent(q) + "&";
-    if (color) url += "color=" + encodeURIComponent(color);
+    var url = "/api/cantina";
+    var params = [];
+    if (q) params.push("q=" + encodeURIComponent(q));
+    if (color) params.push("color=" + encodeURIComponent(color));
+    if (params.length) url += "?" + params.join("&");
     wines = await api(url);
     if (!Array.isArray(wines)) wines = [];
     render();
@@ -104,7 +124,7 @@
 
   function resetForm() {
     $("wine-id").value = "";
-    $("form-title").textContent = "Nuovo vino";
+    $("form-title").textContent = t("cantina_form_new");
     $("wine-form").reset();
   }
 
@@ -112,7 +132,7 @@
     var w = wines.find(function (x) { return x.id === id; });
     if (!w) return;
     $("wine-id").value = w.id;
-    $("form-title").textContent = "Modifica vino";
+    $("form-title").textContent = t("cantina_form_edit");
     $("wine-producer").value = w.producer || "";
     $("wine-name").value = w.name || "";
     $("wine-vintage").value = w.vintage || "";
@@ -125,7 +145,7 @@
   }
 
   async function deleteWine(id) {
-    if (!confirm("Eliminare questo vino?")) return;
+    if (!confirm(t("cantina_delete_confirm"))) return;
     await api("/api/cantina/" + id, { method: "DELETE" });
     await loadWines();
     await loadStats();
@@ -137,12 +157,11 @@
       await loadWines();
       await loadStats();
     } catch (e) {
-      showError((e && e.message) || "Impossibile caricare i vini. Accedi al gestionale e riprova.");
+      showError((e && e.message) || t("cantina_load_error"));
     }
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    load();
+  function bindEvents() {
     $("btn-refresh").addEventListener("click", load);
     $("f-search").addEventListener("input", loadWines);
     $("f-color").addEventListener("change", loadWines);
@@ -154,7 +173,7 @@
         $("ai-panel").style.display = "";
         $("ai-output").textContent = JSON.stringify(snap, null, 2);
       } catch (e) {
-        alert((e && e.message) || "Errore snapshot AI cantina");
+        alert((e && e.message) || t("error_generic"));
       }
     });
     $("wine-form").addEventListener("submit", async function (e) {
@@ -176,5 +195,24 @@
       resetForm();
       await load();
     });
+    window.addEventListener("i18n:updated", function () {
+      render();
+      var id = $("wine-id").value;
+      $("form-title").textContent = id ? t("cantina_form_edit") : t("cantina_form_new");
+    });
+  }
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    bindEvents();
+    load();
+  }
+
+  document.addEventListener("rw:auth-ready", boot, { once: true });
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(function () {
+      if (!booted && !document.getElementById("rw-auth-overlay")) boot();
+    }, 500);
   });
 })();

@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>CONTROLLO TOTALE – Login</title>
+  <title data-i18n="login_title">CONTROLLO TOTALE – Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="login.css" />
 </head>
@@ -13,17 +13,18 @@
         <div class="brand-logo">RW</div>
         <div>
           <h1>CONTROLLO TOTALE</h1>
-          <p class="subtitle">Accesso sistema</p>
+          <p class="subtitle" data-i18n="login_subtitle">Accesso sistema</p>
         </div>
       </div>
 
       <form id="login-form" class="login-form" autocomplete="off">
         <div class="field">
-          <label for="username">Utente</label>
+          <label for="username" data-i18n="login_user">Utente</label>
           <input
             type="text"
             id="username"
             name="username"
+            data-i18n-placeholder="login_user_placeholder"
             placeholder="Es. risto_owner"
             autocomplete="off"
             autocorrect="off"
@@ -34,11 +35,12 @@
         </div>
 
         <div class="field">
-          <label for="password">Password</label>
+          <label for="password" data-i18n="login_password">Password</label>
           <input
             type="password"
             id="password"
             name="password"
+            data-i18n-placeholder="login_password_placeholder"
             placeholder="Inserisci password"
             autocomplete="new-password"
             required
@@ -46,7 +48,7 @@
         </div>
 
         <div class="field">
-          <label for="role">Ruolo</label>
+          <label for="role" data-i18n="login_role">Ruolo</label>
           <select id="role" name="role">
             <option value="owner">Owner</option>
             <option value="supervisor">Supervisor</option>
@@ -63,18 +65,19 @@
           </select>
         </div>
 
-        <button type="submit" class="btn-login" id="btn-login">
+        <button type="submit" class="btn-login" id="btn-login" data-i18n="login_enter">
           Entra
         </button>
 
         <div id="login-message" class="login-message"></div>
       </form>
       <p style="text-align:center;margin-top:14px;font-size:13px;opacity:0.85">
-        <a href="/dashboard/dashboard.html" style="color:inherit">← Dashboard</a>
+        <a href="/dashboard/dashboard.html" style="color:inherit" data-i18n="dashboard_back">← Dashboard</a>
       </p>
     </div>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script src="login.js"></script>
 </body>
 </html>

@@ -33,6 +33,38 @@ let noteDest     = "cucina";
 
 const MAX_TABLES = 30;
 
+function t(key, vars) {
+  let s = typeof window.rwT === "function" ? window.rwT(key) : key;
+  if (vars) {
+    Object.keys(vars).forEach((k) => {
+      s = s.replace(new RegExp("\\{" + k + "\\}", "g"), String(vars[k]));
+    });
+  }
+  return s;
+}
+
+function tableStatusLabel(stato) {
+  const map = {
+    libero: "sala_status_libero",
+    aperto: "sala_status_aperto",
+    conto: "sala_status_conto",
+    sporco: "sala_status_sporco",
+  };
+  return t(map[stato] || stato);
+}
+
+function refreshSalaI18n() {
+  renderMgmtBar();
+  renderFloor();
+  renderActiveOrders();
+  if (orderTable) updateMenuSectionLabel();
+  if (courses.length) {
+    renderCourseTabs();
+    renderCoursesSummary();
+    updateSendBtn();
+  }
+}
+
 // ============================================================
 //   API HELPERS
 // ============================================================
@@ -132,10 +164,10 @@ function renderKpis() {
 }
 
 function renderMgmtBar() {
-  document.getElementById("mgmt-count").textContent = `${tables.length} tavoli`;
+  document.getElementById("mgmt-count").textContent = `${tables.length} ${t("sala_tables_word")}`;
   const btnLayout = document.getElementById("btn-layout-toggle");
   btnLayout.setAttribute("aria-pressed", String(editLayout));
-  btnLayout.textContent = editLayout ? "⤡ Esci dal layout" : "⤡ Sposta tavoli";
+  btnLayout.textContent = editLayout ? t("sala_exit_layout") : t("sala_move_tables");
   btnLayout.classList.toggle("btn", true);
   btnLayout.classList.toggle("ghost", true);
   if (editLayout) {
@@ -161,11 +193,11 @@ function courseChipClass(st, isActive) {
 }
 
 function courseStateLabel(st) {
-  if (st === "servito") return "servito";
-  if (st === "pronto") return "pronto";
-  if (st === "in_preparazione") return "in prep";
-  if (st === "in_attesa") return "in coda";
-  return "attesa turno";
+  if (st === "servito") return t("sala_cs_state_servito");
+  if (st === "pronto") return t("sala_cs_state_pronto");
+  if (st === "in_preparazione") return t("sala_cs_state_in_prep");
+  if (st === "in_attesa") return t("sala_cs_state_queued");
+  return t("sala_cs_state_turn");
 }
 
 function renderActiveOrders() {
@@ -186,7 +218,7 @@ function renderActiveOrders() {
       const isActive = cn === order.activeCourse;
       const cls = courseChipClass(st, isActive);
       const lbl = courseStateLabel(st === "queued" && isActive ? "active" : st);
-      return `<span class="course-badge ${cls}">${cn}° corso <span style="opacity:.7">${lbl}</span></span>`;
+      return `<span class="course-badge ${cls}">${cn}${t("sala_course_degree")} <span style="opacity:.7">${lbl}</span></span>`;
     }).join("");
 
     const isLastCourse = courseNums.indexOf(order.activeCourse) >= courseNums.length - 1;
@@ -194,12 +226,12 @@ function renderActiveOrders() {
     return `
       <div class="order-card">
         <div class="order-card-head">
-          <span class="order-table-name">Tav. ${escHtml(String(order.table))}</span>
+          <span class="order-table-name">${t("sala_table_abbr")} ${escHtml(String(order.table))}</span>
           <span class="order-meta">${escHtml(order.waiter || "—")} · ${order.covers || "—"}p</span>
         </div>
         <div class="course-badges">${badgesHtml}</div>
         <button class="marcia-btn" data-order-id="${escHtml(order.id)}" ${isLastCourse ? "disabled" : ""}>
-          🚀 Marcia
+          ${t("sala_marcia")}
         </button>
       </div>`;
   }).join("");
@@ -239,7 +271,7 @@ async function handleMarcia(order) {
     await loadAll();
   } catch (e) {
     console.error("Errore marcia:", e);
-    showMgmtError("Errore marcia: " + e.message);
+    showMgmtError(t("sala_marcia_error", { msg: e.message }));
   }
 }
 
@@ -255,28 +287,28 @@ function renderFloor() {
   // rimuovi vecchi tavoli
   floor.querySelectorAll(".table-btn").forEach((el) => el.remove());
 
-  tables.forEach((t) => {
+  tables.forEach((table) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = `table-btn forma-${t.forma} stato-${t.stato}`;
-    btn.style.left = `${t.x}%`;
-    btn.style.top  = `${t.y}%`;
-    btn.dataset.id = t.id;
+    btn.className = `table-btn forma-${table.forma} stato-${table.stato}`;
+    btn.style.left = `${table.x}%`;
+    btn.style.top  = `${table.y}%`;
+    btn.dataset.id = table.id;
     if (editLayout) {
-      btn.setAttribute("aria-label", `Trascina il tavolo ${t.nome} per spostarlo.`);
+      btn.setAttribute("aria-label", t("sala_drag_hint", { name: table.nome }));
     } else {
-      const statoLabel = { libero: "Libero", aperto: "Aperto", conto: "Conto", sporco: "Da pulire" }[t.stato] || t.stato;
-      btn.setAttribute("aria-label", `Tavolo ${t.nome}, ${statoLabel}, ${t.posti} posti. Tocca per aprire le azioni.`);
+      const statoLabel = tableStatusLabel(table.stato);
+      btn.setAttribute("aria-label", t("sala_table_aria", { name: table.nome, status: statoLabel, seats: table.posti }));
     }
     btn.innerHTML = `
-      <span class="table-name">${escHtml(t.nome)}</span>
-      <span class="table-posti">${t.posti}p</span>
+      <span class="table-name">${escHtml(table.nome)}</span>
+      <span class="table-posti">${table.posti}p</span>
     `;
 
     if (editLayout) {
-      addDragHandlers(btn, t);
+      addDragHandlers(btn, table);
     } else {
-      btn.addEventListener("click", () => openTableModal(t));
+      btn.addEventListener("click", () => openTableModal(table));
     }
 
     floor.appendChild(btn);
@@ -345,16 +377,16 @@ function clamp(val, min, max) {
 // ============================================================
 //   TABLE ACTIONS MODAL
 // ============================================================
-function openTableModal(t) {
+function openTableModal(table) {
   if (editLayout) return;
-  selectedTable = t;
-  modalCoperti = t.posti;
+  selectedTable = table;
+  modalCoperti = table.posti;
   modalCorsi   = 1;
   noteDest     = "cucina";
 
-  document.getElementById("modal-table-title").textContent = t.nome;
+  document.getElementById("modal-table-title").textContent = table.nome;
   document.getElementById("modal-table-sub").textContent =
-    `${t.posti} posti · stato: ${{ libero: "Libero", aperto: "Aperto", conto: "Conto", sporco: "Da pulire" }[t.stato] || t.stato}`;
+    `${table.posti} ${t("sala_seats")} · ${t("sala_state")}: ${tableStatusLabel(table.stato)}`;
   document.getElementById("val-coperti").textContent = modalCoperti;
   document.getElementById("val-corsi").textContent = modalCorsi;
   hideModalFlash();
@@ -385,46 +417,45 @@ function hideModalFlash() {
 }
 
 async function handleTableAction(actionId) {
-  const t = selectedTable;
-  if (!t) return;
+  const table = selectedTable;
+  if (!table) return;
 
   const ordersForTable = activeOrders.filter((o) =>
-    orderMatchesTable(o, t.nome) && !["chiuso", "annullato"].includes(o.status)
+    orderMatchesTable(o, table.nome) && !["chiuso", "annullato"].includes(o.status)
   );
 
   switch (actionId) {
     case "apri-tavolo":
-      await tablesApi.patchStatus(t.id, "aperto").catch(console.error);
+      await tablesApi.patchStatus(table.id, "aperto").catch(console.error);
       await loadAll();
-      // aggiorna modal sub
       if (selectedTable) {
-        const updated = tables.find((x) => x.id === t.id);
+        const updated = tables.find((x) => x.id === table.id);
         if (updated) {
           selectedTable = updated;
           document.getElementById("modal-table-sub").textContent =
-            `${updated.posti} posti · stato: Aperto`;
+            `${updated.posti} ${t("sala_seats")} · ${t("sala_state")}: ${tableStatusLabel(updated.stato)}`;
         }
       }
-      showModalFlash("Tavolo aperto.");
+      showModalFlash(t("sala_flash_opened"));
       break;
 
     case "tavolo-libero":
-      await tablesApi.patchStatus(t.id, "libero").catch(console.error);
+      await tablesApi.patchStatus(table.id, "libero").catch(console.error);
       await loadAll();
-      showModalFlash("Tavolo libero.");
+      showModalFlash(t("sala_flash_free"));
       break;
 
     case "chiedi-conto":
-      await tablesApi.patchStatus(t.id, "conto").catch(console.error);
+      await tablesApi.patchStatus(table.id, "conto").catch(console.error);
       await loadAll();
-      showModalFlash("Conto richiesto.");
+      showModalFlash(t("sala_flash_bill"));
       break;
 
     case "marcia-portata":
       for (const order of ordersForTable) {
         await handleMarcia(order);
       }
-      showModalFlash("Marcia eseguita.");
+      showModalFlash(t("sala_flash_marcia"));
       break;
 
     case "chiudi-tavolo": {
@@ -437,15 +468,15 @@ async function handleTableAction(actionId) {
           console.error("chiudi ordine", order.id, err);
         }
       }
-      await tablesApi.patchStatus(t.id, "sporco").catch(console.error);
+      await tablesApi.patchStatus(table.id, "sporco").catch(console.error);
       await loadAll();
       if (ordersForTable.length > 0 && closed === 0) {
-        showModalFlash("Errore: ordini non chiusi. Riprova o chiudi dalla Cassa.");
+        showModalFlash(t("sala_flash_close_error"));
       } else {
         showModalFlash(
           closed > 0
-            ? `Tavolo chiuso (${closed} ordini). Da pulire.`
-            : "Tavolo chiuso, da pulire."
+            ? t("sala_flash_closed_orders", { n: closed })
+            : t("sala_flash_closed_dirty")
         );
       }
       break;
@@ -455,14 +486,14 @@ async function handleTableAction(actionId) {
       for (const order of ordersForTable) {
         await ordersApi.patchStatus(order.id, "annullato").catch(console.error);
       }
-      await tablesApi.patchStatus(t.id, "libero").catch(console.error);
+      await tablesApi.patchStatus(table.id, "libero").catch(console.error);
       await loadAll();
-      showModalFlash("Tavolo cancellato.");
+      showModalFlash(t("sala_flash_cancelled"));
       break;
 
     case "prendi-ordine":
       closeTableModal();
-      openOrderModal(t);
+      openOrderModal(table);
       break;
 
     case "menu-casa":
@@ -486,16 +517,16 @@ async function handleTableAction(actionId) {
       break;
 
     default:
-      showModalFlash(`Azione «${actionId}» non ancora implementata.`);
+      showModalFlash(t("sala_flash_not_impl", { a: actionId }));
   }
 }
 
 // ============================================================
 //   ORDER MODAL
 // ============================================================
-function openOrderModal(t) {
-  orderTable   = t;
-  orderCovers  = t.posti;
+function openOrderModal(table) {
+  orderTable   = table;
+  orderCovers  = table.posti;
   orderWaiter  = "";
   orderNotes   = "";
   courses      = [{ n: 1, items: [] }];
@@ -505,8 +536,8 @@ function openOrderModal(t) {
   menuCatFilter  = "all";
   sending      = false;
 
-  document.getElementById("modal-order-title").textContent = `Tav. ${t.nome}`;
-  document.getElementById("modal-order-sub").textContent   = `${t.posti} posti`;
+  document.getElementById("modal-order-title").textContent = `${t("sala_table_abbr")} ${table.nome}`;
+  document.getElementById("modal-order-sub").textContent   = `${table.posti} ${t("sala_seats")}`;
   document.getElementById("order-coperti-val").textContent = orderCovers;
   document.getElementById("order-waiter").value  = orderWaiter;
   document.getElementById("order-notes").value   = "";
@@ -545,7 +576,7 @@ async function loadMenuIfNeeded() {
     menuLoaded = true;
     buildCategoryFilter();
   } catch (e) {
-    errEl.textContent = "Errore caricamento menu: " + e.message;
+    errEl.textContent = t("sala_menu_load_error", { msg: e.message });
     errEl.style.display = "block";
   } finally {
     loadEl.style.display = "none";
@@ -556,7 +587,7 @@ async function loadMenuIfNeeded() {
 function buildCategoryFilter() {
   const cats = [...new Set(menuItems.map((i) => i.category).filter(Boolean))];
   const sel = document.getElementById("menu-cat-filter");
-  sel.innerHTML = `<option value="all">Tutte le categorie</option>`;
+  sel.innerHTML = `<option value="all">${escHtml(t("sala_all_categories"))}</option>`;
   cats.forEach((c) => {
     const opt = document.createElement("option");
     opt.value = c;
@@ -590,7 +621,7 @@ function renderMenuGrid() {
   const grid = document.getElementById("menu-grid");
   const items = filteredMenu();
   if (items.length === 0) {
-    grid.innerHTML = `<p class="menu-empty">Nessuna voce menu corrisponde ai filtri.</p>`;
+    grid.innerHTML = `<p class="menu-empty">${escHtml(t("sala_menu_empty"))}</p>`;
     return;
   }
   grid.innerHTML = items.map((item) => {
@@ -681,9 +712,9 @@ function renderCourseTabs() {
     const isActive = c.n === activeCourse;
     const cls = isActive ? "course-tab active" : "course-tab inactive";
     const cnt = c.items.length > 0 ? ` (${c.items.length})` : "";
-    return `<button type="button" class="${cls}" data-cn="${c.n}">${c.n}° corso${escHtml(cnt)}</button>`;
+    return `<button type="button" class="${cls}" data-cn="${c.n}">${c.n}${t("sala_course_degree")}${escHtml(cnt)}</button>`;
   }).join("") +
-    `<button type="button" class="course-tab-add" id="btn-add-course">+ Corso</button>`;
+    `<button type="button" class="course-tab-add" id="btn-add-course">${t("sala_add_course")}</button>`;
 
   container.querySelectorAll(".course-tab[data-cn]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -698,7 +729,7 @@ function renderCourseTabs() {
 
 function updateMenuSectionLabel() {
   document.getElementById("menu-section-label").textContent =
-    `Aggiungi al ${activeCourse}° corso · ${menuItems.length} voci menu`;
+    t("sala_add_to_course", { n: activeCourse, m: menuItems.length });
 }
 
 function renderCoursesSummary() {
@@ -711,7 +742,7 @@ function renderCoursesSummary() {
   container.innerHTML = withItems.map((c) => {
     const isFirst = c.n === 1;
     const titleCls = isFirst ? "cs-active" : "cs-waiting";
-    const stateLabel = isFirst ? "ATTIVO" : "IN ATTESA";
+    const stateLabel = isFirst ? t("sala_course_active") : t("sala_course_waiting");
     const itemsHtml = c.items.map((it) => `
       <div class="course-item-row">
         <div>
@@ -727,7 +758,7 @@ function renderCoursesSummary() {
       </div>`).join("");
     return `
       <div class="course-summary-block">
-        <p class="course-summary-title ${titleCls}">${c.n}° corso — ${stateLabel}</p>
+        <p class="course-summary-title ${titleCls}">${c.n}${t("sala_course_degree")} — ${stateLabel}</p>
         ${itemsHtml}
       </div>`;
   }).join("");
@@ -753,10 +784,11 @@ function updateSendBtn() {
   const icon  = document.getElementById("send-icon");
   if (sending) {
     icon.textContent = "⏳";
-    label.textContent = "Invio in corso…";
+    label.textContent = t("sala_sending");
   } else {
     icon.textContent = "🚀";
-    label.textContent = `Invia comanda (${total} piatti, ${courses.length} ${courses.length === 1 ? "corso" : "corsi"})`;
+    const coursesWord = courses.length === 1 ? t("sala_course_one") : t("sala_courses_many");
+    label.textContent = t("sala_send_order_fmt", { total, n: courses.length, courses: coursesWord });
   }
 }
 
@@ -796,7 +828,7 @@ async function handleSendOrder() {
     closeOrderModal();
     await loadAll();
   } catch (e) {
-    document.getElementById("order-send-error").textContent = e.message || "Invio comanda non riuscito.";
+    document.getElementById("order-send-error").textContent = e.message || t("sala_order_send_error");
     document.getElementById("order-send-error").style.display = "block";
   } finally {
     sending = false;
@@ -849,7 +881,7 @@ async function handleAddTable() {
     });
     await loadAll();
   } catch (e) {
-    showMgmtError("Errore aggiunta tavolo: " + e.message);
+    showMgmtError(t("sala_add_table_error", { msg: e.message }));
   } finally {
     tablesBusy = false;
   }
@@ -865,17 +897,17 @@ async function handleRemoveTable() {
     orderMatchesTable(o, candidate.nome) && !["chiuso", "annullato"].includes(o.status)
   );
   if (ordersOnTable.length > 0) {
-    showMgmtError(`${candidate.nome} ha ordini attivi: chiudili prima di rimuoverlo.`);
+    showMgmtError(t("sala_remove_active_orders", { name: candidate.nome }));
     return;
   }
-  if (!confirm(`Rimuovere ${candidate.nome}? L'azione non si può annullare.`)) return;
+  if (!confirm(t("sala_remove_confirm", { name: candidate.nome }))) return;
 
   tablesBusy = true;
   try {
     await tablesApi.remove(candidate.id);
     await loadAll();
   } catch (e) {
-    showMgmtError("Errore rimozione: " + e.message);
+    showMgmtError(t("sala_remove_error", { msg: e.message }));
   } finally {
     tablesBusy = false;
   }
@@ -984,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-send-note").addEventListener("click", async () => {
     const testo = document.getElementById("note-text").value.trim();
     if (!testo) {
-      showModalFlash("Scrivi una nota prima di inviarla.");
+      showModalFlash(t("sala_flash_note_empty"));
       return;
     }
     try {
@@ -993,10 +1025,10 @@ document.addEventListener("DOMContentLoaded", () => {
         department: noteDest,
         text: testo,
       });
-      showModalFlash(`Nota per ${noteDest}: inviata.`);
+      showModalFlash(t("sala_flash_note_sent", { dest: noteDest }));
       document.getElementById("note-text").value = "";
     } catch (e) {
-      showModalFlash("Errore invio nota: " + e.message);
+      showModalFlash(t("sala_flash_note_error", { msg: e.message }));
     }
   });
 
@@ -1032,6 +1064,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // AVVIO
   loadAll();
+
+  window.addEventListener("i18n:updated", refreshSalaI18n);
 
   // Auto-refresh ogni 30s
   setInterval(loadAll, 30000);

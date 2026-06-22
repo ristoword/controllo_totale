@@ -2,11 +2,20 @@ const cantinaRepository = require("../repositories/cantina.repository");
 const cantinaAiService = require("../service/cantina-ai.service");
 
 exports.list = async (req, res) => {
-  const wines = await cantinaRepository.list({
+  await cantinaRepository.seedIfEmpty();
+  let wines = await cantinaRepository.list({
     q: req.query.q,
     color: req.query.color,
     country: req.query.country,
   });
+  if (!wines.length) {
+    await cantinaRepository.seedIfEmpty();
+    wines = await cantinaRepository.list({
+      q: req.query.q,
+      color: req.query.color,
+      country: req.query.country,
+    });
+  }
   res.json(wines);
 };
 
@@ -46,6 +55,7 @@ exports.adjustStock = async (req, res) => {
 };
 
 exports.aiSnapshot = async (_req, res) => {
+  await cantinaRepository.seedIfEmpty();
   const snapshot = await cantinaAiService.buildSnapshot();
   res.json(snapshot);
 };

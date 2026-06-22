@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>CONTROLLO TOTALE – Situazione del Giorno</title>
+  <title data-i18n="situazione_title">CONTROLLO TOTALE – Situazione del Giorno</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/shared/module-page.css" />
   <link rel="stylesheet" href="/shared/print-layout.css" />
@@ -12,51 +12,56 @@
   <div class="layout">
     <header class="topbar">
       <div class="topbar-left">
-        <h1>CONTROLLO TOTALE – Situazione del Giorno</h1>
-        <p class="subtitle">Briefing operativo con dati live dal gestionale</p>
+        <h1 data-i18n="situazione_title">CONTROLLO TOTALE – Situazione del Giorno</h1>
+        <p class="subtitle" data-i18n="situazione_subtitle">Briefing operativo live · Prenotazioni · Staff · Cucina · Incasso</p>
         <div class="live-badge" id="live-badge">
           <span class="live-dot"></span>
-          Dati live — <span id="live-time">—</span>
+          <span data-i18n="situazione_live_data">Dati live —</span> <span id="live-time">—</span>
         </div>
       </div>
       <div class="topbar-right">
-        <a href="/dashboard/dashboard.html" class="btn ghost">← Dashboard</a>
-        <button class="btn ghost" id="btn-refresh" type="button">Aggiorna</button>
-        <button class="btn primary" id="btn-speak" type="button">Ascolta briefing</button>
-        <button class="btn ghost" id="btn-voice" type="button">🎤 Risto, situazione</button>
+        <a href="/dashboard/dashboard.html" class="btn ghost" data-i18n="dashboard_back">← Dashboard</a>
+        <button class="btn ghost" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
+        <button class="btn primary" id="btn-speak" type="button" data-i18n="situazione_speak">Ascolta briefing</button>
+        <button class="btn ghost" id="btn-voice" type="button" data-i18n="situazione_voice_cmd">🎤 Risto, situazione</button>
       </div>
     </header>
 
     <div class="kpi-row" id="stats-grid">
-      <div class="chip"><span class="chip-label">Prenotazioni</span><span class="chip-value" id="k-bookings">0</span></div>
-      <div class="chip"><span class="chip-label">Coperti previsti</span><span class="chip-value" id="k-covers">0</span></div>
-      <div class="chip"><span class="chip-label">Staff in servizio</span><span class="chip-value" id="k-staff">0</span></div>
-      <div class="chip warn"><span class="chip-label">Ordini in ritardo</span><span class="chip-value" id="k-late">0</span></div>
-      <div class="chip ok"><span class="chip-label">Incasso oggi</span><span class="chip-value" id="k-revenue">€ 0</span></div>
-      <div class="chip warn"><span class="chip-label">Sotto scorta</span><span class="chip-value" id="k-stock">0</span></div>
+      <div class="chip"><span class="chip-label" data-i18n="situazione_bookings">Prenotazioni</span><span class="chip-value" id="k-bookings">0</span></div>
+      <div class="chip"><span class="chip-label" data-i18n="situazione_covers">Coperti previsti</span><span class="chip-value" id="k-covers">0</span></div>
+      <div class="chip"><span class="chip-label" data-i18n="situazione_staff_service">Staff in servizio</span><span class="chip-value" id="k-staff">0</span></div>
+      <div class="chip warn"><span class="chip-label" data-i18n="situazione_late_orders">Ordini in ritardo</span><span class="chip-value" id="k-late">0</span></div>
+      <div class="chip ok"><span class="chip-label" data-i18n="situazione_revenue_today">Incasso oggi</span><span class="chip-value" id="k-revenue">€ 0</span></div>
+      <div class="chip warn"><span class="chip-label" data-i18n="cantina_low_stock">Sotto scorta</span><span class="chip-value" id="k-stock">0</span></div>
     </div>
 
     <main class="main">
       <article class="card">
         <header class="card-header">
-          <h2>Narrativa operativa</h2>
-          <p>Sintesi della giornata in corso</p>
+          <h2 data-i18n="situazione_narrative">Narrativa operativa</h2>
+          <p data-i18n="situazione_narrative_sub">Sintesi della giornata in corso</p>
         </header>
         <div class="card-body">
-          <p class="narrative" id="narrative">Caricamento briefing...</p>
-          <p class="hint">Dati letti in tempo reale dal gestionale — nessun dato demo.</p>
+          <p class="narrative" id="narrative">...</p>
+          <p class="hint" data-i18n="situazione_live_hint">Dati letti in tempo reale dal gestionale — nessun dato demo.</p>
         </div>
       </article>
 
       <div class="two-col">
         <article class="card">
           <header class="card-header">
-            <h2>Prenotazioni oggi</h2>
-            <p>Arrivi previsti e coperti</p>
+            <h2 data-i18n="situazione_bookings_today">Prenotazioni oggi</h2>
+            <p data-i18n="situazione_bookings_sub">Arrivi previsti e coperti</p>
           </header>
           <div class="card-body tbl-wrap">
             <table class="tbl">
-              <thead><tr><th>Ora</th><th>Cliente</th><th>Coperti</th><th>Tavolo</th></tr></thead>
+              <thead><tr>
+                <th data-i18n="situazione_col_time">Ora</th>
+                <th data-i18n="situazione_col_client">Cliente</th>
+                <th data-i18n="situazione_col_covers">Coperti</th>
+                <th data-i18n="situazione_col_table">Tavolo</th>
+              </tr></thead>
               <tbody id="bookings-tbody"></tbody>
             </table>
           </div>
@@ -64,12 +69,16 @@
 
         <article class="card">
           <header class="card-header">
-            <h2>Magazzino critico</h2>
-            <p>Prodotti sotto soglia minima</p>
+            <h2 data-i18n="situazione_warehouse_critical">Magazzino critico</h2>
+            <p data-i18n="situazione_warehouse_sub">Prodotti sotto soglia minima</p>
           </header>
           <div class="card-body tbl-wrap">
             <table class="tbl">
-              <thead><tr><th>Prodotto</th><th>Giacenza</th><th>Soglia</th></tr></thead>
+              <thead><tr>
+                <th data-i18n="situazione_col_product">Prodotto</th>
+                <th data-i18n="situazione_col_stock">Giacenza</th>
+                <th data-i18n="situazione_col_threshold">Soglia</th>
+              </tr></thead>
               <tbody id="stock-tbody"></tbody>
             </table>
           </div>
@@ -77,6 +86,7 @@
       </div>
     </main>
   </div>
+  <script src="/js/i18n.js"></script>
   <script src="situazione-giorno.js"></script>
 </body>
 </html>

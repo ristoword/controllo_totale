@@ -11,15 +11,19 @@ const app = express();
 app.set("trust proxy", 1);
 
 // Ensure default tenant has data (migrate from legacy data/ if needed)
-ensureTenantMigration();
+if (process.env.VERIFY_LOAD_ONLY !== "1") {
+  ensureTenantMigration();
+}
 
 // Startup password resets via env vars CT_RESET_PASS_<userId|USER_username|OWNER_restaurantId>=password
 // Works with both JSON and MySQL persistence.
-try {
-  const { runStartupPasswordResets } = require("./utils/startupPasswordResets");
-  runStartupPasswordResets().catch((e) => console.error("[startup-pass-reset] error:", e.message));
-} catch (e) {
-  console.warn("[startup-pass-reset] skipped:", e.message);
+if (process.env.VERIFY_LOAD_ONLY !== "1") {
+  try {
+    const { runStartupPasswordResets } = require("./utils/startupPasswordResets");
+    runStartupPasswordResets().catch((e) => console.error("[startup-pass-reset] error:", e.message));
+  } catch (e) {
+    console.warn("[startup-pass-reset] skipped:", e.message);
+  }
 }
 
 // Stripe webhook MUST use raw body (signature verification). Mounted before express.json().
@@ -490,8 +494,9 @@ try {
 // CANTINA – /api/cantina
 try {
   const cantinaRouter = require("./routes/cantina.routes");
-  const ROLES_CANTINA = ["owner", "supervisor", "sala", "bar", "cassa"];
+  const ROLES_CANTINA = ["owner", "supervisor", "sala", "bar", "cassa", "magazzino", "pizzeria"];
   app.use("/api/cantina", requireAuth, requireRole(ROLES_CANTINA), cantinaRouter);
+  if (process.env.VERIFY_LOAD_ONLY !== "1") {
   (async () => {
     try {
       const restaurantsRepository = require("./repositories/restaurants.repository");
@@ -512,6 +517,7 @@ try {
       console.warn("[Cantina] seed avvio:", e.message);
     }
   })();
+  }
 } catch (e) {
   console.warn("cantina.routes non trovato:", e.message);
 }
