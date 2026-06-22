@@ -13,6 +13,7 @@
     "migrate:mysql": "node scripts/db-migrate-json-to-mysql.js",
     "db:bootstrap": "node scripts/db-bootstrap.js",
     "db:ensure-tenant-menus": "node scripts/db-ensure-tenant-menus.js",
+    "seed:signatures": "node scripts/db-seed-signatures.js",
     "smoke:hosting": "node scripts/smoke-hosting.js"
   },
   "keywords": [],

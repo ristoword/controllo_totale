@@ -48,16 +48,34 @@ function createCantinaApi(storage) {
     return Array.isArray(raw) ? raw : [];
   }
 
-  async function seedIfEmpty() {
-    const existing = await storage.loadWines();
-    if (Array.isArray(existing) && existing.length > 0) return false;
+  function wineKey(w) {
+    return `${String(w.producer || "").trim()}|${String(w.name || "").trim()}`.toLowerCase();
+  }
 
+  async function seedIfEmpty() {
+    const raw = await storage.loadWines();
+    const list = Array.isArray(raw) ? raw.slice() : [];
     const seed = safeReadJson(SEED_FILE, []);
     if (!Array.isArray(seed) || seed.length === 0) return false;
 
-    const wines = seed.map((s) => normalizeWine(s));
-    await storage.saveWines(wines);
-    return true;
+    if (list.length === 0) {
+      await storage.saveWines(seed.map((s) => normalizeWine(s)));
+      return true;
+    }
+
+    if (list.length >= seed.length) return false;
+
+    const keys = new Set(list.map(wineKey));
+    let added = false;
+    for (const s of seed) {
+      const k = wineKey(s);
+      if (keys.has(k)) continue;
+      list.push(normalizeWine(s));
+      keys.add(k);
+      added = true;
+    }
+    if (added) await storage.saveWines(list);
+    return added;
   }
 
   async function writeAll(list) {

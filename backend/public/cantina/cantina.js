@@ -349,10 +349,15 @@
     load();
   }
 
+  var hasAuthGuard = !!document.querySelector('script[src*="auth-guard"]');
+
   document.addEventListener("rw:auth-ready", boot, { once: true });
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot, { once: true });
-  } else {
-    boot();
+
+  if (!hasAuthGuard) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", boot, { once: true });
+    } else {
+      boot();
+    }
   }
 })();

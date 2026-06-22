@@ -4,10 +4,11 @@
   <meta charset="UTF-8" />
   <title data-i18n="situazione_title">CONTROLLO TOTALE – Situazione del Giorno</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/shared/rw-shell.css" />
   <link rel="stylesheet" href="situazione-giorno.css" />
 </head>
 <body>
-  <div class="layout">
+  <div class="layout rw-layout">
 
     <aside class="sidebar">
       <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Menu">
@@ -18,7 +19,7 @@
         <div class="brand-logo">RW</div>
         <div class="brand-text">
           <div class="brand-title">RistoWord</div>
-          <div class="brand-subtitle" data-i18n="situazione_brand_sub">Situazione operativa</div>
+          <div class="brand-subtitle" data-i18n="rw_tagline">Un tocco, un'azione. Niente stress.</div>
         </div>
       </div>
 
@@ -99,17 +100,33 @@
 
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-    <main class="main">
-      <header class="page-header">
+    <div class="main-col">
+      <header class="app-header">
         <div>
-          <h1 data-i18n="situazione_page_title">Situazione del Giorno</h1>
-          <p class="page-sub" id="live-time" data-i18n="situazione_loading">Caricamento situazione...</p>
+          <p class="greeting-title" id="rw-greeting">Ciao</p>
+          <p class="greeting-date" id="rw-date">—</p>
+        </div>
+        <div class="global-search">
+          <span class="global-search-icon" aria-hidden="true">🔍</span>
+          <input type="search" id="global-search" data-i18n-placeholder="rw_search_placeholder" placeholder="Cerca ovunque: tavolo, cliente, piatto..." />
         </div>
         <div class="header-actions">
           <div id="lang-selector"></div>
-          <button class="btn ghost" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
+          <button class="header-bell" type="button" aria-label="Notifiche">🔔</button>
+          <div class="user-avatar" id="rw-avatar" title="Account">?</div>
         </div>
       </header>
+
+      <main class="main">
+        <header class="situazione-hero">
+          <div class="situazione-hero-text">
+            <h1 data-i18n="situazione_page_title">Situazione del Giorno</h1>
+            <p class="situazione-live" id="live-time" data-i18n="situazione_loading">Caricamento situazione...</p>
+          </div>
+          <div class="situazione-hero-actions">
+            <button class="btn ghost" id="btn-refresh" type="button" data-i18n="refresh">Aggiorna</button>
+          </div>
+        </header>
 
       <section class="tts-bar">
         <button class="tts-btn" id="btn-speak" type="button">
@@ -204,11 +221,14 @@
           </div>
         </article>
       </section>
-    </main>
+      </main>
+    </div>
   </div>
 
   <script src="/js/i18n.js"></script>
   <script src="/shared/sidebar-mobile.js"></script>
-  <script src="situazione-giorno.js?v=20260622"></script>
+  <script src="/shared/rw-shell.js"></script>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,bar,cassa,magazzino,pizzeria,cucina"></script>
+  <script src="situazione-giorno.js?v=20260622b"></script>
 </body>
 </html>

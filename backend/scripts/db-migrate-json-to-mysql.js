@@ -921,6 +921,8 @@ async function runStep(step, dryRun) {
       await migrateTenantModuleData(conn, dryRun, "daily-menu", "daily-menu.json");
     } else if (step === "qr-tables") {
       await migrateTenantModuleData(conn, dryRun, "qr-tables", "qr-tables.json");
+    } else if (step === "sala-tables") {
+      await migrateTenantModuleData(conn, dryRun, "sala_tables", "sala-tables.json");
     } else if (step === "catering-events") {
       await migrateTenantModuleData(conn, dryRun, "catering-events", "catering-events.json");
     } else if (step === "catering-presets") {
@@ -993,6 +995,7 @@ async function main() {
     "recipes",
     "daily-menu",
     "qr-tables",
+    "sala-tables",
     "catering-events",
     "catering-presets",
     "inventory",

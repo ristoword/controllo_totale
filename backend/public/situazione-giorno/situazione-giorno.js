@@ -276,9 +276,25 @@
     setInterval(loadBriefing, 60000);
   }
 
-  if (window.ControlloTotaleI18n && window.ControlloTotaleI18n.whenReady) {
-    window.ControlloTotaleI18n.whenReady().then(init);
-  } else {
-    document.addEventListener("DOMContentLoaded", init);
+  var booted = false;
+
+  function boot() {
+    if (booted) return;
+    booted = true;
+    init();
+  }
+
+  var hasAuthGuard = !!document.querySelector('script[src*="auth-guard"]');
+
+  document.addEventListener("rw:auth-ready", boot, { once: true });
+
+  if (!hasAuthGuard) {
+    if (window.ControlloTotaleI18n && window.ControlloTotaleI18n.whenReady) {
+      window.ControlloTotaleI18n.whenReady().then(boot);
+    } else if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", boot, { once: true });
+    } else {
+      boot();
+    }
   }
 })();
