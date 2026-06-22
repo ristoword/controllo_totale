@@ -1,3 +1,11 @@
 /* Cantina — override minimi */
 .cantina-margin-ok { color: var(--success-text); font-weight: 700; }
 .cantina-margin-low { color: var(--accent); }
+.cantina-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(220, 53, 69, 0.12);
+  color: #ffb4b4;
+  font-size: 13px;
+}

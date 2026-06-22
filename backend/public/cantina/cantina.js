@@ -22,9 +22,42 @@
     return "€ " + Number(n || 0).toFixed(2).replace(".", ",");
   }
 
+  function showError(msg) {
+    var el = $("cantina-load-error");
+    if (!el) return;
+    el.textContent = msg || "Errore caricamento cantina.";
+    el.style.display = msg ? "block" : "none";
+  }
+
+  function applyStatsFromWines() {
+    var active = wines.filter(function (w) { return w.active !== false; });
+    var totalBottles = active.reduce(function (s, w) { return s + (Number(w.stock) || 0); }, 0);
+    var low = active.filter(function (w) {
+      var st = Number(w.stock) || 0;
+      return st > 0 && st <= 3;
+    }).length;
+    var marginSum = 0;
+    var marginN = 0;
+    for (var i = 0; i < active.length; i++) {
+      var sale = Number(active[i].salePrice) || 0;
+      if (sale > 0) {
+        marginSum += margin(active[i]);
+        marginN += 1;
+      }
+    }
+    $("st-total").textContent = String(active.length);
+    $("st-bottles").textContent = String(totalBottles);
+    $("st-low").textContent = String(low);
+    $("st-margin").textContent = String(marginN ? Math.round(marginSum / marginN) : 0) + "%";
+  }
+
   function render() {
     var tbody = $("wines-tbody");
     tbody.innerHTML = "";
+    if (!wines.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:var(--text-muted)">Nessun vino in carta. Clicca «+ Nuovo vino» o Aggiorna.</td></tr>';
+      return;
+    }
     for (var i = 0; i < wines.length; i++) {
       var w = wines[i];
       var tr = document.createElement("tr");
@@ -46,11 +79,15 @@
   }
 
   async function loadStats() {
-    var snap = await api("/api/ai/cantina");
-    $("st-total").textContent = String(snap.summary.total || 0);
-    $("st-bottles").textContent = String(snap.summary.totalBottles || 0);
-    $("st-low").textContent = String(snap.summary.lowStock || 0);
-    $("st-margin").textContent = String(snap.summary.avgMarginPct || 0) + "%";
+    try {
+      var snap = await api("/api/cantina/ai");
+      $("st-total").textContent = String(snap.summary.total || 0);
+      $("st-bottles").textContent = String(snap.summary.totalBottles || 0);
+      $("st-low").textContent = String(snap.summary.lowStock || 0);
+      $("st-margin").textContent = String(snap.summary.avgMarginPct || 0) + "%";
+    } catch (_) {
+      applyStatsFromWines();
+    }
   }
 
   async function loadWines() {
@@ -60,7 +97,9 @@
     if (q) url += "q=" + encodeURIComponent(q) + "&";
     if (color) url += "color=" + encodeURIComponent(color);
     wines = await api(url);
+    if (!Array.isArray(wines)) wines = [];
     render();
+    applyStatsFromWines();
   }
 
   function resetForm() {
@@ -93,7 +132,13 @@
   }
 
   async function load() {
-    await Promise.all([loadWines(), loadStats()]);
+    showError("");
+    try {
+      await loadWines();
+      await loadStats();
+    } catch (e) {
+      showError((e && e.message) || "Impossibile caricare i vini. Accedi al gestionale e riprova.");
+    }
   }
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -104,9 +149,13 @@
     $("btn-new").addEventListener("click", resetForm);
     $("btn-cancel").addEventListener("click", resetForm);
     $("btn-ai").addEventListener("click", async function () {
-      var snap = await api("/api/ai/cantina");
-      $("ai-panel").style.display = "";
-      $("ai-output").textContent = JSON.stringify(snap, null, 2);
+      try {
+        var snap = await api("/api/cantina/ai");
+        $("ai-panel").style.display = "";
+        $("ai-output").textContent = JSON.stringify(snap, null, 2);
+      } catch (e) {
+        alert((e && e.message) || "Errore snapshot AI cantina");
+      }
     });
     $("wine-form").addEventListener("submit", async function (e) {
       e.preventDefault();

@@ -50,6 +50,9 @@ const PROTECTED_PATTERNS = [
   /^\/fornitori\/fornitori\.html$/,
   /^\/haccp\/haccp\.html$/,
   /^\/ai-assistente$/,
+  /^\/cantina$/,
+  /^\/situazione-giorno$/,
+  /^\/risto-comandi$/,
   /^\/turni\/turni\.html$/,
 ];
 

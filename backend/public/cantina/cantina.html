@@ -57,6 +57,7 @@
               </thead>
               <tbody id="wines-tbody"></tbody>
             </table>
+            <p id="cantina-load-error" class="cantina-error" style="display:none" role="alert"></p>
           </div>
         </article>
 
@@ -106,6 +107,7 @@
       </article>
     </main>
   </div>
+  <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,bar,cassa"></script>
   <script src="cantina.js"></script>
 </body>
 </html>

@@ -492,6 +492,26 @@ try {
   const cantinaRouter = require("./routes/cantina.routes");
   const ROLES_CANTINA = ["owner", "supervisor", "sala", "bar", "cassa"];
   app.use("/api/cantina", requireAuth, requireRole(ROLES_CANTINA), cantinaRouter);
+  (async () => {
+    try {
+      const restaurantsRepository = require("./repositories/restaurants.repository");
+      const cantinaRepository = require("./repositories/cantina.repository");
+      const tenantContext = require("./context/tenantContext");
+      let tenantIds = ["default"];
+      const raw = await restaurantsRepository.readRestaurants();
+      const list = Array.isArray(raw?.restaurants) ? raw.restaurants : [];
+      const fromDb = list.map((r) => r.id).filter(Boolean);
+      if (fromDb.length) tenantIds = [...new Set([...tenantIds, ...fromDb])];
+      for (const tid of tenantIds) {
+        await tenantContext.run(tid, async () => {
+          const seeded = await cantinaRepository.seedIfEmpty();
+          if (seeded) console.log(`[Cantina] Seed vini per tenant: ${tid}`);
+        });
+      }
+    } catch (e) {
+      console.warn("[Cantina] seed avvio:", e.message);
+    }
+  })();
 } catch (e) {
   console.warn("cantina.routes non trovato:", e.message);
 }
