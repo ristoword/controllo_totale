@@ -273,8 +273,8 @@ CREATE TABLE IF NOT EXISTS tenant_menus (
 
 -- ---------------------------------------------------------------------------
 -- Payload generico JSON per moduli tenant ancora non modellati a tabelle dedicate
--- (inventory-transfers, stock-movements, order-food-costs, altri step progressivi).
--- Nota: restaurant_id = "__global__" per dati non tenantizzati.
+-- (inventory-transfers, stock-movements, order-food-costs, cantina, altri step progressivi).
+-- Chiavi globali (restaurant_id = "__global__"): partners, reseller-accounts, reseller-sessions, gs-codes-mirror.
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tenant_module_data (
   restaurant_id VARCHAR(64)  NOT NULL,

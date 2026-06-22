@@ -1,8 +1,9 @@
 const { useMysqlPersistence } = require("../config/mysqlPersistence");
 const json = require("./cantina.repository.json");
+const mysql = require("./mysql/cantina.repository.mysql");
 
 function impl() {
-  return json;
+  return useMysqlPersistence() ? mysql : json;
 }
 
 module.exports = {

@@ -46,7 +46,7 @@ async function apiGetDashboard(req, res) {
 }
 
 async function apiGetProfile(req, res) {
-  const partner = resellerService.getPartnerByCode(req.reseller.partnerCode);
+  const partner = await resellerService.getPartnerByCode(req.reseller.partnerCode);
   return res.json({
     ok: true,
     data: {

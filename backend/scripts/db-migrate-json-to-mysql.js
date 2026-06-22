@@ -35,6 +35,9 @@
  *   node scripts/db-migrate-json-to-mysql.js --step=pos-shifts
  *   node scripts/db-migrate-json-to-mysql.js --step=inventory
  *   node scripts/db-migrate-json-to-mysql.js --step=suppliers
+ *   node scripts/db-migrate-json-to-mysql.js --step=cantina
+ *   node scripts/db-migrate-json-to-mysql.js --step=resellers
+ *   node scripts/db-migrate-json-to-mysql.js --step=partners
  *   node scripts/db-migrate-json-to-mysql.js --step=all
  *   node scripts/db-migrate-json-to-mysql.js --step=restaurants --dry-run
  *
@@ -926,6 +929,13 @@ async function runStep(step, dryRun) {
       await migrateTenantModuleData(conn, dryRun, "inventory", "inventory.json");
     } else if (step === "suppliers") {
       await migrateTenantModuleData(conn, dryRun, "suppliers", "suppliers.json");
+    } else if (step === "cantina") {
+      await migrateTenantModuleData(conn, dryRun, "cantina", "cantina.json");
+    } else if (step === "resellers") {
+      await migrateGlobalModuleData(conn, dryRun, "reseller-accounts", "resellers/accounts.json");
+      await migrateGlobalModuleData(conn, dryRun, "reseller-sessions", "resellers/sessions.json");
+    } else if (step === "partners") {
+      await migrateGlobalModuleData(conn, dryRun, "partners", "config/partners.json");
     } else if (step === "gs-codes-mirror") {
       await migrateGlobalModuleData(conn, dryRun, "gs-codes-mirror", "gs-codes-mirror.json");
     } else {
@@ -987,6 +997,9 @@ async function main() {
     "catering-presets",
     "inventory",
     "suppliers",
+    "cantina",
+    "resellers",
+    "partners",
     "gs-codes-mirror",
   ];
   let steps;

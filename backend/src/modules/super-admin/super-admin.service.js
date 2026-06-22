@@ -19,6 +19,7 @@ const gsCodesMirror = require("../../repositories/gsCodesMirror.repository");
 const { pushCodesBatchToGs } = require("../../service/gsMasterSync.service");
 const { DEFAULT_PLAN_SLUG, DEV_VERSION_LABEL } = require("../../constants/productIdentity");
 const bcrypt = require("bcrypt");
+const partnersRepository = require("../../repositories/partners.repository");
 
 const BCRYPT_USER_ROUNDS = 10;
 
@@ -723,27 +724,9 @@ async function apiPostResetUserPassword({ userId, forceMustChange } = {}) {
 
 // ─── Indonesia / Partner Dashboard ───────────────────────────────────────────
 
-const PARTNERS_FILE = path.join(paths.DATA, "config", "partners.json");
-
-function readPartners() {
-  const raw = safeReadJson(PARTNERS_FILE, { partners: [] });
-  return Array.isArray(raw.partners) ? raw.partners : [];
-}
-
-function writePartners(partners) {
-  const dir = path.dirname(PARTNERS_FILE);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(PARTNERS_FILE, JSON.stringify({ partners }, null, 2), "utf8");
-}
-
-function getPartnerByCode(code) {
-  const list = readPartners();
-  return list.find((p) => p.code === code) || null;
-}
-
 async function apiGetIndonesiaDashboard() {
   const partnerCode = "ID-INDO-01";
-  const partner = getPartnerByCode(partnerCode);
+  const partner = await partnersRepository.getByCode(partnerCode);
   if (!partner) return { ok: false, error: "partner_non_trovato" };
 
   const allLicenses = await listAllLicensesDecorated();
@@ -801,7 +784,7 @@ async function apiAssignLicenseToPartner({ restaurantId, partnerCode }) {
   if (!rid) return { ok: false, error: "restaurantId_obbligatorio" };
   if (!partnerCode) return { ok: false, error: "partnerCode_obbligatorio" };
 
-  const partner = getPartnerByCode(partnerCode);
+  const partner = await partnersRepository.getByCode(partnerCode);
   if (!partner) return { ok: false, error: "partner_non_trovato" };
 
   const updated = await licensesRepository.updateLicense({
@@ -835,7 +818,7 @@ async function apiCreateIndonesiaLicense({ restaurantId, plan, days }) {
   await ensureRestaurantExists(rid);
 
   const partnerCode = "ID-INDO-01";
-  const partner = getPartnerByCode(partnerCode);
+  const partner = await partnersRepository.getByCode(partnerCode);
   if (!partner) return { ok: false, error: "partner_indonesia_non_configurato" };
 
   const daysNum = toNumber(days, 30);
@@ -870,7 +853,7 @@ async function apiCreateIndonesiaLicense({ restaurantId, plan, days }) {
 }
 
 async function apiGetPartners() {
-  return { ok: true, partners: readPartners() };
+  return { ok: true, partners: await partnersRepository.readAll() };
 }
 
 async function apiGetOnlineUsers({ thresholdMinutes = 15 } = {}) {
@@ -917,7 +900,7 @@ async function apiGetOnlineUsers({ thresholdMinutes = 15 } = {}) {
 
 async function apiUpdatePartner({ code, updates }) {
   if (!code) return { ok: false, error: "code_obbligatorio" };
-  const partners = readPartners();
+  const partners = await partnersRepository.readAll();
   const idx = partners.findIndex((p) => p.code === code);
   if (idx === -1) return { ok: false, error: "partner_non_trovato" };
 
@@ -926,7 +909,7 @@ async function apiUpdatePartner({ code, updates }) {
     if (updates[k] !== undefined) partners[idx][k] = updates[k];
   }
   partners[idx].updatedAt = nowIso();
-  writePartners(partners);
+  await partnersRepository.writeAll(partners);
   return { ok: true, partner: partners[idx] };
 }
 

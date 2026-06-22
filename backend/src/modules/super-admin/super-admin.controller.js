@@ -303,7 +303,7 @@ exports.apiCreateResellerAccount = async (req, res) => {
 
 exports.apiListResellerAccounts = async (req, res) => {
   const resellerRepository = require("../reseller/reseller.repository");
-  const accounts = resellerRepository.listAccounts();
+  const accounts = await resellerRepository.listAccounts();
   return res.json({ ok: true, accounts });
 };
 

@@ -1,18 +1,5 @@
-const path = require("path");
-const { safeReadJson } = require("../../utils/safeFileIO");
-const paths = require("../../config/paths");
+const partnersRepository = require("../../repositories/partners.repository");
 const licensesRepository = require("../../repositories/licenses.repository");
-
-const PARTNERS_FILE = path.join(paths.DATA, "config", "partners.json");
-
-function readPartners() {
-  return safeReadJson(PARTNERS_FILE, { partners: [] });
-}
-
-function getPartnerByCode(code) {
-  const { partners } = readPartners();
-  return (partners || []).find((p) => p.code === code) || null;
-}
 
 function licenseStatus(lic) {
   if (!lic) return "unknown";
@@ -24,7 +11,7 @@ function licenseStatus(lic) {
 }
 
 async function getDashboard(partnerCode) {
-  const partner = getPartnerByCode(partnerCode);
+  const partner = await partnersRepository.getByCode(partnerCode);
   if (!partner) {
     return { ok: false, error: "Partner non trovato" };
   }
@@ -75,6 +62,10 @@ async function getDashboard(partnerCode) {
       licenses,
     },
   };
+}
+
+async function getPartnerByCode(code) {
+  return partnersRepository.getByCode(code);
 }
 
 module.exports = { getDashboard, getPartnerByCode };

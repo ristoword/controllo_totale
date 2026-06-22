@@ -78,6 +78,27 @@ Con `USE_MYSQL_DATABASE=true`, le API menu leggono/scrivono **`tenant_menus`**. 
 5. **Migrazione dati**: `npm run migrate:mysql -- --step=all` (o step singoli) su copia/staging prima della produzione.
 6. **Cutover**: impostare `USE_MYSQL_DATABASE=true` solo dopo migrazione verificata e smoke test (login, ordini, chiusure).
 
+### Moduli playbook (cantina, reseller, partners)
+
+Con `USE_MYSQL_DATABASE=true`, i dati vivono in **`tenant_module_data`**:
+
+| Modulo | `module_key` | Scope |
+|--------|--------------|--------|
+| Cantina | `cantina` | per tenant (`restaurant_id`) |
+| Account reseller | `reseller-accounts` | globale (`__global__`) |
+| Sessioni reseller | `reseller-sessions` | globale |
+| Partner (Indonesia) | `partners` | globale |
+
+Migrazione (dopo `restaurants` e bootstrap):
+
+```bash
+npm run migrate:mysql -- --step=cantina
+npm run migrate:mysql -- --step=resellers
+npm run migrate:mysql -- --step=partners
+```
+
+Oppure inclusi in `--step=all`. Al primo accesso con cantina vuota, il seed da `data/config/cantina-seed.json` popola i 10 vini anche su MySQL.
+
 ## Comandi (uno per riga)
 
 Entra nella cartella **dove si trovano** `package.json`, `src/` e `scripts/` (nel repo spesso è `…/backend`). **Non** anteporre un altro `backend/` al comando: se lanci `node backend/scripts/…` da lì, Node cercherà `backend/backend/scripts/…` e darà `MODULE_NOT_FOUND`.

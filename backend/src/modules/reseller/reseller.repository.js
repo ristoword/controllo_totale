@@ -1,176 +1,19 @@
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const bcrypt = require("bcrypt");
+const { useMysqlPersistence } = require("../../config/mysqlPersistence");
+const json = require("./reseller.repository.json");
+const mysql = require("./reseller.repository.mysql");
 
-const { safeReadJson, atomicWriteJson } = require("../../utils/safeFileIO");
-const paths = require("../../config/paths");
-
-const BCRYPT_ROUNDS = 10;
-const DATA_DIR = path.join(paths.DATA, "resellers");
-const ACCOUNTS_FILE = path.join(DATA_DIR, "accounts.json");
-const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
-
-function ensureDir() {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function sha256Hex(input) {
-  return crypto.createHash("sha256").update(String(input || ""), "utf8").digest("hex");
-}
-
-function readAccounts() {
-  return safeReadJson(ACCOUNTS_FILE, { accounts: [] });
-}
-
-function writeAccounts(data) {
-  ensureDir();
-  atomicWriteJson(ACCOUNTS_FILE, data);
-}
-
-function readSessions() {
-  return safeReadJson(SESSIONS_FILE, { sessions: [] });
-}
-
-function writeSessions(data) {
-  ensureDir();
-  atomicWriteJson(SESSIONS_FILE, data);
-}
-
-async function createAccount({ username, password, partnerCode, displayName }) {
-  const u = String(username || "").trim().toLowerCase();
-  if (!u || u.length < 3) return { ok: false, error: "Username deve avere almeno 3 caratteri" };
-  const p = String(password || "").trim();
-  if (p.length < 6) return { ok: false, error: "Password deve avere almeno 6 caratteri" };
-  const code = String(partnerCode || "").trim();
-  if (!code) return { ok: false, error: "partnerCode obbligatorio" };
-
-  const raw = readAccounts();
-  const list = Array.isArray(raw.accounts) ? raw.accounts : [];
-  if (list.find((a) => a.username === u)) {
-    return { ok: false, error: "Username già esistente" };
-  }
-
-  const hash = await bcrypt.hash(p, BCRYPT_ROUNDS);
-  const account = {
-    id: crypto.randomUUID ? crypto.randomUUID() : sha256Hex(nowIso() + Math.random()),
-    username: u,
-    passwordHash: hash,
-    partnerCode: code,
-    displayName: String(displayName || code),
-    active: true,
-    createdAt: nowIso(),
-  };
-  list.push(account);
-  writeAccounts({ accounts: list });
-  return { ok: true, account: { id: account.id, username: u, partnerCode: code } };
-}
-
-async function verifyLogin({ username, password }) {
-  const u = String(username || "").trim().toLowerCase();
-  const p = String(password || "").trim();
-  if (!u || !p) return { ok: false, message: "Credenziali obbligatorie" };
-
-  const raw = readAccounts();
-  const list = Array.isArray(raw.accounts) ? raw.accounts : [];
-  const account = list.find((a) => a.username === u && a.active);
-  if (!account) return { ok: false, message: "Credenziali non valide" };
-
-  const match = await bcrypt.compare(p, account.passwordHash);
-  if (!match) return { ok: false, message: "Credenziali non valide" };
-
-  return { ok: true, account: { id: account.id, username: u, partnerCode: account.partnerCode, displayName: account.displayName } };
-}
-
-async function createSessionToken({ accountId, username, partnerCode }) {
-  const token = crypto.randomBytes(32).toString("hex");
-  const tokenHash = sha256Hex(token);
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-  const raw = readSessions();
-  const list = Array.isArray(raw.sessions) ? raw.sessions : [];
-  list.push({ tokenHash, accountId, username, partnerCode, createdAt: nowIso(), lastSeenAt: nowIso(), expiresAt });
-  writeSessions({ sessions: list.slice(-500) });
-  return { token, expiresAt };
-}
-
-async function verifySessionToken(token) {
-  const t = String(token || "").trim();
-  if (!t) return null;
-  const tokenHash = sha256Hex(t);
-  const raw = readSessions();
-  const list = Array.isArray(raw.sessions) ? raw.sessions : [];
-  const hit = list.find((s) => s && s.tokenHash === tokenHash);
-  if (!hit) return null;
-  if (hit.expiresAt && new Date(hit.expiresAt).getTime() < Date.now()) return null;
-  return hit;
-}
-
-async function touchSession(token) {
-  const t = String(token || "").trim();
-  if (!t) return;
-  const tokenHash = sha256Hex(t);
-  const raw = readSessions();
-  const list = Array.isArray(raw.sessions) ? raw.sessions : [];
-  const idx = list.findIndex((s) => s?.tokenHash === tokenHash);
-  if (idx === -1) return;
-  list[idx].lastSeenAt = nowIso();
-  writeSessions({ sessions: list });
-}
-
-async function deleteSessionToken(token) {
-  const t = String(token || "").trim();
-  if (!t) return false;
-  const tokenHash = sha256Hex(t);
-  const raw = readSessions();
-  const list = Array.isArray(raw.sessions) ? raw.sessions : [];
-  const nextList = list.filter((s) => s?.tokenHash !== tokenHash);
-  writeSessions({ sessions: nextList });
-  return nextList.length !== list.length;
-}
-
-function getAccountByPartnerCode(partnerCode) {
-  const raw = readAccounts();
-  const list = Array.isArray(raw.accounts) ? raw.accounts : [];
-  return list.find((a) => a.partnerCode === partnerCode) || null;
-}
-
-function listAccounts() {
-  const raw = readAccounts();
-  const list = Array.isArray(raw.accounts) ? raw.accounts : [];
-  return list.map((a) => ({ id: a.id, username: a.username, partnerCode: a.partnerCode, displayName: a.displayName, active: a.active, createdAt: a.createdAt }));
-}
-
-async function seedFromEnv() {
-  const username = (process.env.RESELLER_SEED_USERNAME || "").trim();
-  const password = (process.env.RESELLER_SEED_PASSWORD || "").trim();
-  const partnerCode = (process.env.RESELLER_SEED_PARTNER_CODE || "").trim();
-  const displayName = (process.env.RESELLER_SEED_DISPLAY_NAME || partnerCode).trim();
-
-  if (!username || !password || !partnerCode) return;
-
-  const raw = readAccounts();
-  const list = Array.isArray(raw.accounts) ? raw.accounts : [];
-  if (list.find((a) => a.username === username.toLowerCase())) return;
-
-  const result = await createAccount({ username, password, partnerCode, displayName });
-  if (result.ok) {
-    console.log(`[Reseller] Account seed creato: ${username} (partner: ${partnerCode})`);
-  }
+function impl() {
+  return useMysqlPersistence() ? mysql : json;
 }
 
 module.exports = {
-  createAccount,
-  verifyLogin,
-  createSessionToken,
-  verifySessionToken,
-  touchSession,
-  deleteSessionToken,
-  getAccountByPartnerCode,
-  listAccounts,
-  seedFromEnv,
+  createAccount: (...a) => impl().createAccount(...a),
+  verifyLogin: (...a) => impl().verifyLogin(...a),
+  createSessionToken: (...a) => impl().createSessionToken(...a),
+  verifySessionToken: (...a) => impl().verifySessionToken(...a),
+  touchSession: (...a) => impl().touchSession(...a),
+  deleteSessionToken: (...a) => impl().deleteSessionToken(...a),
+  getAccountByPartnerCode: (...a) => impl().getAccountByPartnerCode(...a),
+  listAccounts: (...a) => impl().listAccounts(...a),
+  seedFromEnv: (...a) => impl().seedFromEnv(...a),
 };
