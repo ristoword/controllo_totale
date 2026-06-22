@@ -76,4 +76,35 @@
   margin-top: 8px;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .customer-trow {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 10px;
+  }
+
+  .customer-trow.head {
+    display: none;
+  }
+
+  .customer-trow .col-hide-sm {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .customer-trow {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .customer-trow > * {
+    min-width: 0;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }

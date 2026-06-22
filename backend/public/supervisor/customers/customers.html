@@ -9,6 +9,10 @@
 </head>
 
 <body>
+  <button class="hamburger-btn" id="hamburger-btn" aria-label="Menu" type="button">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
   <div class="shell">
 
     <aside class="sidebar">
@@ -148,6 +152,7 @@
 
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor"></script>
   <script src="/shared/api.js"></script>
+  <script src="/shared/sidebar-mobile.js"></script>
   <script src="customers.js"></script>
   <link rel="stylesheet" href="/shared/ai-widget.css">
   <script src="/shared/ai-widget.js" data-module="supervisor"></script>

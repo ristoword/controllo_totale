@@ -1,0 +1,164 @@
+/* CONTROLLO TOTALE — base responsive (monitor, tablet, telefono) */
+:root {
+  --bp-xl: 1200px;
+  --bp-lg: 900px;
+  --bp-md: 720px;
+  --bp-sm: 640px;
+  --bp-xs: 480px;
+  --page-gutter: clamp(12px, 2.8vw, 20px);
+  --page-max: 1400px;
+  --touch-min: 44px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+body {
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Contenitori pagina — margini coerenti */
+.layout,
+.shell > .main,
+.main-shell {
+  max-width: var(--page-max);
+}
+
+/* Tabelle: scroll orizzontale su schermi stretti */
+table {
+  max-width: 100%;
+}
+
+.tbl-wrap,
+.table-wrap,
+.customer-table-wrap,
+.scroll-x {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Touch: target minimi e niente zoom iOS su focus */
+@media (pointer: coarse) {
+  .btn,
+  button:not(.no-touch),
+  .side-nav-item,
+  .nav-item,
+  .tab,
+  .action-btn,
+  .table-btn,
+  input[type="submit"],
+  input[type="button"],
+  select {
+    min-height: var(--touch-min);
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .layout {
+    padding-left: var(--page-gutter);
+    padding-right: var(--page-gutter);
+    max-width: 100%;
+  }
+
+  .topbar {
+    gap: 10px;
+  }
+
+  .topbar-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .filter-bar input,
+  .filter-bar select,
+  .filter-bar .btn {
+    flex: 1 1 auto;
+    min-width: min(100%, 160px);
+  }
+
+  .kpi-row,
+  .metrics,
+  .kpi-grid {
+    gap: 8px;
+  }
+}
+
+/* Telefono */
+@media (max-width: 640px) {
+  .topbar-left h1,
+  .topbar h1 {
+    font-size: clamp(16px, 4.5vw, 20px);
+    line-height: 1.25;
+  }
+
+  .subtitle,
+  .sub {
+    font-size: 11px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+    justify-content: stretch;
+  }
+
+  .form-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .chip {
+    min-width: 0;
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  .modal,
+  .modal-content,
+  .modal-wide {
+    width: min(100vw - 24px, 520px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --page-gutter: 10px;
+  }
+
+  .chip {
+    flex: 1 1 100%;
+  }
+
+  .btn.small {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+}

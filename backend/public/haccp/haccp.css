@@ -1,3 +1,5 @@
+@import url("/shared/responsive-base.css");
+
 :root {
   --bg: #13151b;
   --bg-alt: #1b1f27;

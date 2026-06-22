@@ -1,3 +1,5 @@
+@import url("/shared/responsive-base.css");
+
 :root {
   --bg: #0f1118;
   --card: #171a24;

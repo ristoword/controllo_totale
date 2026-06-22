@@ -1,4 +1,6 @@
 /* Turni — Controllo Totale (RISTOSAAS design) */
+@import url("/shared/responsive-base.css");
+
 :root {
   --bg: #050712;
   --bg-alt: #121425;

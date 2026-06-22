@@ -1,4 +1,6 @@
 /* Archivio finanziario e fatture */
+@import url("/shared/responsive-base.css");
+
 :root {
   --bg: #0c0e14;
   --card: #151824;

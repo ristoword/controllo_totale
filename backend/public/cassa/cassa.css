@@ -1,4 +1,6 @@
 /* cassa.css (COMPLETO) */
+@import url("/shared/responsive-base.css");
+
 :root{
   --bg:#0b0d12;
   --bg-alt:#141824;
@@ -35,7 +37,11 @@ body{
   display:flex;
   flex-direction:column;
   min-height:100vh;
-  padding:14px 18px;
+  min-height:100dvh;
+  padding:var(--page-gutter, 14px 18px);
+  max-width:var(--page-max, 1400px);
+  margin:0 auto;
+  width:100%;
 }
 
 /* TOPBAR */

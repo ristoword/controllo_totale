@@ -1,3 +1,5 @@
+@import url("/shared/responsive-base.css");
+
 :root {
   --bg: #15171e;
   --bg-alt: #1c1f29;
@@ -23,7 +25,7 @@ body {
   color: var(--text);
 }
 
-.layout { padding: 16px; max-width: 1400px; margin: 0 auto; }
+.layout { padding: var(--page-gutter, 16px); max-width: var(--page-max, 1400px); margin: 0 auto; width: 100%; }
 
 /* ===== TOPBAR ===== */
 .topbar {
