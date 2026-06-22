@@ -1,6 +1,6 @@
 // backend/src/controllers/sala.controller.js
 const repo = require("../repositories/sala-tables.repository");
-const { broadcastNote } = require("../service/websocket.service");
+const { broadcastNote, broadcastTableConto } = require("../service/websocket.service");
 
 const VALID_STATI = ["libero", "aperto", "conto", "sporco"];
 const DEFAULT_TABLE_COUNT = 10;
@@ -55,6 +55,9 @@ exports.patchStatus = async (req, res) => {
   }
   const updated = await repo.patchStatus(id, stato);
   if (!updated) return res.status(404).json({ error: "Tavolo non trovato" });
+  if (stato === "conto") {
+    broadcastTableConto(updated.id, updated.nome);
+  }
   res.json(updated);
 };
 

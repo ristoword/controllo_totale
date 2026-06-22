@@ -1,6 +1,6 @@
 // Shared async inventory logic: inject loadItems/saveItems (JSON files or MySQL tenant_module_data).
 
-const DEPARTMENTS = ["cucina", "sala", "bar", "proprieta"];
+const DEPARTMENTS = ["cucina", "sala", "bar", "proprieta", "pizzeria", "altro"];
 
 function normalizeItem(item) {
   const stocks = item.stocks && typeof item.stocks === "object" ? { ...item.stocks } : {};
@@ -336,7 +336,7 @@ function createInventoryApi(store) {
     const dest = String(destinationWarehouse || "").trim().toLowerCase();
     const validDestinations = ["central", ...DEPARTMENTS];
     if (!validDestinations.includes(dest)) {
-      return { success: false, error: "Destinazione non valida. Usa: central, cucina, sala, bar, proprieta" };
+      return { success: false, error: "Destinazione non valida. Usa: central, cucina, sala, bar, proprieta, pizzeria, altro" };
     }
     const qty = Number(quantity) || 0;
     if (qty <= 0) return { success: false, error: "Quantità non valida" };

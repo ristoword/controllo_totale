@@ -99,6 +99,7 @@ const ordersApi = {
 
 const menuApi = {
   list: () => api("GET", "/api/menu/active"),
+  dailyActive: () => api("GET", "/api/daily-menu/active"),
 };
 
 // ============================================================
@@ -514,7 +515,7 @@ async function handleTableAction(actionId) {
 
     case "menu-giorno":
       closeTableModal();
-      window.location.href = "/daily-menu/daily-menu.html";
+      openOrderModal(table, "Menu del Giorno");
       break;
 
     case "fuori-menu":
@@ -535,16 +536,16 @@ async function handleTableAction(actionId) {
 // ============================================================
 //   ORDER MODAL
 // ============================================================
-function openOrderModal(table) {
+function openOrderModal(table, initialCatFilter) {
   orderTable   = table;
-  orderCovers  = table.posti;
+  orderCovers  = modalCoperti;
   orderWaiter  = "";
   orderNotes   = "";
-  courses      = [{ n: 1, items: [] }];
+  courses      = Array.from({ length: modalCorsi }, (_, i) => ({ n: i + 1, items: [] }));
   activeCourse = 1;
   menuSearch   = "";
   menuAreaFilter = "all";
-  menuCatFilter  = "all";
+  menuCatFilter  = initialCatFilter || "all";
   sending      = false;
 
   document.getElementById("modal-order-title").textContent = `${t("sala_table_abbr")} ${table.nome}`;
@@ -555,7 +556,7 @@ function openOrderModal(table) {
   document.getElementById("order-send-error").style.display = "none";
   document.getElementById("menu-search").value   = "";
   document.getElementById("menu-area-filter").value = "all";
-  document.getElementById("menu-cat-filter").value  = "all";
+  document.getElementById("menu-cat-filter").value  = menuCatFilter;
 
   document.getElementById("modal-backdrop").style.display = "block";
   document.getElementById("modal-order").style.display = "flex";
@@ -582,8 +583,28 @@ async function loadMenuIfNeeded() {
   loadEl.style.display = "block";
   errEl.style.display  = "none";
   try {
-    const items = await menuApi.list();
+    const [items, dailyData] = await Promise.all([
+      menuApi.list(),
+      menuApi.dailyActive().catch(() => ({ menuActive: false, dishes: [] })),
+    ]);
     menuItems = Array.isArray(items) ? items.filter((i) => i.active !== false) : [];
+
+    if (dailyData && dailyData.menuActive && Array.isArray(dailyData.dishes)) {
+      const dailyItems = dailyData.dishes.map((d) => ({
+        id: "daily-" + d.id,
+        name: d.name,
+        price: d.price || 0,
+        area: "cucina",
+        category: "Menu del Giorno",
+        active: true,
+        isDaily: true,
+        description: d.description || "",
+        allergens: d.allergens || "",
+        dailyCategory: d.category || "",
+      }));
+      menuItems = menuItems.concat(dailyItems);
+    }
+
     menuLoaded = true;
     buildCategoryFilter();
   } catch (e) {
@@ -605,6 +626,7 @@ function buildCategoryFilter() {
     opt.textContent = c;
     sel.appendChild(opt);
   });
+  if (menuCatFilter !== "all") sel.value = menuCatFilter;
 }
 
 function filteredMenu() {
@@ -637,12 +659,17 @@ function renderMenuGrid() {
   }
   grid.innerHTML = items.map((item) => {
     const area = (item.area || "cucina").toLowerCase();
+    const dailyCls = item.isDaily ? " menu-item-daily" : "";
+    const dailyBadge = item.isDaily
+      ? `<span class="area-badge area-daily">📅 del giorno</span>`
+      : "";
     return `
-      <button type="button" class="menu-item-btn" data-item-id="${escHtml(String(item.id))}">
+      <button type="button" class="menu-item-btn${dailyCls}" data-item-id="${escHtml(String(item.id))}">
         <span class="menu-item-name">${escHtml(item.name)}</span>
         <div class="menu-item-meta">
           <span class="menu-item-price">€${Number(item.price || 0).toFixed(2)}</span>
           ${areaBadge(area)}
+          ${dailyBadge}
         </div>
       </button>`;
   }).join("");

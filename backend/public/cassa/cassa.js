@@ -29,6 +29,29 @@ let inventoryLastFetchAt = 0;
 //   UTILITÀ
 // =============================
 
+function showCassaToast(message, duration = 6000) {
+  let container = document.getElementById("cassa-toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "cassa-toast-container";
+    container.style.cssText =
+      "position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;";
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement("div");
+  toast.style.cssText =
+    "background:#1e293b;color:#f8fafc;padding:12px 20px;border-radius:8px;font-size:14px;" +
+    "box-shadow:0 4px 12px rgba(0,0,0,.3);border-left:4px solid #f59e0b;pointer-events:auto;" +
+    "max-width:400px;word-break:break-word;";
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity .3s ease";
+    setTimeout(() => toast.remove(), 350);
+  }, duration);
+}
+
 function toMoney(val) {
   const n = Number(val) || 0;
   return "€ " + n.toFixed(2);
@@ -316,9 +339,9 @@ function getCurrentBillData() {
   if (discountAmount < 0) discountAmount = 0;
   if (discountAmount > baseAfterVoids) discountAmount = baseAfterVoids;
 
-  const subtotal = baseAfterVoids - discountAmount;
-  const vatAmount = subtotal * (vatPerc / 100);
-  const finalTotal = subtotal + vatAmount;
+  const finalTotal = baseAfterVoids - discountAmount;
+  const subtotal = vatPerc > 0 ? finalTotal / (1 + vatPerc / 100) : finalTotal;
+  const vatAmount = finalTotal - subtotal;
 
   return {
     totalSim: round2(totalSim),
@@ -355,10 +378,10 @@ function buildTableBillPlainText() {
     }
   }
   lines.push("");
-  lines.push(`Subtotale:      ${toMoney(bill.subtotal)}`);
   if (bill.discountAmount > 0) lines.push(`Sconti:         ${toMoney(bill.discountAmount)}`);
+  lines.push(`TOTALE:         ${toMoney(bill.finalTotal)}`);
+  lines.push(`Imponibile:     ${toMoney(bill.subtotal)}`);
   lines.push(`IVA (${bill.vatPerc}%):   ${toMoney(bill.vatAmount)}`);
-  lines.push(`TOTALE FINALE:  ${toMoney(bill.finalTotal)}`);
   lines.push("");
   lines.push("Scontrino non fiscale — CONTROLLO TOTALE");
   return lines.join("\n");
@@ -1844,9 +1867,11 @@ function renderInvoiceModal() {
   }
 
   const bill = getCurrentBillData();
-  subEl.textContent = toMoney(lines.reduce((acc, l) => acc + l.unitPrice * l.qty, 0));
-  vatEl.textContent = toMoney(bill.vatAmount);
-  totEl.textContent = toMoney((lines.reduce((acc, l) => acc + l.unitPrice * l.qty, 0)) + bill.vatAmount);
+  const invoiceTotal = lines.reduce((acc, l) => acc + l.unitPrice * l.qty, 0);
+  const invoiceImponibile = bill.vatPerc > 0 ? invoiceTotal / (1 + bill.vatPerc / 100) : invoiceTotal;
+  subEl.textContent = toMoney(invoiceImponibile);
+  vatEl.textContent = toMoney(invoiceTotal - invoiceImponibile);
+  totEl.textContent = toMoney(invoiceTotal);
 }
 
 function buildInvoicePrintHTML(invNumber, dateISO) {
@@ -1862,9 +1887,9 @@ function buildInvoicePrintHTML(invNumber, dateISO) {
   const lines = buildInvoiceFromSelectedTable();
   const bill = getCurrentBillData();
 
-  const subtotal = lines.reduce((acc, l) => acc + l.unitPrice * l.qty, 0);
-  const vatAmount = bill.vatAmount;
-  const total = subtotal + vatAmount;
+  const total = lines.reduce((acc, l) => acc + l.unitPrice * l.qty, 0);
+  const subtotal = bill.vatPerc > 0 ? total / (1 + bill.vatPerc / 100) : total;
+  const vatAmount = total - subtotal;
 
   const rows = lines
     .map(
@@ -1936,9 +1961,9 @@ function buildInvoicePlainText(invNumber, dateISO) {
 
   const lines = buildInvoiceFromSelectedTable();
   const bill = getCurrentBillData();
-  const subtotal = lines.reduce((acc, l) => acc + l.unitPrice * l.qty, 0);
-  const vatAmount = bill.vatAmount;
-  const total = subtotal + vatAmount;
+  const total = lines.reduce((acc, l) => acc + l.unitPrice * l.qty, 0);
+  const subtotal = bill.vatPerc > 0 ? total / (1 + bill.vatPerc / 100) : total;
+  const vatAmount = total - subtotal;
 
   const out = [];
   out.push(`FATTURA ${invNumber}`);
@@ -2473,8 +2498,23 @@ function setupTools() {
     const name = String(opt.textContent || "").split("•")[0].trim();
 
     const arr = loadVoids(selectedTable);
-    arr.push({ key, name, unitPrice, qty, reason, note, ts: Date.now() });
+    const voidEntry = { key, name, unitPrice, qty, reason, note, ts: Date.now() };
+    arr.push(voidEntry);
     saveVoids(selectedTable, arr);
+
+    fetch("/api/storni", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        entry_date: new Date().toISOString(),
+        amount: round2(unitPrice * qty),
+        reason: reason,
+        table_ref: String(selectedTable),
+        order_ref: key,
+        note: note || "",
+      }),
+    }).catch(() => {});
 
     closeModal("modal-void");
     renderBillDetail();
@@ -2923,6 +2963,11 @@ document.addEventListener("DOMContentLoaded", () => {
       renderBillDetail();
       renderReportBox();
     }
+  });
+
+  window.addEventListener("rw:table-conto", (ev) => {
+    const name = ev.detail?.tableNum || ev.detail?.table || "?";
+    showCassaToast(`Tavolo ${name} ha chiesto il conto`);
   });
 
   setupBillInteractions();

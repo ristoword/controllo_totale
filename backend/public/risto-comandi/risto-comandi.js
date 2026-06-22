@@ -133,4 +133,6 @@
   } else {
     document.addEventListener("DOMContentLoaded", init);
   }
+
+  document.addEventListener("rw:auth-ready", init, { once: true });
 })();

@@ -82,10 +82,46 @@
     el.style.display = msg ? "block" : "none";
   }
 
-  function updateBadges() {
-    var active = wines.filter(function (w) {
+  function marginPct(w) {
+    var sale = Number(w.salePrice) || 0;
+    var buy = Number(w.purchasePrice) || 0;
+    if (sale <= 0) return 0;
+    return Math.round(((sale - buy) / sale) * 100);
+  }
+
+  function marginClass(pct) {
+    if (pct >= 50) return "high";
+    if (pct >= 30) return "mid";
+    return "low";
+  }
+
+  function activeWines() {
+    return wines.filter(function (w) {
       return w.active !== false;
     });
+  }
+
+  function updateKpis() {
+    var active = activeWines();
+    var margins = active.map(marginPct);
+    var avgMargin = margins.length
+      ? Math.round(margins.reduce(function (s, m) { return s + m; }, 0) / margins.length)
+      : 0;
+    var stockValue = active.reduce(function (s, w) {
+      return s + (Number(w.stock) || 0) * (Number(w.salePrice) || 0);
+    }, 0);
+    var lowStock = active.filter(function (w) {
+      return (Number(w.stock) || 0) <= 2;
+    }).length;
+
+    if ($("kpi-total")) $("kpi-total").textContent = String(active.length);
+    if ($("kpi-margin")) $("kpi-margin").textContent = avgMargin + "%";
+    if ($("kpi-value")) $("kpi-value").textContent = euro(stockValue);
+    if ($("kpi-low")) $("kpi-low").textContent = String(lowStock);
+  }
+
+  function updateBadges() {
+    var active = activeWines();
     $("badge-total").textContent = String(active.length);
     $("badge-red").textContent = String(
       active.filter(function (w) {
@@ -97,12 +133,99 @@
         return w.color === "bianco";
       }).length
     );
+    updateKpis();
+  }
+
+  function renderAiSnapshot(snap) {
+    var s = (snap && snap.summary) || {};
+    var html =
+      '<div class="ai-insight-grid">' +
+      '<div class="ai-insight-stat"><span>' +
+      esc(t("cantina_wines_in_list")) +
+      '</span><strong>' +
+      esc(s.total || 0) +
+      "</strong></div>" +
+      '<div class="ai-insight-stat"><span>' +
+      esc(t("cantina_avg_margin")) +
+      '</span><strong>' +
+      esc((s.avgMarginPct || 0) + "%") +
+      "</strong></div>" +
+      '<div class="ai-insight-stat"><span>' +
+      esc(t("cantina_bottles")) +
+      '</span><strong>' +
+      esc(s.totalBottles || 0) +
+      "</strong></div>" +
+      '<div class="ai-insight-stat"><span>' +
+      esc(t("cantina_low_stock")) +
+      '</span><strong>' +
+      esc(s.lowStock || 0) +
+      "</strong></div>" +
+      "</div>";
+
+    if (snap.topMargins && snap.topMargins.length) {
+      html +=
+        '<div class="ai-insight-section"><h3>' +
+        esc(t("ai_dept_cantina_ai_cap_4")) +
+        '</h3><ul class="ai-insight-list">';
+      snap.topMargins.forEach(function (w) {
+        html +=
+          "<li><strong>" +
+          esc(w.producer ? w.producer + " – " + w.name : w.name) +
+          "</strong> · " +
+          esc(w.marginPct + "%") +
+          " · " +
+          esc(w.stock) +
+          " " +
+          esc(t("cantina_bottle_many")) +
+          "</li>";
+      });
+      html += "</ul></div>";
+    }
+
+    if (snap.lowStock && snap.lowStock.length) {
+      html +=
+        '<div class="ai-insight-section"><h3>' +
+        esc(t("ai_dept_cantina_ai_cap_1")) +
+        '</h3><ul class="ai-insight-list">';
+      snap.lowStock.forEach(function (w) {
+        html +=
+          "<li><strong>" +
+          esc(w.name) +
+          "</strong> · " +
+          esc(w.stock) +
+          " " +
+          esc(t("cantina_bottle_many")) +
+          "</li>";
+      });
+      html += "</ul></div>";
+    }
+
+    if (snap.pricingSuggestions && snap.pricingSuggestions.length) {
+      html +=
+        '<div class="ai-insight-section"><h3>' +
+        esc(t("ai_dept_cantina_ai_cap_3")) +
+        '</h3><ul class="ai-insight-list">';
+      snap.pricingSuggestions.forEach(function (w) {
+        html +=
+          "<li><strong>" +
+          esc(w.name) +
+          "</strong> · " +
+          esc(w.currentMargin + "%") +
+          " — " +
+          esc(w.suggestion) +
+          "</li>";
+      });
+      html += "</ul></div>";
+    }
+
+    return html;
   }
 
   function renderCard(w) {
     var origin = [w.producer, w.region, w.country].filter(Boolean).join(" · ");
     var stock = Number(w.stock) || 0;
     var bottlesLabel = stock === 1 ? t("cantina_bottle_one") : t("cantina_bottle_many");
+    var margin = marginPct(w);
     var buyHtml =
       showBuyPrices && w.purchasePrice
         ? '<div class="wine-buy-price">' + esc(t("cantina_buy_price")) + ": " + esc(euro(w.purchasePrice)) + "</div>"
@@ -167,6 +290,13 @@
       '<div class="wine-price">' +
       esc(euro(w.salePrice)) +
       "</div>" +
+      '<span class="margin-badge ' +
+      marginClass(margin) +
+      '">' +
+      esc(t("cantina_col_margin")) +
+      " " +
+      esc(margin + "%") +
+      "</span>" +
       buyHtml +
       "</div>" +
       '<div class="wine-stock">🍾 ' +
@@ -195,6 +325,7 @@
     if (!wines.length) {
       grid.innerHTML = '<p class="empty-grid">' + esc(t("cantina_empty")) + "</p>";
       updateBadges();
+      updateKpis();
       return;
     }
     grid.innerHTML = wines.map(renderCard).join("");
@@ -209,6 +340,7 @@
       });
     });
     updateBadges();
+    updateKpis();
   }
 
   function openModal() {
@@ -303,7 +435,7 @@
       try {
         var snap = await api("/api/cantina/ai");
         $("ai-panel").style.display = "";
-        $("ai-output").textContent = JSON.stringify(snap, null, 2);
+        $("ai-output").innerHTML = renderAiSnapshot(snap);
       } catch (e) {
         alert((e && e.message) || t("error_generic"));
       }

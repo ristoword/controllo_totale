@@ -190,10 +190,21 @@ function broadcastNote(note) {
   });
 }
 
+function broadcastTableConto(tableId, tableNum) {
+  if (!wss) return;
+  const payload = JSON.stringify({ type: "table_conto_request", table: tableId, tableNum });
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(payload);
+    }
+  });
+}
+
 module.exports = {
   initWebSocket,
   broadcastOrders,
   broadcastNote,
+  broadcastTableConto,
   broadcastSupervisorSync,
   broadcastSupervisorSyncFromData,
   computeSupervisorStats,

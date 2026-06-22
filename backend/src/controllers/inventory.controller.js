@@ -254,7 +254,7 @@ exports.smartReorder = async (req, res) => {
 //  RECEIVING (direct load)
 // =======================
 
-const VALID_DESTINATIONS = ["central", "cucina", "sala", "bar", "proprieta"];
+const VALID_DESTINATIONS = ["central", "cucina", "sala", "bar", "proprieta", "pizzeria", "altro"];
 const UNITS = ["kg", "lt", "g", "ml", "cl", "l", "unità", "pezzi", "pcs", "casse", "scatole"];
 
 // GET /api/inventory/barcode/:code
@@ -287,7 +287,7 @@ exports.receive = async (req, res) => {
   const dest = String(destinationWarehouse || "").trim().toLowerCase();
   if (!dest || !VALID_DESTINATIONS.includes(dest)) {
     return res.status(400).json({
-      error: "destinationWarehouse obbligatorio (central, cucina, sala, bar, proprieta)",
+      error: "destinationWarehouse obbligatorio (central, cucina, sala, bar, proprieta, pizzeria, altro)",
     });
   }
 

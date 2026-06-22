@@ -35,6 +35,11 @@
             new CustomEvent("rw:sala-note", { detail: data })
           );
         }
+        if (data.type === "table_conto_request") {
+          window.dispatchEvent(
+            new CustomEvent("rw:table-conto", { detail: { table: data.table, tableNum: data.tableNum } })
+          );
+        }
         if (data.type === "supervisor_sync") {
           window.dispatchEvent(
             new CustomEvent("rw:supervisor-sync", {

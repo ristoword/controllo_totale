@@ -218,6 +218,7 @@
   "cantina_bottles": "Bottles",
   "cantina_low_stock": "Low stock",
   "cantina_avg_margin": "Average margin",
+  "cantina_stock_value": "Cellar value",
   "cantina_search_placeholder": "Search wine, producer...",
   "cantina_all_colors": "All colors",
   "cantina_new_wine": "+ New wine",

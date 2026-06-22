@@ -5,7 +5,7 @@
   <title data-i18n="cantina_title">CONTROLLO TOTALE – Cantina</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/shared/rw-shell.css" />
-  <link rel="stylesheet" href="cantina.css" />
+  <link rel="stylesheet" href="/cantina/cantina.css" />
 </head>
 <body>
   <div class="layout rw-layout">
@@ -49,6 +49,25 @@
           </div>
         </header>
 
+        <section class="kpi-row" aria-label="KPI Cantina">
+          <article class="kpi-card">
+            <div class="kpi-label" data-i18n="cantina_wines_in_list">Vini in carta</div>
+            <div class="kpi-value" id="kpi-total">0</div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-label" data-i18n="cantina_avg_margin">Margine medio</div>
+            <div class="kpi-value" id="kpi-margin">0%</div>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-label" data-i18n="cantina_stock_value">Valore cantina</div>
+            <div class="kpi-value" id="kpi-value">€ 0</div>
+          </article>
+          <article class="kpi-card kpi-warn">
+            <div class="kpi-label" data-i18n="cantina_low_stock">Sotto scorta</div>
+            <div class="kpi-value" id="kpi-low">0</div>
+          </article>
+        </section>
+
         <div class="filter-bar">
           <div class="filter-search">
             <span aria-hidden="true">🔍</span>
@@ -75,7 +94,7 @@
             <h2 data-i18n="cantina_ai_insight">AI Cantina – Insight</h2>
             <button class="btn ghost" id="btn-ai-close" type="button" data-i18n="close">Chiudi</button>
           </header>
-          <pre id="ai-output" class="ai-output"></pre>
+          <div id="ai-output" class="ai-output"></div>
         </article>
       </main>
     </div>
@@ -124,6 +143,6 @@
   <script src="/shared/rw-shell.js"></script>
   <script src="/shared/auth-guard.js" data-allowed-roles="owner,supervisor,sala,bar,cassa,magazzino,pizzeria,cucina"></script>
   <script src="/shared/sidebar-nav.js"></script>
-  <script src="cantina.js?v=20260622c"></script>
+  <script src="/cantina/cantina.js?v=20260622d"></script>
 </body>
 </html>

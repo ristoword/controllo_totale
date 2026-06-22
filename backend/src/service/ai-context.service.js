@@ -22,7 +22,7 @@ function isSameDay(d1, d2) {
   );
 }
 
-const DEPARTMENTS = ["cucina", "sala", "bar", "proprieta"];
+const DEPARTMENTS = ["cucina", "sala", "bar", "proprieta", "pizzeria", "altro"];
 
 /**
  * Gather all relevant operational data for a user question.

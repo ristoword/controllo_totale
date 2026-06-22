@@ -909,6 +909,8 @@ html, body {
 .area-pizzeria { background: rgba(234,179,8,.15);  color: #facc15; }
 .area-bar      { background: rgba(14,165,233,.15); color: #38bdf8; }
 .area-sala     { background: var(--surface-alt); color: var(--muted); }
+.area-daily    { background: rgba(168,85,247,.15); color: #c084fc; }
+.menu-item-daily { border: 1.5px solid rgba(168,85,247,.35); background: rgba(168,85,247,.06); }
 
 .menu-empty {
   grid-column: 1/-1;
